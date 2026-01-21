@@ -12,12 +12,16 @@
   "dependencies": {
     "@google/genai": "^1.38.0",
     "@google/generative-ai": "^0.24.1",
+    "@tailwindcss/cli": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18",
     "bootstrap": "^5.3.8",
     "framer-motion": "^12.28.1",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.12.0",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

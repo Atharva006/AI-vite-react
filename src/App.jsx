@@ -13,13 +13,13 @@ import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import "./App.css";
 
-// 🔴 YOUR API KEY
-const API_KEY = "AIzaSyBxOoJ9w2wD0OIzz0ypvzcdio5Ki0inuHw";
+// 🔴 YOUR API KEY (Ensure this is in your .env.local file as VITE_GEMINI_API_KEY)
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 // --- LANDING PAGE COMPONENT ---
 const LandingPage = ({ onStart }) => {
   return (
-    <div className="min-h-screen text-slate-100 font-display">
+    <div className="min-h-screen text-slate-100 font-display bg-background-dark">
       {/* Sticky Navigation */}
       <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background-dark/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -34,22 +34,13 @@ const LandingPage = ({ onStart }) => {
             </span>
           </div>
           <div className="hidden md:flex items-center gap-10">
-            <a
-              className="text-sm font-medium hover:text-primary transition-colors"
-              href="#"
-            >
+            <a className="text-sm font-medium hover:text-primary transition-colors cursor-pointer">
               Platform
             </a>
-            <a
-              className="text-sm font-medium hover:text-primary transition-colors"
-              href="#"
-            >
+            <a className="text-sm font-medium hover:text-primary transition-colors cursor-pointer">
               Solutions
             </a>
-            <a
-              className="text-sm font-medium hover:text-primary transition-colors"
-              href="#"
-            >
+            <a className="text-sm font-medium hover:text-primary transition-colors cursor-pointer">
               Resources
             </a>
           </div>
@@ -103,21 +94,16 @@ const LandingPage = ({ onStart }) => {
             </div>
             <div className="flex items-center gap-6 pt-4">
               <div className="flex -space-x-3">
-                <img
-                  className="w-10 h-10 rounded-full border-2 border-background-dark object-cover"
-                  src="https://randomuser.me/api/portraits/men/32.jpg"
-                  alt="User"
-                />
-                <img
-                  className="w-10 h-10 rounded-full border-2 border-background-dark object-cover"
-                  src="https://randomuser.me/api/portraits/women/44.jpg"
-                  alt="User"
-                />
-                <img
-                  className="w-10 h-10 rounded-full border-2 border-background-dark object-cover"
-                  src="https://randomuser.me/api/portraits/men/86.jpg"
-                  alt="User"
-                />
+                {/* Placeholders for avatars */}
+                <div className="w-10 h-10 rounded-full border-2 border-background-dark bg-slate-700 flex items-center justify-center text-xs">
+                  U1
+                </div>
+                <div className="w-10 h-10 rounded-full border-2 border-background-dark bg-slate-600 flex items-center justify-center text-xs">
+                  U2
+                </div>
+                <div className="w-10 h-10 rounded-full border-2 border-background-dark bg-slate-500 flex items-center justify-center text-xs">
+                  U3
+                </div>
               </div>
               <p className="text-sm text-slate-500 font-medium">
                 Trusted by 12,000+ early professionals
@@ -226,10 +212,10 @@ const LandingPage = ({ onStart }) => {
             © 2026 CareerAI Intelligence Inc. All rights reserved.
           </p>
           <div className="flex gap-8 text-xs text-slate-600">
-            <a className="hover:text-white transition-colors" href="#">
+            <a className="hover:text-white transition-colors cursor-pointer">
               Terms
             </a>
-            <a className="hover:text-white transition-colors" href="#">
+            <a className="hover:text-white transition-colors cursor-pointer">
               Privacy
             </a>
           </div>
@@ -241,7 +227,7 @@ const LandingPage = ({ onStart }) => {
 
 // --- MAIN APP COMPONENT ---
 function App() {
-  const [showLanding, setShowLanding] = useState(true); // Control Landing Page View
+  const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState("chat");
   const [messages, setMessages] = useState([
     {
@@ -255,7 +241,6 @@ function App() {
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -270,9 +255,13 @@ function App() {
     setLoading(true);
 
     try {
+      if (!API_KEY) {
+        throw new Error("API Key not found. Check .env.local file.");
+      }
+
       const genAI = new GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({
-        model: "gemini-3-flash-preview", // Updated to stable model name
+        model: "gemini-3-flash-preview",
       });
 
       let prompt = userMsg.text;
@@ -291,7 +280,6 @@ function App() {
 
       if (isRoadmapRequest) {
         try {
-          // Clean JSON string
           const cleanText = text
             .replace(/```json/g, "")
             .replace(/```/g, "")
@@ -315,7 +303,11 @@ function App() {
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to connect. Please check your API Key.");
+      const errorMessage = err.message.includes("API Key")
+        ? "Missing API Key. Please check .env.local."
+        : "Failed to connect. Please check your network.";
+
+      setError(errorMessage);
       setMessages((prev) => [
         ...prev,
         { role: "model", text: "⚠️ Error connecting to AI." },
@@ -324,32 +316,32 @@ function App() {
     setLoading(false);
   };
 
-  // If showing landing page, render it
   if (showLanding) {
     return <LandingPage onStart={() => setShowLanding(false)} />;
   }
 
-  // Otherwise, render the Main App
   return (
-    <div className="app-container font-display">
-      <div className="background-glow"></div>
+    <div className="flex h-screen bg-background-dark text-slate-100 overflow-hidden font-display">
+      <div className="absolute top-[-100px] left-[-100px] w-[600px] h-[600px] bg-primary blur-[150px] opacity-15 rounded-full pointer-events-none z-0"></div>
 
-      <aside className="sidebar">
-        <div className="logo-area">
-          <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
-            <Sparkles className="text-indigo-400" size={24} />
+      <aside className="w-[280px] bg-white/5 backdrop-blur-2xl border-r border-white/10 flex flex-col p-8 z-10">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="p-2 bg-primary/20 rounded-lg border border-primary/30">
+            <Sparkles className="text-primary" size={24} />
           </div>
-          <h2>CareerAI</h2>
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+            CareerAI
+          </h2>
         </div>
         <nav className="flex flex-col gap-2">
           <button
-            className={`nav-btn ${activeTab === "chat" ? "active" : ""}`}
+            className={`flex items-center gap-3 w-full p-3.5 rounded-xl transition-all ${activeTab === "chat" ? "bg-primary/10 text-primary border-l-4 border-primary" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
             onClick={() => setActiveTab("chat")}
           >
             <MessageSquare size={20} /> Chat Guidance
           </button>
           <button
-            className={`nav-btn ${activeTab === "roadmap" ? "active" : ""}`}
+            className={`flex items-center gap-3 w-full p-3.5 rounded-xl transition-all ${activeTab === "roadmap" ? "bg-primary/10 text-primary border-l-4 border-primary" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
             onClick={() => setActiveTab("roadmap")}
           >
             <Map size={20} /> Career Roadmap
@@ -357,7 +349,7 @@ function App() {
         </nav>
       </aside>
 
-      <main className="main-content">
+      <main className="flex-1 flex flex-col relative z-10 overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === "chat" ? (
             <motion.div
@@ -365,7 +357,7 @@ function App() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="chat-container"
+              className="flex-1 flex flex-col max-w-5xl mx-auto w-full h-full"
             >
               {error && (
                 <div className="m-4 p-3 bg-red-500/10 border border-red-500/20 text-red-200 rounded-lg flex items-center gap-2">
@@ -373,40 +365,48 @@ function App() {
                 </div>
               )}
 
-              <div className="messages-area">
+              <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                 {messages.map((msg, idx) => (
-                  <div key={idx} className={`message ${msg.role}`}>
-                    <div className="avatar">
+                  <div
+                    key={idx}
+                    className={`flex gap-4 max-w-[85%] ${msg.role === "user" ? "ml-auto flex-row-reverse" : ""}`}
+                  >
+                    <div
+                      className={`size-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${msg.role === "user" ? "bg-primary text-white" : "bg-white/5 border border-white/10"}`}
+                    >
                       {msg.role === "user" ? (
-                        <User size={20} className="text-white" />
+                        <User size={20} />
                       ) : (
-                        <Bot size={20} className="text-indigo-400" />
+                        <Bot size={20} className="text-primary" />
                       )}
                     </div>
-                    <div className="bubble">
+                    <div
+                      className={`p-5 rounded-2xl text-base leading-relaxed border ${msg.role === "user" ? "bg-primary text-white border-transparent" : "bg-white/5 border-white/10 backdrop-blur-md"}`}
+                    >
                       <ReactMarkdown>{msg.text}</ReactMarkdown>
                     </div>
                   </div>
                 ))}
 
                 {loading && (
-                  <div className="message model">
-                    <div className="avatar">
-                      <Bot size={20} className="text-indigo-400" />
+                  <div className="flex gap-4 max-w-[85%]">
+                    <div className="size-10 rounded-xl flex items-center justify-center shrink-0 bg-white/5 border border-white/10">
+                      <Bot size={20} className="text-primary" />
                     </div>
-                    <div className="bubble flex gap-2 items-center">
-                      <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
-                      <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></span>
-                      <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></span>
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10 flex gap-2 items-center">
+                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce"></span>
+                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100"></span>
+                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200"></span>
                     </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="input-wrapper">
-                <div className="input-box">
+              <div className="p-8 bg-gradient-to-t from-background-dark to-transparent">
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex items-center shadow-2xl focus-within:border-primary/50 focus-within:shadow-primary/20 transition-all">
                   <input
+                    className="flex-1 bg-transparent border-none text-white px-5 py-3 text-lg focus:ring-0 placeholder-slate-500"
                     type="text"
                     placeholder="Ask about your career goals..."
                     value={input}
@@ -415,7 +415,7 @@ function App() {
                     disabled={loading}
                   />
                   <button
-                    className="send-btn"
+                    className="size-12 bg-primary text-white rounded-xl flex items-center justify-center hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSend}
                     disabled={loading}
                   >
@@ -430,38 +430,42 @@ function App() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="messages-area"
+              className="flex-1 p-8 overflow-y-auto"
             >
               {!roadmap ? (
-                <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
-                  <Map size={64} strokeWidth={1} />
-                  <p>No roadmap generated yet. Ask for one in the Chat!</p>
+                <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-6">
+                  <Map size={64} strokeWidth={1} className="opacity-50" />
+                  <p className="text-lg">
+                    No roadmap generated yet. Ask for one in the Chat!
+                  </p>
                   <button
                     onClick={() => setActiveTab("chat")}
-                    className="px-6 py-2 bg-indigo-600 rounded-full text-white hover:bg-indigo-500 transition-colors"
+                    className="px-6 py-2 bg-primary rounded-full text-white hover:bg-blue-600 transition-colors"
                   >
                     Go to Chat
                   </button>
                 </div>
               ) : (
-                <div className="timeline-container">
-                  <h1 className="text-3xl font-bold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                <div className="max-w-3xl mx-auto">
+                  <h1 className="text-3xl font-bold text-center mb-12 text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
                     {roadmap.title}
                   </h1>
-                  <div className="timeline">
+                  <div className="relative pl-8 border-l-2 border-white/10 space-y-12">
                     {roadmap.steps?.map((step, index) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="timeline-item"
+                        className="relative"
                       >
-                        <div className="timeline-dot"></div>
-                        <div className="timeline-content">
-                          <h4>{step.phase}</h4>
-                          <p>{step.details}</p>
-                        </div>
+                        <div className="absolute -left-[41px] top-0 size-5 rounded-full bg-background-dark border-2 border-primary shadow-[0_0_15px_rgba(19,91,236,0.5)]"></div>
+                        <h4 className="text-xl font-bold text-primary mb-2">
+                          {step.phase}
+                        </h4>
+                        <p className="text-slate-400 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
+                          {step.details}
+                        </p>
                       </motion.div>
                     ))}
                   </div>

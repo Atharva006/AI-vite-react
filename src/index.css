@@ -2,27 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: dark;
-}
-
 body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
   width: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
-  background-color: #0a0a0b; /* Match your dark theme background */
+  background-color: #0a0a0b;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
-  margin: 0;
+  /* Important: This overrides the default 'margin: 0 auto' that breaks layouts */
+  margin: 0; 
   padding: 0;
-  /*DnCX*/
-  display: block; /* Overrides default flex behavior */
 }
