@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useAuth } from "./context/AuthContext";
 import { db } from "./firebase";
+import * as pdfjsLib from "pdfjs-dist";
+import mammoth from "mammoth";
+
+// --- FIRESTORE IMPORTS ---
 import {
   collection,
   addDoc,
@@ -14,7 +18,11 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-// Initialize Gemini safely
+// --- PDF WORKER SETUP (CRITICAL FIX) ---
+// This forces the PDF worker to load from a CDN, preventing "empty text" errors.
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+// --- INITIALIZE GEMINI ---
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
@@ -38,6 +46,248 @@ const SUGGESTIONS = [
   },
 ];
 
+// =========================================================================================
+// COMPONENT: DEEP RESUME ANALYZER
+// =========================================================================================
+/* TODO (shravni ahire): updated the UI and logic of Deep Resume Analyzer on 08-feb-2026 */
+const ResumeAnalyzer = () => {
+  const [file, setFile] = useState(null);
+  const [score, setScore] = useState(null);
+  const [suggestions, setSuggestions] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+
+    if (
+      f.type === "application/pdf" ||
+      f.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      setFile(f);
+    } else {
+      alert("Only PDF or DOCX allowed");
+    }
+  };
+
+  const extractText = async (file) => {
+    try {
+      // 1. Handle PDF
+      if (file.type === "application/pdf") {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+        let text = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map((item) => item.str).join(" ");
+        }
+        return text;
+      }
+
+      // 2. Handle DOCX (Mammoth)
+      const buffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+      return result.value;
+    } catch (error) {
+      console.error("Text Extraction Failed:", error);
+      alert("Could not read file. Please ensure it is a valid PDF or DOCX.");
+      return "";
+    }
+  };
+
+  const analyzeResume = async () => {
+    if (!file || !genAI) {
+      alert("Missing resume or API key");
+      return;
+    }
+
+    setLoading(true);
+    setScore(null);
+    setSuggestions({});
+
+    try {
+      const resumeText = await extractText(file);
+
+      if (!resumeText || resumeText.trim().length < 50) {
+        throw new Error("Resume text is empty or too short.");
+      }
+
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite", // Used stable model to ensure response
+      });
+
+      const prompt = `
+        You are a professional ATS resume evaluator and career advisor.
+
+        Analyze the resume below and return:
+
+        1. Resume Score out of 100 (number only)
+        2. Improvements grouped under EXACTLY these headings:
+           - Content Improvements
+           - Skills Improvements
+           - Experience Improvements
+           - Project Improvements
+           - ATS / Formatting Improvements
+
+        Rules:
+        - Suggestions MUST be strictly based on this resume
+        - Do NOT give generic advice
+        - Be concise and professional
+
+        Resume:
+        """
+        ${resumeText}
+        """
+
+        Return STRICTLY in this format:
+
+        Score: <number>
+
+        Content Improvements:
+        - ...
+
+        Skills Improvements:
+        - ...
+
+        Experience Improvements:
+        - ...
+
+        Project Improvements:
+        - ...
+
+        ATS / Formatting Improvements:
+        - ...
+      `;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+
+      // --- SCORE ---
+      const scoreMatch = text.match(/Score:\s*(\d+)/);
+      setScore(scoreMatch ? Number(scoreMatch[1]) : 0);
+
+      // --- GROUPED IMPROVEMENTS ---
+      const sections = {};
+      let currentSection = "";
+
+      text.split("\n").forEach((line) => {
+        const trimmed = line.trim();
+
+        if (trimmed.endsWith("Improvements:") && !trimmed.startsWith("-")) {
+          currentSection = trimmed.replace(":", "");
+          sections[currentSection] = [];
+        } else if (trimmed.startsWith("-") && currentSection) {
+          const point = trimmed.replace("-", "").trim();
+          if (point.length > 0) {
+            sections[currentSection].push(point);
+          }
+        }
+      });
+
+      setSuggestions(sections);
+    } catch (err) {
+      console.error(err);
+      alert(`Resume analysis failed: ${err.message}`);
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-lg border border-slate-200">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-sm mx-auto">
+          📄
+        </div>
+        <h2 className="text-3xl font-black text-slate-800">
+          Deep Resume Analysis
+        </h2>
+        <p className="text-slate-500 mt-2">
+          Upload your resume (PDF/DOCX) to get an ATS score and specific
+          improvements.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4 items-center">
+        <input
+          type="file"
+          accept=".pdf,.docx"
+          onChange={handleFileChange}
+          className="block w-full text-sm text-slate-500
+            file:mr-4 file:py-2.5 file:px-4
+            file:rounded-full file:border-0
+            file:text-sm file:font-bold
+            file:bg-blue-50 file:text-blue-700
+            hover:file:bg-blue-100 transition-all
+            cursor-pointer
+          "
+        />
+
+        <button
+          onClick={analyzeResume}
+          disabled={loading}
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50"
+        >
+          {loading ? "Analyzing..." : "Analyze Resume"}
+        </button>
+      </div>
+
+      {/* SCORE */}
+      {score !== null && (
+        <div className="mt-10 border-t border-slate-100 pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <span className="font-bold text-slate-700">ATS Score</span>
+            <span
+              className={`text-2xl font-black ${score > 75 ? "text-green-600" : "text-orange-500"}`}
+            >
+              {score}/100
+            </span>
+          </div>
+          <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ${score > 75 ? "bg-green-500" : "bg-orange-400"}`}
+              style={{ width: `${score}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* IMPROVEMENTS */}
+      {Object.keys(suggestions).length > 0 && (
+        <div className="mt-8 space-y-6">
+          {Object.entries(suggestions).map(([section, items]) => (
+            <div
+              key={section}
+              className="bg-slate-50 p-5 rounded-xl border border-slate-100"
+            >
+              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b border-slate-200 pb-2">
+                {section}
+              </h4>
+              <ul className="space-y-2">
+                {items.map((item, i) => (
+                  <li
+                    key={i}
+                    className="text-slate-600 text-sm flex gap-2 items-start"
+                  >
+                    <span className="text-red-500 mt-1">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// =========================================================================================
+// COMPONENT: LENAI (MAIN APP)
+// =========================================================================================
 export const LenAi = () => {
   const { user } = useAuth();
 
@@ -135,7 +385,7 @@ export const LenAi = () => {
   }, [user]);
 
   // =========================================================================================
-  // 2. ACTIONS: CHAT (FIXED - NO MARKDOWN SYMBOLS)
+  // 2. ACTIONS: CHAT
   // =========================================================================================
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -199,7 +449,7 @@ export const LenAi = () => {
         },
       );
 
-      // 3. CONTEXT INJECTION (FIXED INSTRUCTION)
+      // 3. CONTEXT INJECTION
       const history = messages.map((msg) => ({
         role: msg.sender === "user" ? "user" : "model",
         parts: [{ text: msg.text }],
@@ -217,15 +467,6 @@ export const LenAi = () => {
         2. CLEAN TEXT ONLY: Your output must be plain text that looks good without rendering.
         3. STRUCTURE: Use numbering (1., 2., 3.) for lists. Use double line breaks to separate paragraphs clearly.
         4. TONE: Professional, direct, and concise. No fluff.
-        
-        Example of GOOD output:
-        1. Use Const over Let
-        Variable mutation leads to bugs. Always prefer const.
-
-        2. Early Returns
-        Avoid deep nesting by returning early in your functions.
-
-        (Do NOT use ** or ##).
       `;
 
       const model = genAI.getGenerativeModel({
@@ -352,10 +593,9 @@ export const LenAi = () => {
   };
 
   // =========================================================================================
-  // 4. ACTIONS: EMAIL ASSISTANT (FIXED - CLEAN OUTPUT)
+  // 4. ACTIONS: EMAIL ASSISTANT
   // =========================================================================================
 
-  // Helper: Convert file to Base64 for Gemini
   const fileToGenerativePart = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -414,7 +654,6 @@ export const LenAi = () => {
 
       const promptParts = [systemPrompt, `User Input Context: ${emailInput}`];
 
-      // If an image exists, convert it and add to prompt
       if (emailImage) {
         const imagePart = await fileToGenerativePart(emailImage);
         promptParts.push(imagePart);
@@ -855,23 +1094,12 @@ export const LenAi = () => {
 
         {/* 3. RESUME VIEW */}
         {activeTab === "resume" && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center animate-fade-in-up">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm mx-auto">
-                🚧
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-4">
-                Deep Resume Analysis
-              </h2>
-              <p className="text-slate-500 mb-8 max-w-md mx-auto text-lg">
-                This feature is coming soon! Get AI-powered insights to optimize
-                your resume for ATS and recruiters.
-              </p>
-            </div>
+          <div className="flex-1 overflow-y-auto bg-slate-50 p-6">
+            <ResumeAnalyzer />
           </div>
         )}
 
-        {/* 4. EMAIL ASSISTANT VIEW (UPDATED) */}
+        {/* 4. EMAIL ASSISTANT VIEW */}
         {activeTab === "email" && (
           <div className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-10">
             <div className="max-w-4xl mx-auto animate-fade-in-up">
