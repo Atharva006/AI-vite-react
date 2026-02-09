@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useAuth } from "./context/AuthContext";
-import { db } from "../firebase";
+import { db } from "./firebase";
 import {
   collection,
   addDoc,
