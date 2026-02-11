@@ -2,32 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Styles from Pathify AI */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* --- TECHNICAL BACKGROUND --- */
+body {
+  background-color: #f3f4f6; /* Slate-100 */
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 24px 24px;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.bento-hover {
+/* --- THE CONSOLE CONTAINER --- */
+.console-window {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  overflow: hidden;
   transition: all 0.3s ease;
 }
 
-.bento-hover:hover {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+/* --- SCROLLBARS (Minimal) --- */
+.custom-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* --- UTILITIES --- */
+.btn-icon {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-icon:hover {
   transform: translateY(-2px);
+  background-color: #f1f5f9;
+}
+.btn-icon.active {
+  background-color: #0f172a; /* Slate-900 */
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.glow-button {
-  box-shadow: 0 0 15px rgba(19, 91, 236, 0.4);
+.input-minimal {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
 }
-
-.neon-text-glow {
-  text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-}
-
-.roadmap-line {
-  background: linear-gradient(90deg, #135bec 0%, #8b5cf6 100%);
+.input-minimal:focus {
+  background: #ffffff;
+  border-color: #94a3b8;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
 }
