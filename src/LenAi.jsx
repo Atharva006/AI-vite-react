@@ -24,6 +24,13 @@ import {
   X,
   Crown,
   Rocket,
+  BarChart,
+  MapPin,
+  Briefcase,
+  DollarSign,
+  Globe,
+  Target,
+  UserCheck,
 } from "lucide-react";
 import {
   collection,
@@ -43,6 +50,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY; // For JSearch API
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
 // --- ACCESS CONTROL CONFIGURATION ---
@@ -51,6 +59,8 @@ const PLAN_ACCESS = {
   feedback: ["basic", "essential", "pro"],
   roadmap: ["essential", "pro"],
   store: ["essential", "pro"],
+  market: ["essential", "pro"],
+  jobs: ["essential", "pro"], // NEW: Job Matcher Access
   resume: ["pro"],
   email: ["pro"],
   billing: ["basic", "essential", "pro"],
@@ -82,6 +92,8 @@ const Icon = {
       <line x1="16" y1="6" x2="16" y2="22" />
     </svg>
   ),
+  Market: () => <BarChart className="w-5 h-5" />,
+  Jobs: () => <Target className="w-5 h-5" />, // NEW JOBS ICON
   FileText: () => (
     <svg
       className="w-5 h-5"
@@ -267,6 +279,515 @@ const FeatureWrapper = ({
 };
 
 // =========================================================================================
+// SUB-COMPONENT: AI JOB MATCHER (NEW)
+// =========================================================================================
+const AIJobMatcher = () => {
+  const [userProfile, setUserProfile] = useState("");
+  const [jobRole, setJobRole] = useState("");
+  const [location, setLocation] = useState("");
+  const [matchedJobs, setMatchedJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [statusText, setStatusText] = useState("");
+
+  const searchAndMatchJobs = async () => {
+    if (!userProfile || !jobRole || !genAI) return;
+    setLoading(true);
+    setMatchedJobs([]);
+
+    try {
+      // Step 1: Fetch Jobs (Uses RapidAPI JSearch if key exists, otherwise mocked data)
+      setStatusText("Crawling job boards...");
+      let fetchedJobs = [];
+
+      if (RAPIDAPI_KEY) {
+        const response = await fetch(
+          `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(jobRole + " in " + location)}&num_pages=1`,
+          {
+            method: "GET",
+            headers: {
+              "x-rapidapi-key": RAPIDAPI_KEY,
+              "x-rapidapi-host": "jsearch27.p.rapidapi.com",
+            },
+          },
+        );
+        const data = await response.json();
+        fetchedJobs = data.data || [];
+      } else {
+        // Fallback Mock Data if no API key is provided
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        fetchedJobs = [
+          {
+            job_title: `${jobRole} Specialist`,
+            employer_name: "TechNova Solutions",
+            job_description: `Looking for a strong ${jobRole} with deep expertise in modern frameworks, strong communication skills, and ability to lead teams. Minimum 3 years experience.`,
+            job_apply_link: "#",
+          },
+          {
+            job_title: `Junior ${jobRole}`,
+            employer_name: "Quantum Dynamics",
+            job_description: `Entry level position. Must know basic principles of development, eager to learn, familiar with agile methodologies.`,
+            job_apply_link: "#",
+          },
+          {
+            job_title: `Senior ${jobRole}`,
+            employer_name: "Apex Financial",
+            job_description: `Requires 7+ years of strict architectural experience. Must manage massive datasets, lead 10+ person teams, and handle corporate infrastructure.`,
+            job_apply_link: "#",
+          },
+          {
+            job_title: `Remote ${jobRole}`,
+            employer_name: "CloudBridge",
+            job_description: `Fully remote role. Looking for independent workers who excel at the required skills, familiar with Git, API integrations, and cloud hosting.`,
+            job_apply_link: "#",
+          },
+        ];
+      }
+
+      if (fetchedJobs.length === 0) {
+        alert("No jobs found for this query.");
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: AI Semantic Matching
+      setStatusText("Calculating semantic match scores...");
+      const jobsPayload = fetchedJobs.slice(0, 6).map((j) => ({
+        title: j.job_title,
+        company: j.employer_name,
+        description: (j.job_description || "").substring(0, 500), // truncate for prompt limit
+        link: j.job_apply_link || "#",
+      }));
+
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+      });
+      const prompt = `
+        Act as an expert AI Recruiter utilizing semantic similarity embeddings.
+        Evaluate the match between this User Profile and the provided Job Listings.
+
+        USER PROFILE:
+        "${userProfile}"
+
+        JOB LISTINGS (JSON):
+        ${JSON.stringify(jobsPayload)}
+
+        Task: Rank these jobs strictly by how well they semantically match the User Profile.
+        Output ONLY a valid JSON array of objects with the following exact structure:
+        [
+          {
+            "title": "Job Title",
+            "company": "Company Name",
+            "matchScore": <Number between 0 and 100>,
+            "reason": "1 concise sentence explaining exactly why this is or isn't a good match based on the user's specific skills.",
+            "link": "The job link"
+          }
+        ]
+      `;
+
+      const result = await model.generateContent(prompt);
+      const rawText = result.response
+        .text()
+        .replace(/```json|```/g, "")
+        .trim();
+      let matchedData = JSON.parse(rawText);
+
+      // Sort by highest match score
+      matchedData.sort((a, b) => b.matchScore - a.matchScore);
+      setMatchedJobs(matchedData);
+    } catch (error) {
+      console.error("Job Match Error", error);
+      alert("Error occurred while matching jobs. Check console.");
+    }
+    setLoading(false);
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return "text-emerald-600 bg-emerald-50";
+    if (score >= 60) return "text-amber-600 bg-amber-50";
+    return "text-red-600 bg-red-50";
+  };
+  const getScoreBar = (score) => {
+    if (score >= 80) return "bg-emerald-500";
+    if (score >= 60) return "bg-amber-500";
+    return "bg-red-500";
+  };
+
+  return (
+    <div className="h-full flex flex-col p-8 md:p-12 overflow-y-auto custom-scroll bg-slate-50">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Header Section */}
+        <div className="mb-10 text-center max-w-3xl mx-auto">
+          <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+            <Target className="w-8 h-8" />
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-3">
+            AI Semantic Job Matcher
+          </h2>
+          <p className="text-slate-500 text-lg">
+            Describe your skills in natural language. Our AI will crawl live job
+            markets and rank positions based on deep semantic similarity.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Input Panel */}
+          <div className="lg:col-span-1 space-y-6 bg-white p-8 rounded-3xl shadow-sm border border-slate-200 h-fit sticky top-0">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <UserCheck className="w-4 h-4" /> Your Profile & Skills
+              </label>
+              <textarea
+                className="w-full h-40 bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none transition"
+                placeholder="e.g. I am a full-stack developer with 3 years of experience. I specialize in React, Node.js, and Firebase. I love building UI/UX..."
+                value={userProfile}
+                onChange={(e) => setUserProfile(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Target Role
+              </label>
+              <input
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
+                placeholder="e.g. Frontend Engineer"
+                value={jobRole}
+                onChange={(e) => setJobRole(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Location
+              </label>
+              <input
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
+                placeholder="e.g. Remote, India, New York"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={searchAndMatchJobs}
+              disabled={loading || !userProfile || !jobRole}
+              className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 shadow-lg"
+            >
+              {loading ? statusText : "Find & Match Jobs"}
+            </button>
+            {!RAPIDAPI_KEY && (
+              <p className="text-[10px] text-amber-600 font-bold text-center mt-2 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                RapidAPI Key missing. Running in Simulation Mode.
+              </p>
+            )}
+          </div>
+
+          {/* Results Panel */}
+          <div className="lg:col-span-2 space-y-4">
+            {!loading && matchedJobs.length === 0 && (
+              <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-slate-200 border-dashed">
+                <Search className="w-12 h-12 mb-4 opacity-20" />
+                <p className="font-medium text-lg">
+                  Your top matches will appear here.
+                </p>
+              </div>
+            )}
+
+            {matchedJobs.map((job, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition animate-enter relative overflow-hidden group"
+              >
+                <div className="flex justify-between items-start mb-4 relative z-10">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 mb-1">
+                      {job.title}
+                    </h3>
+                    <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4" /> {job.company}
+                    </p>
+                  </div>
+                  <div
+                    className={`flex flex-col items-end px-4 py-2 rounded-xl border ${getScoreColor(job.matchScore)}`}
+                  >
+                    <span className="text-xs font-black uppercase tracking-wider opacity-70">
+                      Match Score
+                    </span>
+                    <span className="text-2xl font-black">
+                      {job.matchScore}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="relative z-10">
+                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mb-4">
+                    <div
+                      className={`h-full rounded-full ${getScoreBar(job.matchScore)}`}
+                      style={{ width: `${job.matchScore}%` }}
+                    ></div>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-4">
+                    <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                      <Sparkles className="w-4 h-4 inline text-blue-500 mr-2" />
+                      {job.reason}
+                    </p>
+                  </div>
+                  <a
+                    href={job.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition"
+                  >
+                    View Application <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================================
+// SUB-COMPONENT: MARKET ANALYZER
+// =========================================================================================
+const MarketAnalyzer = () => {
+  const [role, setRole] = useState("");
+  const [baseLocation, setBaseLocation] = useState("");
+  const [targetLocation, setTargetLocation] = useState("");
+  const [marketData, setMarketData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const analyzeMarket = async () => {
+    if (!role || !baseLocation || !genAI) return;
+    setLoading(true);
+    setMarketData(null);
+
+    try {
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+      });
+      const hasTarget = targetLocation.trim() !== "";
+
+      const prompt = `
+        You are an advanced AI regression model trained on global job market data.
+        Perform a comprehensive salary and market demand prediction for the role: "${role}".
+        Base Location: "${baseLocation}".
+        ${hasTarget ? `Target Comparison Location: "${targetLocation}".` : ""}
+        
+        Provide the expected average salary range (convert to USD for standardization but mention the local currency roughly if possible), 
+        the job demand level, and the projected growth rate of the field in the next 5 years.
+        
+        Return STRICTLY a JSON object with this exact structure (no markdown formatting, no \`\`\`json):
+        {
+          "base": {
+            "location": "${baseLocation}",
+            "salaryUSD": "$X,XXX - $Y,YYY",
+            "demand": "High/Medium/Low",
+            "growthRate": "X%",
+            "growthValue": X // Just the number between 0 and 100
+          },
+          ${
+            hasTarget
+              ? `
+          "target": {
+            "location": "${targetLocation}",
+            "salaryUSD": "$X,XXX - $Y,YYY",
+            "demand": "High/Medium/Low",
+            "growthRate": "X%",
+            "growthValue": X
+          },
+          `
+              : ""
+          }
+          "insights": [
+            "Insight 1",
+            "Insight 2",
+            "Insight 3"
+          ],
+          "verdict": "A one sentence final professional recommendation."
+        }
+      `;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response
+        .text()
+        .replace(/```json|```/g, "")
+        .trim();
+      const data = JSON.parse(text);
+      setMarketData(data);
+    } catch (error) {
+      console.error("Market Analysis Error", error);
+      alert("Failed to analyze market data. Please try again.");
+    }
+    setLoading(false);
+  };
+
+  const getDemandColor = (demand) => {
+    const d = demand.toLowerCase();
+    if (d.includes("high"))
+      return "text-emerald-600 bg-emerald-50 border-emerald-200";
+    if (d.includes("medium"))
+      return "text-amber-600 bg-amber-50 border-amber-200";
+    return "text-red-600 bg-red-50 border-red-200";
+  };
+
+  const LocationCard = ({ data, isTarget }) => (
+    <div
+      className={`p-6 rounded-3xl border ${isTarget ? "border-blue-200 bg-blue-50/30" : "border-slate-200 bg-white"} shadow-sm`}
+    >
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">
+            {isTarget ? "Target Market" : "Base Market"}
+          </h3>
+          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-blue-600" /> {data.location}
+          </h2>
+        </div>
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-bold border ${getDemandColor(data.demand)}`}
+        >
+          {data.demand} Demand
+        </span>
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <p className="text-sm font-bold text-slate-500 mb-1 flex items-center gap-2">
+            <DollarSign className="w-4 h-4" /> Expected Salary (USD)
+          </p>
+          <p className="text-3xl font-black text-slate-900">{data.salaryUSD}</p>
+        </div>
+
+        <div>
+          <div className="flex justify-between items-end mb-2">
+            <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" /> Projected Growth (5 Yrs)
+            </p>
+            <span className="text-lg font-black text-emerald-600">
+              {data.growthRate}
+            </span>
+          </div>
+          <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full"
+              style={{ width: `${data.growthValue}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="h-full flex flex-col p-8 md:p-12 overflow-y-auto custom-scroll bg-slate-50">
+      <div className="max-w-5xl mx-auto w-full">
+        {/* Header Section */}
+        <div className="mb-10 text-center max-w-2xl mx-auto">
+          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <BarChart className="w-8 h-8" />
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 mb-3">
+            Market Demand Predictor
+          </h2>
+          <p className="text-slate-500 text-lg">
+            Use AI-driven regression models to forecast salary ranges and field
+            growth across global locations.
+          </p>
+        </div>
+
+        {/* Form Inputs */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Briefcase className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
+            <input
+              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-12 pr-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              placeholder="Job Role (e.g. Data Scientist)"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            />
+          </div>
+          <div className="flex-1 relative">
+            <Globe className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
+            <input
+              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-12 pr-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              placeholder="Base Location (e.g. India)"
+              value={baseLocation}
+              onChange={(e) => setBaseLocation(e.target.value)}
+            />
+          </div>
+          <div className="flex-1 relative">
+            <Globe className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
+            <input
+              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-12 pr-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              placeholder="Compare With (Optional, e.g. USA)"
+              value={targetLocation}
+              onChange={(e) => setTargetLocation(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={analyzeMarket}
+            disabled={loading || !role || !baseLocation}
+            className="px-8 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50"
+          >
+            {loading ? "Analyzing..." : "Predict"}
+          </button>
+        </div>
+
+        {/* Results Section */}
+        {marketData && (
+          <div className="animate-enter space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {marketData.base && (
+                <LocationCard data={marketData.base} isTarget={false} />
+              )}
+              {marketData.target && (
+                <LocationCard data={marketData.target} isTarget={true} />
+              )}
+            </div>
+
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+              <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-yellow-500" /> Strategic
+                Insights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {marketData.insights.map((insight, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-slate-50 p-5 rounded-2xl border border-slate-100"
+                  >
+                    <span className="text-blue-600 font-black text-lg mb-2 block">
+                      0{idx + 1}
+                    </span>
+                    <p className="text-slate-700 text-sm font-medium leading-relaxed">
+                      {insight}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-slate-900 text-white p-6 rounded-2xl flex items-start gap-4 shadow-lg">
+                <div className="bg-white/10 p-3 rounded-xl shrink-0">
+                  <TrendingUp className="w-6 h-6 text-blue-300" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-blue-300 uppercase tracking-wider mb-1">
+                    Final Verdict
+                  </h4>
+                  <p className="text-lg font-medium leading-relaxed text-slate-100">
+                    {marketData.verdict}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================================
 // SUB-COMPONENT: BILLING DASHBOARD
 // =========================================================================================
 const BillingDashboard = ({ currentPlan, user }) => {
@@ -304,7 +825,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
     e.preventDefault();
     if (betaEmail.trim()) {
       setBetaSuccess(true);
-      // In a real app, you would save this email to a beta_users collection in Firebase
     }
   };
 
@@ -322,7 +842,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
           <p className="text-slate-500 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
             Thank you for collaborating and supporting our vision. You have
             unrestricted access to all premium engineering tools, AI resume
-            architectures, and priority processing.
+            architectures, job matching, and priority processing.
           </p>
 
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 max-w-lg mx-auto shadow-inner">
@@ -480,8 +1000,8 @@ const BillingDashboard = ({ currentPlan, user }) => {
           Choose Your Path
         </h2>
         <p className="text-slate-500 text-lg">
-          Upgrade your workspace to unlock AI-powered roadmaps and deep resume
-          audits.
+          Upgrade your workspace to unlock AI-powered roadmaps, job matching,
+          market predictions, and deep resume audits.
         </p>
       </div>
 
@@ -492,7 +1012,10 @@ const BillingDashboard = ({ currentPlan, user }) => {
           <ul className="text-sm space-y-4 mb-8 text-slate-600 font-medium flex-1">
             <li className="flex items-center gap-2">✅ AI Chat Access</li>
             <li className="flex items-center gap-2 text-slate-400">
-              ❌ Knowledge Hub & Roadmaps
+              ❌ AI Job Matcher
+            </li>
+            <li className="flex items-center gap-2 text-slate-400">
+              ❌ Market Predictor
             </li>
             <li className="flex items-center gap-2 text-slate-400">
               ❌ Resume & Email Console
@@ -516,11 +1039,12 @@ const BillingDashboard = ({ currentPlan, user }) => {
           </p>
           <ul className="text-sm space-y-4 mb-8 text-slate-700 font-bold flex-1">
             <li className="flex items-center gap-2">✅ AI Chat Access</li>
+            <li className="flex items-center gap-2">✅ Semantic Job Matcher</li>
             <li className="flex items-center gap-2">
-              ✅ Career Roadmap Builder
+              ✅ Market Demand Predictor
             </li>
             <li className="flex items-center gap-2">
-              ✅ Knowledge Hub (Store)
+              ✅ Career Roadmap Builder
             </li>
             <li className="flex items-center gap-2 text-slate-400">
               ❌ Resume & Email Console
@@ -1435,14 +1959,16 @@ export const LenAi = () => {
 
       <div className="h-screen w-screen console-window flex relative bg-white overflow-hidden">
         {/* ICON RAIL */}
-        <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-8 shrink-0 z-30">
-          <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black mb-10 shadow-lg text-lg">
+        <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-8 shrink-0 z-30 overflow-y-auto no-scrollbar">
+          <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black mb-10 shadow-lg text-lg shrink-0">
             L
           </div>
-          <nav className="flex flex-col gap-6 flex-1 w-full px-2 items-center">
+          <nav className="flex flex-col gap-6 w-full px-2 items-center shrink-0">
             {[
               { id: "chat", icon: Icon.Message, label: "Chat" },
               { id: "roadmap", icon: Icon.Map, label: "Roadmap" },
+              { id: "market", icon: Icon.Market, label: "Market" },
+              { id: "jobs", icon: Icon.Jobs, label: "Match Jobs" }, // NEW JOB MATCHER ICON
               { id: "store", icon: Icon.Video, label: "Store" },
               { id: "resume", icon: Icon.FileText, label: "Resume" },
               { id: "email", icon: Icon.Mail, label: "Email" },
@@ -1466,7 +1992,7 @@ export const LenAi = () => {
               <Icon.Billing />
             </button>
           </nav>
-          <div className="mt-auto mb-4 relative">
+          <div className="mt-auto mb-4 relative shrink-0 pt-6">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className="outline-none"
@@ -1770,6 +2296,10 @@ export const LenAi = () => {
                     )}
                   </div>
                 )}
+
+                {/* NEW TOOLS */}
+                {activeTab === "market" && <MarketAnalyzer />}
+                {activeTab === "jobs" && <AIJobMatcher />}
 
                 {/* EMAIL STUDIO */}
                 {activeTab === "email" && (
