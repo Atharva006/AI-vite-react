@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }) => {
           email: userResult.email,
           name: userResult.displayName,
           role: "user", // Default role
+          plan: "basic", // Default plan for new users
           createdAt: new Date(),
         });
       }
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
       if (currentUser) {
-        // Fetch role from DB
+        // Fetch role and plan from DB
         const userRef = doc(db, "users", currentUser.uid);
         try {
           const userSnap = await getDoc(userRef);
@@ -51,11 +52,12 @@ export const AuthProvider = ({ children }) => {
             setUser({ ...currentUser, ...userData });
             setIsAdmin(userData.role === "admin");
           } else {
-            setUser(currentUser);
+            // Fallback if data doesn't exist yet but user is auth'd
+            setUser({ ...currentUser, plan: "basic" });
           }
         } catch (e) {
-          console.error("Error fetching user role:", e);
-          setUser(currentUser);
+          console.error("Error fetching user data:", e);
+          setUser({ ...currentUser, plan: "basic" });
         }
       } else {
         setUser(null);
