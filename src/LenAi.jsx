@@ -19,7 +19,6 @@ import {
   QrCode,
   ArrowLeft,
   CheckCircle,
-  Copy,
   Bell,
   X,
   Crown,
@@ -31,6 +30,17 @@ import {
   Globe,
   Target,
   UserCheck,
+  MessageSquare,
+  Menu,
+  Plus,
+  Trash2,
+  LayoutGrid,
+  FileText,
+  UploadCloud,
+  Mail,
+  Heart,
+  Settings,
+  LogOut,
 } from "lucide-react";
 import {
   collection,
@@ -50,7 +60,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY; // For JSearch API
+const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
 // --- ACCESS CONTROL CONFIGURATION ---
@@ -60,170 +70,10 @@ const PLAN_ACCESS = {
   roadmap: ["essential", "pro"],
   store: ["essential", "pro"],
   market: ["essential", "pro"],
-  jobs: ["essential", "pro"], // NEW: Job Matcher Access
+  jobs: ["essential", "pro"],
   resume: ["pro"],
   email: ["pro"],
   billing: ["basic", "essential", "pro"],
-};
-
-// --- LEGACY ICONS ---
-const Icon = {
-  Message: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
-  Map: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-      <line x1="8" y1="2" x2="8" y2="18" />
-      <line x1="16" y1="6" x2="16" y2="22" />
-    </svg>
-  ),
-  Market: () => <BarChart className="w-5 h-5" />,
-  Jobs: () => <Target className="w-5 h-5" />, // NEW JOBS ICON
-  FileText: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-      <polyline points="14 2 14 8 20 8" />
-    </svg>
-  ),
-  Mail: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-      <polyline points="22,6 12,13 2,6" />
-    </svg>
-  ),
-  Heart: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  ),
-  Video: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <polygon points="23 7 16 12 23 17 23 7" />
-      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-    </svg>
-  ),
-  Send: () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  ),
-  Plus: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  ),
-  Trash: () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  ),
-  Upload: () => (
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="17 8 12 3 7 8" />
-      <line x1="12" y1="3" x2="12" y2="15" />
-    </svg>
-  ),
-  ChevronLeft: () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <polyline points="15 18 9 12 15 6"></polyline>
-    </svg>
-  ),
-  ChevronRight: () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  ),
-  Magic: () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-    </svg>
-  ),
-  Billing: () => <CreditCard className="w-5 h-5" />,
 };
 
 const SUGGESTIONS = [
@@ -246,30 +96,30 @@ const FeatureWrapper = ({
   children,
 }) => {
   return (
-    <div className="relative w-full h-full overflow-hidden bg-white">
+    <div className="relative w-full h-full overflow-hidden bg-[#FAF9F6]">
       <div
-        className={`w-full h-full transition-all duration-500 ${isLocked ? "blur-md opacity-30 pointer-events-none select-none scale-[0.99]" : ""}`}
+        className={`w-full h-full transition-all duration-700 ${isLocked ? "blur-md opacity-40 pointer-events-none select-none scale-[0.99]" : ""}`}
       >
         {children}
       </div>
       {isLocked && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/10 backdrop-blur-[2px]">
-          <div className="bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 max-w-md text-center transform scale-100 animate-enter mx-4">
-            <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-900/20">
-              <Lock className="w-8 h-8" />
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#FAF9F6]/40 backdrop-blur-sm">
+          <div className="bg-[#FAF9F6] p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF] max-w-md text-center mx-4">
+            <div className="w-12 h-12 bg-[#F3F1EC] text-[#7A756D] rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock strokeWidth={1.5} className="w-5 h-5" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-3">
+            <h3 className="font-serif text-3xl text-[#2D2D2D] mb-4 tracking-tight">
               Unlock {featureName}
             </h3>
-            <p className="text-slate-500 mb-8 leading-relaxed">
-              This powerful engineering feature is reserved for upgraded
-              members. Elevate your career toolkit today.
+            <p className="text-[#7A756D] text-sm mb-8 leading-relaxed font-sans">
+              This advanced capability is reserved for upgraded members. Elevate
+              your workspace to access this feature.
             </p>
             <button
               onClick={onUpgradeClick}
-              className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 hover:shadow-lg transition-all transform hover:-translate-y-1"
+              className="w-full py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors"
             >
-              View Upgrade Plans
+              View Plans
             </button>
           </div>
         </div>
@@ -279,7 +129,7 @@ const FeatureWrapper = ({
 };
 
 // =========================================================================================
-// SUB-COMPONENT: AI JOB MATCHER (NEW)
+// SUB-COMPONENT: AI JOB MATCHER
 // =========================================================================================
 const AIJobMatcher = () => {
   const [userProfile, setUserProfile] = useState("");
@@ -295,8 +145,7 @@ const AIJobMatcher = () => {
     setMatchedJobs([]);
 
     try {
-      // Step 1: Fetch Jobs (Uses RapidAPI JSearch if key exists, otherwise mocked data)
-      setStatusText("Crawling job boards...");
+      setStatusText("Analyzing job boards...");
       let fetchedJobs = [];
 
       if (RAPIDAPI_KEY) {
@@ -313,7 +162,6 @@ const AIJobMatcher = () => {
         const data = await response.json();
         fetchedJobs = data.data || [];
       } else {
-        // Fallback Mock Data if no API key is provided
         await new Promise((resolve) => setTimeout(resolve, 1500));
         fetchedJobs = [
           {
@@ -328,18 +176,6 @@ const AIJobMatcher = () => {
             job_description: `Entry level position. Must know basic principles of development, eager to learn, familiar with agile methodologies.`,
             job_apply_link: "#",
           },
-          {
-            job_title: `Senior ${jobRole}`,
-            employer_name: "Apex Financial",
-            job_description: `Requires 7+ years of strict architectural experience. Must manage massive datasets, lead 10+ person teams, and handle corporate infrastructure.`,
-            job_apply_link: "#",
-          },
-          {
-            job_title: `Remote ${jobRole}`,
-            employer_name: "CloudBridge",
-            job_description: `Fully remote role. Looking for independent workers who excel at the required skills, familiar with Git, API integrations, and cloud hosting.`,
-            job_apply_link: "#",
-          },
         ];
       }
 
@@ -349,40 +185,18 @@ const AIJobMatcher = () => {
         return;
       }
 
-      // Step 2: AI Semantic Matching
-      setStatusText("Calculating semantic match scores...");
+      setStatusText("Calculating semantic resonance...");
       const jobsPayload = fetchedJobs.slice(0, 6).map((j) => ({
         title: j.job_title,
         company: j.employer_name,
-        description: (j.job_description || "").substring(0, 500), // truncate for prompt limit
+        description: (j.job_description || "").substring(0, 500),
         link: j.job_apply_link || "#",
       }));
 
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
       });
-      const prompt = `
-        Act as an expert AI Recruiter utilizing semantic similarity embeddings.
-        Evaluate the match between this User Profile and the provided Job Listings.
-
-        USER PROFILE:
-        "${userProfile}"
-
-        JOB LISTINGS (JSON):
-        ${JSON.stringify(jobsPayload)}
-
-        Task: Rank these jobs strictly by how well they semantically match the User Profile.
-        Output ONLY a valid JSON array of objects with the following exact structure:
-        [
-          {
-            "title": "Job Title",
-            "company": "Company Name",
-            "matchScore": <Number between 0 and 100>,
-            "reason": "1 concise sentence explaining exactly why this is or isn't a good match based on the user's specific skills.",
-            "link": "The job link"
-          }
-        ]
-      `;
+      const prompt = `Act as an expert AI Recruiter utilizing semantic similarity embeddings. Evaluate the match between this User Profile and the provided Job Listings. USER PROFILE: "${userProfile}" JOB LISTINGS (JSON): ${JSON.stringify(jobsPayload)} Task: Rank these jobs strictly by how well they semantically match the User Profile. Output ONLY a valid JSON array of objects with the following exact structure: [{"title": "Job Title", "company": "Company Name", "matchScore": <Number 0-100>, "reason": "1 concise sentence explaining exactly why this is or isn't a good match.", "link": "The job link"}]`;
 
       const result = await model.generateContent(prompt);
       const rawText = result.response
@@ -390,8 +204,6 @@ const AIJobMatcher = () => {
         .replace(/```json|```/g, "")
         .trim();
       let matchedData = JSON.parse(rawText);
-
-      // Sort by highest match score
       matchedData.sort((a, b) => b.matchScore - a.matchScore);
       setMatchedJobs(matchedData);
     } catch (error) {
@@ -401,66 +213,50 @@ const AIJobMatcher = () => {
     setLoading(false);
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return "text-emerald-600 bg-emerald-50";
-    if (score >= 60) return "text-amber-600 bg-amber-50";
-    return "text-red-600 bg-red-50";
-  };
-  const getScoreBar = (score) => {
-    if (score >= 80) return "bg-emerald-500";
-    if (score >= 60) return "bg-amber-500";
-    return "bg-red-500";
-  };
-
   return (
-    <div className="h-full flex flex-col p-8 md:p-12 overflow-y-auto custom-scroll bg-slate-50">
+    <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-6xl mx-auto w-full">
-        {/* Header Section */}
-        <div className="mb-10 text-center max-w-3xl mx-auto">
-          <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-            <Target className="w-8 h-8" />
-          </div>
-          <h2 className="text-4xl font-black text-slate-900 mb-3">
-            AI Semantic Job Matcher
+        <div className="mb-12">
+          <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+            Semantic Job Matcher
           </h2>
-          <p className="text-slate-500 text-lg">
-            Describe your skills in natural language. Our AI will crawl live job
-            markets and rank positions based on deep semantic similarity.
+          <p className="text-[#7A756D] text-lg font-sans max-w-2xl leading-relaxed">
+            Describe your skills in natural language. Our AI evaluates live
+            markets and scores positions based on deep semantic resonance.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Input Panel */}
-          <div className="lg:col-span-1 space-y-6 bg-white p-8 rounded-3xl shadow-sm border border-slate-200 h-fit sticky top-0">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <UserCheck className="w-4 h-4" /> Your Profile & Skills
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-1 space-y-6 bg-[#FAF9F6] h-fit sticky top-0">
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-[#7A756D] flex items-center gap-2">
+                <UserCheck strokeWidth={1.5} className="w-4 h-4" /> Your Profile
               </label>
               <textarea
-                className="w-full h-40 bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none transition"
-                placeholder="e.g. I am a full-stack developer with 3 years of experience. I specialize in React, Node.js, and Firebase. I love building UI/UX..."
+                className="w-full h-48 bg-[#F3F1EC] border border-transparent rounded-2xl p-5 text-[#2D2D2D] text-sm focus:bg-white focus:border-[#E8E6DF] focus:ring-0 outline-none resize-none transition-all placeholder:text-[#A8A39D]"
+                placeholder="I am a developer specializing in React and Node.js..."
                 value={userProfile}
                 onChange={(e) => setUserProfile(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-[#7A756D]">
                 Target Role
               </label>
               <input
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-[#F3F1EC] border border-transparent rounded-2xl p-4 text-[#2D2D2D] text-sm focus:bg-white focus:border-[#E8E6DF] outline-none transition-all placeholder:text-[#A8A39D]"
                 placeholder="e.g. Frontend Engineer"
                 value={jobRole}
                 onChange={(e) => setJobRole(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-[#7A756D]">
                 Location
               </label>
               <input
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
-                placeholder="e.g. Remote, India, New York"
+                className="w-full bg-[#F3F1EC] border border-transparent rounded-2xl p-4 text-[#2D2D2D] text-sm focus:bg-white focus:border-[#E8E6DF] outline-none transition-all placeholder:text-[#A8A39D]"
+                placeholder="e.g. Remote, India"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
@@ -468,76 +264,67 @@ const AIJobMatcher = () => {
             <button
               onClick={searchAndMatchJobs}
               disabled={loading || !userProfile || !jobRole}
-              className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 shadow-lg"
+              className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors disabled:opacity-50"
             >
-              {loading ? statusText : "Find & Match Jobs"}
+              {loading ? statusText : "Analyze & Match"}
             </button>
             {!RAPIDAPI_KEY && (
-              <p className="text-[10px] text-amber-600 font-bold text-center mt-2 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                RapidAPI Key missing. Running in Simulation Mode.
+              <p className="text-[10px] text-[#D97D54] font-medium text-center mt-2 bg-[#FAF9F6] p-2 rounded-lg border border-[#E8E6DF]">
+                Running in Simulation Mode (No RapidAPI Key).
               </p>
             )}
           </div>
 
-          {/* Results Panel */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-6">
             {!loading && matchedJobs.length === 0 && (
-              <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-slate-200 border-dashed">
-                <Search className="w-12 h-12 mb-4 opacity-20" />
-                <p className="font-medium text-lg">
-                  Your top matches will appear here.
-                </p>
+              <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-[#A8A39D] border border-dashed border-[#E8E6DF] rounded-3xl">
+                <Search strokeWidth={1} className="w-10 h-10 mb-4 opacity-50" />
+                <p className="font-medium text-sm">Matches will appear here.</p>
               </div>
             )}
 
             {matchedJobs.map((job, idx) => (
               <div
                 key={idx}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition animate-enter relative overflow-hidden group"
+                className="bg-white p-8 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all animate-fade-in"
               >
-                <div className="flex justify-between items-start mb-4 relative z-10">
+                <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 mb-1">
+                    <h3 className="font-serif text-2xl text-[#2D2D2D] mb-1">
                       {job.title}
                     </h3>
-                    <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4" /> {job.company}
+                    <p className="text-sm font-medium text-[#7A756D] flex items-center gap-2">
+                      <Briefcase strokeWidth={1.5} className="w-4 h-4" />{" "}
+                      {job.company}
                     </p>
                   </div>
-                  <div
-                    className={`flex flex-col items-end px-4 py-2 rounded-xl border ${getScoreColor(job.matchScore)}`}
-                  >
-                    <span className="text-xs font-black uppercase tracking-wider opacity-70">
-                      Match Score
+                  <div className="text-right">
+                    <span className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest block mb-1">
+                      Resonance
                     </span>
-                    <span className="text-2xl font-black">
+                    <span className="font-serif text-3xl text-[#2D2D2D]">
                       {job.matchScore}%
                     </span>
                   </div>
                 </div>
-
-                <div className="relative z-10">
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mb-4">
-                    <div
-                      className={`h-full rounded-full ${getScoreBar(job.matchScore)}`}
-                      style={{ width: `${job.matchScore}%` }}
-                    ></div>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-4">
-                    <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                      <Sparkles className="w-4 h-4 inline text-blue-500 mr-2" />
-                      {job.reason}
-                    </p>
-                  </div>
-                  <a
-                    href={job.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition"
-                  >
-                    View Application <ArrowRight className="w-4 h-4" />
-                  </a>
+                <div className="bg-[#FAF9F6] p-5 rounded-2xl mb-6">
+                  <p className="text-sm text-[#4A4A4A] leading-relaxed flex items-start gap-3">
+                    <Sparkles
+                      strokeWidth={1.5}
+                      className="w-4 h-4 text-[#D97D54] shrink-0 mt-0.5"
+                    />
+                    {job.reason}
+                  </p>
                 </div>
+                <a
+                  href={job.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-medium text-[#2D2D2D] hover:text-[#D97D54] transition-colors flex items-center gap-2"
+                >
+                  View Application{" "}
+                  <ArrowRight strokeWidth={1.5} className="w-4 h-4" />
+                </a>
               </div>
             ))}
           </div>
@@ -566,54 +353,15 @@ const MarketAnalyzer = () => {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
       });
-      const hasTarget = targetLocation.trim() !== "";
-
-      const prompt = `
-        You are an advanced AI regression model trained on global job market data.
-        Perform a comprehensive salary and market demand prediction for the role: "${role}".
-        Base Location: "${baseLocation}".
-        ${hasTarget ? `Target Comparison Location: "${targetLocation}".` : ""}
-        
-        Provide the expected average salary range (convert to USD for standardization but mention the local currency roughly if possible), 
-        the job demand level, and the projected growth rate of the field in the next 5 years.
-        
-        Return STRICTLY a JSON object with this exact structure (no markdown formatting, no \`\`\`json):
-        {
-          "base": {
-            "location": "${baseLocation}",
-            "salaryUSD": "$X,XXX - $Y,YYY",
-            "demand": "High/Medium/Low",
-            "growthRate": "X%",
-            "growthValue": X // Just the number between 0 and 100
-          },
-          ${
-            hasTarget
-              ? `
-          "target": {
-            "location": "${targetLocation}",
-            "salaryUSD": "$X,XXX - $Y,YYY",
-            "demand": "High/Medium/Low",
-            "growthRate": "X%",
-            "growthValue": X
-          },
-          `
-              : ""
-          }
-          "insights": [
-            "Insight 1",
-            "Insight 2",
-            "Insight 3"
-          ],
-          "verdict": "A one sentence final professional recommendation."
-        }
-      `;
+      const prompt = `You are an advanced AI regression model trained on global job market data. Perform a comprehensive salary and market demand prediction for the role: "${role}". Base Location: "${baseLocation}". ${targetLocation ? `Target Comparison Location: "${targetLocation}".` : ""} Provide expected average salary range (USD), demand level, and projected growth rate (5 yrs). Return STRICTLY a JSON object with this exact structure: {"base": {"location": "${baseLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "target": {"location": "${targetLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "insights": ["Insight 1", "Insight 2", "Insight 3"], "verdict": "One sentence final recommendation."}`;
 
       const result = await model.generateContent(prompt);
-      const text = result.response
-        .text()
-        .replace(/```json|```/g, "")
-        .trim();
-      const data = JSON.parse(text);
+      const data = JSON.parse(
+        result.response
+          .text()
+          .replace(/```json|```/g, "")
+          .trim(),
+      );
       setMarketData(data);
     } catch (error) {
       console.error("Market Analysis Error", error);
@@ -622,122 +370,89 @@ const MarketAnalyzer = () => {
     setLoading(false);
   };
 
-  const getDemandColor = (demand) => {
-    const d = demand.toLowerCase();
-    if (d.includes("high"))
-      return "text-emerald-600 bg-emerald-50 border-emerald-200";
-    if (d.includes("medium"))
-      return "text-amber-600 bg-amber-50 border-amber-200";
-    return "text-red-600 bg-red-50 border-red-200";
-  };
-
   const LocationCard = ({ data, isTarget }) => (
     <div
-      className={`p-6 rounded-3xl border ${isTarget ? "border-blue-200 bg-blue-50/30" : "border-slate-200 bg-white"} shadow-sm`}
+      className={`p-8 rounded-3xl border ${isTarget ? "border-[#D97D54]/20 bg-[#FAF9F6]" : "border-[#E8E6DF] bg-white"} shadow-[0_2px_10px_rgb(0,0,0,0.02)]`}
     >
-      <div className="flex justify-between items-start mb-6">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest mb-2">
             {isTarget ? "Target Market" : "Base Market"}
           </h3>
-          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-blue-600" /> {data.location}
+          <h2 className="font-serif text-3xl text-[#2D2D2D] flex items-center gap-2">
+            <MapPin strokeWidth={1.5} className="w-5 h-5 text-[#A8A39D]" />{" "}
+            {data.location}
           </h2>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-bold border ${getDemandColor(data.demand)}`}
-        >
+        <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F3F1EC] text-[#4A4A4A] border border-[#E8E6DF]">
           {data.demand} Demand
         </span>
       </div>
-
       <div className="space-y-6">
         <div>
-          <p className="text-sm font-bold text-slate-500 mb-1 flex items-center gap-2">
-            <DollarSign className="w-4 h-4" /> Expected Salary (USD)
+          <p className="text-xs font-medium text-[#7A756D] mb-1">
+            Expected Salary (USD)
           </p>
-          <p className="text-3xl font-black text-slate-900">{data.salaryUSD}</p>
+          <p className="font-serif text-4xl text-[#2D2D2D]">{data.salaryUSD}</p>
         </div>
-
         <div>
-          <div className="flex justify-between items-end mb-2">
-            <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" /> Projected Growth (5 Yrs)
-            </p>
-            <span className="text-lg font-black text-emerald-600">
-              {data.growthRate}
-            </span>
-          </div>
-          <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-emerald-500 rounded-full"
-              style={{ width: `${data.growthValue}%` }}
-            ></div>
-          </div>
+          <p className="text-xs font-medium text-[#7A756D] mb-1">
+            Projected Growth (5 Yrs)
+          </p>
+          <p className="font-sans text-xl font-medium text-[#4A4A4A]">
+            {data.growthRate}
+          </p>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="h-full flex flex-col p-8 md:p-12 overflow-y-auto custom-scroll bg-slate-50">
-      <div className="max-w-5xl mx-auto w-full">
-        {/* Header Section */}
-        <div className="mb-10 text-center max-w-2xl mx-auto">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <BarChart className="w-8 h-8" />
-          </div>
-          <h2 className="text-4xl font-black text-slate-900 mb-3">
-            Market Demand Predictor
+    <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
+      <div className="max-w-4xl mx-auto w-full">
+        <div className="mb-12">
+          <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+            Market Forecaster
           </h2>
-          <p className="text-slate-500 text-lg">
-            Use AI-driven regression models to forecast salary ranges and field
-            growth across global locations.
+          <p className="text-[#7A756D] text-lg font-sans leading-relaxed">
+            AI-driven regression models forecasting global salary ranges and
+            industry trajectory.
           </p>
         </div>
 
-        {/* Form Inputs */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-3">
-          <div className="flex-1 relative">
-            <Briefcase className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
-            <input
-              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-12 pr-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              placeholder="Job Role (e.g. Data Scientist)"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            />
-          </div>
-          <div className="flex-1 relative">
-            <Globe className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
-            <input
-              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-12 pr-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              placeholder="Base Location (e.g. India)"
-              value={baseLocation}
-              onChange={(e) => setBaseLocation(e.target.value)}
-            />
-          </div>
-          <div className="flex-1 relative">
-            <Globe className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
-            <input
-              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-12 pr-4 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              placeholder="Compare With (Optional, e.g. USA)"
-              value={targetLocation}
-              onChange={(e) => setTargetLocation(e.target.value)}
-            />
-          </div>
+        <div className="bg-white p-4 rounded-3xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-[#E8E6DF] mb-12 flex flex-col md:flex-row gap-4">
+          <input
+            className="flex-1 bg-transparent border-none py-3 px-4 text-[#2D2D2D] focus:ring-0 outline-none placeholder:text-[#A8A39D] text-sm"
+            placeholder="Job Role (e.g. Data Scientist)"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          />
+          <div className="w-px bg-[#E8E6DF] hidden md:block my-2"></div>
+          <input
+            className="flex-1 bg-transparent border-none py-3 px-4 text-[#2D2D2D] focus:ring-0 outline-none placeholder:text-[#A8A39D] text-sm"
+            placeholder="Base Location"
+            value={baseLocation}
+            onChange={(e) => setBaseLocation(e.target.value)}
+          />
+          <div className="w-px bg-[#E8E6DF] hidden md:block my-2"></div>
+          <input
+            className="flex-1 bg-transparent border-none py-3 px-4 text-[#2D2D2D] focus:ring-0 outline-none placeholder:text-[#A8A39D] text-sm"
+            placeholder="Compare With (Optional)"
+            value={targetLocation}
+            onChange={(e) => setTargetLocation(e.target.value)}
+          />
           <button
             onClick={analyzeMarket}
             disabled={loading || !role || !baseLocation}
-            className="px-8 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-8 py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
           >
-            {loading ? "Analyzing..." : "Predict"}
+            {loading ? "Forecasting..." : "Forecast"}
           </button>
         </div>
 
-        {/* Results Section */}
         {marketData && (
-          <div className="animate-enter space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-8 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {marketData.base && (
                 <LocationCard data={marketData.base} isTarget={false} />
               )}
@@ -746,38 +461,29 @@ const MarketAnalyzer = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-              <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-yellow-500" /> Strategic
-                Insights
+            <div className="bg-white rounded-3xl p-10 border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+              <h3 className="font-serif text-2xl text-[#2D2D2D] mb-8">
+                Strategic Intelligence
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 {marketData.insights.map((insight, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-slate-50 p-5 rounded-2xl border border-slate-100"
-                  >
-                    <span className="text-blue-600 font-black text-lg mb-2 block">
+                  <div key={idx} className="flex gap-4">
+                    <span className="text-[#A8A39D] font-serif text-xl italic">
                       0{idx + 1}
                     </span>
-                    <p className="text-slate-700 text-sm font-medium leading-relaxed">
+                    <p className="text-[#4A4A4A] text-sm leading-relaxed">
                       {insight}
                     </p>
                   </div>
                 ))}
               </div>
-              <div className="bg-slate-900 text-white p-6 rounded-2xl flex items-start gap-4 shadow-lg">
-                <div className="bg-white/10 p-3 rounded-xl shrink-0">
-                  <TrendingUp className="w-6 h-6 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-blue-300 uppercase tracking-wider mb-1">
-                    Final Verdict
-                  </h4>
-                  <p className="text-lg font-medium leading-relaxed text-slate-100">
-                    {marketData.verdict}
-                  </p>
-                </div>
+              <div className="bg-[#F3F1EC] p-6 rounded-2xl border border-[#E8E6DF]">
+                <h4 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest mb-2">
+                  Final Verdict
+                </h4>
+                <p className="font-serif text-lg text-[#2D2D2D]">
+                  {marketData.verdict}
+                </p>
               </div>
             </div>
           </div>
@@ -797,12 +503,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
   const [betaEmail, setBetaEmail] = useState("");
   const [betaSuccess, setBetaSuccess] = useState(false);
 
-  const handleInitiateUpgrade = (plan) => {
-    setSelectedPlan(plan);
-    setPaymentSubmitted(false);
-    setTransactionId("");
-  };
-
   const handleVerifyPayment = async () => {
     if (!transactionId.trim()) return;
     try {
@@ -817,48 +517,40 @@ const BillingDashboard = ({ currentPlan, user }) => {
       });
       setPaymentSubmitted(true);
     } catch (e) {
-      alert("Error submitting transaction. Please try again.");
+      alert("Error submitting transaction.");
     }
   };
 
   const handleJoinBeta = (e) => {
     e.preventDefault();
-    if (betaEmail.trim()) {
-      setBetaSuccess(true);
-    }
+    if (betaEmail.trim()) setBetaSuccess(true);
   };
 
   if (currentPlan === "pro") {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-8 bg-slate-50 overflow-y-auto custom-scroll">
-        <div className="bg-white p-12 rounded-3xl shadow-2xl border border-slate-100 max-w-3xl w-full text-center relative overflow-hidden animate-enter">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-purple-600"></div>
-          <div className="w-24 h-24 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-            <Crown className="w-12 h-12 text-yellow-400" />
+      <div className="h-full flex flex-col items-center justify-center p-8 bg-[#FAF9F6] overflow-y-auto no-scrollbar">
+        <div className="bg-white p-16 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF] max-w-2xl w-full text-center animate-fade-in">
+          <div className="w-16 h-16 bg-[#F3F1EC] text-[#2D2D2D] rounded-full flex items-center justify-center mx-auto mb-6">
+            <Crown strokeWidth={1.5} className="w-8 h-8 text-[#D97D54]" />
           </div>
-          <h2 className="text-4xl font-black text-slate-900 mb-4">
+          <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">
             You are a Pro User
           </h2>
-          <p className="text-slate-500 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
-            Thank you for collaborating and supporting our vision. You have
-            unrestricted access to all premium engineering tools, AI resume
-            architectures, job matching, and priority processing.
+          <p className="text-[#7A756D] text-lg leading-relaxed mb-12">
+            Unrestricted access to all advanced models, resume architectures,
+            job matching, and priority processing.
           </p>
-
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 max-w-lg mx-auto shadow-inner">
-            <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
-              <Rocket className="w-5 h-5 text-blue-600" /> Join the Beta Testing
-              Club
+          <div className="bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl p-8 max-w-md mx-auto">
+            <h3 className="font-serif text-xl text-[#2D2D2D] mb-2">
+              Beta Testing Club
             </h3>
-            <p className="text-sm text-slate-500 mb-6">
-              Get early access to unreleased AI models and experimental features
-              before anyone else.
+            <p className="text-sm text-[#7A756D] mb-6">
+              Get early access to unreleased AI models.
             </p>
-
             {betaSuccess ? (
-              <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl font-bold flex items-center justify-center gap-2 animate-enter">
-                <CheckCircle className="w-5 h-5" /> Successfully applied to Beta
-                Club!
+              <div className="text-[#4A4A4A] text-sm font-medium flex items-center justify-center gap-2">
+                <CheckCircle className="w-4 h-4 text-[#D97D54]" /> Successfully
+                applied!
               </div>
             ) : (
               <form onSubmit={handleJoinBeta} className="flex gap-2">
@@ -868,11 +560,11 @@ const BillingDashboard = ({ currentPlan, user }) => {
                   placeholder="Enter your email"
                   value={betaEmail}
                   onChange={(e) => setBetaEmail(e.target.value)}
-                  className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  className="flex-1 p-3 rounded-xl border border-[#E8E6DF] bg-white text-sm focus:border-[#D1CEC7] outline-none"
                 />
                 <button
                   type="submit"
-                  className="px-6 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition"
+                  className="px-6 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium"
                 >
                   Apply
                 </button>
@@ -886,34 +578,28 @@ const BillingDashboard = ({ currentPlan, user }) => {
 
   if (paymentSubmitted) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-8 bg-slate-50 animate-enter">
-        <div className="bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-            <CheckCircle className="w-10 h-10" strokeWidth={2.5} />
-          </div>
-          <h2 className="text-3xl font-black text-slate-900 mb-4">
+      <div className="h-full flex flex-col items-center justify-center p-8 bg-[#FAF9F6] animate-fade-in">
+        <div className="bg-white p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF] max-w-md w-full text-center">
+          <CheckCircle
+            className="w-12 h-12 text-[#D97D54] mx-auto mb-6"
+            strokeWidth={1.5}
+          />
+          <h2 className="font-serif text-3xl text-[#2D2D2D] mb-4">
             Verification Pending
           </h2>
-          <p className="text-slate-600 text-lg leading-relaxed mb-8">
+          <p className="text-[#7A756D] text-sm leading-relaxed mb-8">
             Your transaction ID{" "}
-            <span className="font-mono bg-slate-100 px-2 py-1 rounded text-slate-900 font-bold">
+            <span className="font-mono bg-[#F3F1EC] px-2 py-1 rounded text-[#2D2D2D]">
               {transactionId}
             </span>{" "}
-            has been notified to our team.
+            is under review. You'll be upgraded shortly.
           </p>
-          <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 text-blue-800 text-sm font-medium mb-8">
-            <p className="flex items-center justify-center gap-2 mb-2 font-bold text-blue-900 uppercase tracking-wider">
-              <Clock className="w-4 h-4" /> What happens next?
-            </p>
-            You will get in touch within 5 minutes. Please check your mail for
-            final confirmation and plan activation.
-          </div>
           <button
             onClick={() => {
               setSelectedPlan(null);
               setPaymentSubmitted(false);
             }}
-            className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition"
+            className="w-full py-3 bg-[#F3F1EC] text-[#4A4A4A] rounded-2xl font-medium text-sm"
           >
             Return to Dashboard
           </button>
@@ -923,70 +609,51 @@ const BillingDashboard = ({ currentPlan, user }) => {
   }
 
   if (selectedPlan) {
-    const planDetails =
-      selectedPlan === "essential"
-        ? { price: "$9", name: "Essential" }
-        : { price: "$19", name: "Pro" };
     return (
-      <div className="h-full flex flex-col p-8 bg-slate-50 overflow-y-auto custom-scroll">
-        <div className="max-w-4xl mx-auto w-full">
+      <div className="h-full flex flex-col items-center justify-center p-8 bg-[#FAF9F6] overflow-y-auto no-scrollbar animate-fade-in">
+        <div className="max-w-md w-full bg-white p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF]">
           <button
             onClick={() => setSelectedPlan(null)}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold mb-8 transition"
+            className="flex items-center gap-2 text-[#7A756D] hover:text-[#2D2D2D] text-sm mb-8 transition"
           >
-            <ArrowLeft className="w-5 h-5" /> Back to Plans
+            <ArrowLeft className="w-4 h-4" /> Back to Plans
           </button>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
-              <h2 className="text-2xl font-black text-slate-900 mb-2">
-                Upgrade to {planDetails.name}
-              </h2>
-              <p className="text-lg text-slate-500 mb-6 font-medium">
-                Total Amount:{" "}
-                <span className="text-slate-900 font-bold">
-                  {planDetails.price}
-                </span>
-              </p>
-              <div className="bg-slate-900 p-6 rounded-2xl flex flex-col items-center justify-center text-white mb-6 shadow-lg">
-                <img
-                  src="https://via.placeholder.com/300?text=YOUR+QR+CODE+HERE"
-                  alt="QR Code"
-                  className="w-56 h-56 rounded-xl mb-4 border-4 border-white"
-                />
-                <p className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
-                  <QrCode className="w-4 h-4" /> Scan with any UPI App
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col justify-center">
-              <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200">
-                <h3 className="text-xl font-bold text-slate-900 mb-4">
-                  Final Step: Verification
-                </h3>
-                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                  Enter your Transaction ID / UTR Number below to activate your
-                  plan.
-                </p>
-                <div className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      value={transactionId}
-                      onChange={(e) => setTransactionId(e.target.value)}
-                      placeholder="e.g. T2309121455..."
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
-                    />
-                  </div>
-                  <button
-                    onClick={handleVerifyPayment}
-                    disabled={!transactionId.trim()}
-                    className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50"
-                  >
-                    Verify Payment
-                  </button>
-                </div>
-              </div>
-            </div>
+          <h2 className="font-serif text-3xl text-[#2D2D2D] mb-2">
+            Complete Upgrade
+          </h2>
+          <p className="text-[#7A756D] text-sm mb-8">
+            Total:{" "}
+            <span className="text-[#2D2D2D] font-medium">
+              {selectedPlan === "essential" ? "$9" : "$19"}
+            </span>
+          </p>
+
+          <div className="bg-[#F3F1EC] p-6 rounded-2xl mb-8 text-center border border-[#E8E6DF]">
+            <img
+              src="https://via.placeholder.com/200?text=QR+CODE"
+              alt="QR"
+              className="mx-auto rounded-xl mb-4 grayscale opacity-80"
+            />
+            <p className="text-xs font-medium text-[#7A756D] uppercase tracking-widest">
+              Scan with UPI
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <input
+              type="text"
+              value={transactionId}
+              onChange={(e) => setTransactionId(e.target.value)}
+              placeholder="Enter Transaction ID"
+              className="w-full p-4 bg-[#F3F1EC] border border-[#E8E6DF] rounded-2xl text-[#2D2D2D] text-sm focus:border-[#D1CEC7] outline-none"
+            />
+            <button
+              onClick={handleVerifyPayment}
+              disabled={!transactionId.trim()}
+              className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] disabled:opacity-50 transition"
+            >
+              Verify Payment
+            </button>
           </div>
         </div>
       </div>
@@ -994,100 +661,61 @@ const BillingDashboard = ({ currentPlan, user }) => {
   }
 
   return (
-    <div className="h-full flex flex-col items-center p-8 bg-slate-50 overflow-y-auto custom-scroll">
-      <div className="text-center mb-10 max-w-2xl mt-8">
-        <h2 className="text-4xl font-black text-slate-900 mb-4">
-          Choose Your Path
+    <div className="h-full flex flex-col items-center justify-center p-8 bg-[#FAF9F6] overflow-y-auto no-scrollbar">
+      <div className="text-center mb-16 max-w-2xl">
+        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+          Select your workspace plan.
         </h2>
-        <p className="text-slate-500 text-lg">
-          Upgrade your workspace to unlock AI-powered roadmaps, job matching,
-          market predictions, and deep resume audits.
+        <p className="text-[#7A756D] text-lg font-sans">
+          Elevate your capabilities with advanced models and tools.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full px-4 pb-12">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 opacity-80 flex flex-col">
-          <h3 className="text-lg font-bold text-slate-500 mb-1">Basic</h3>
-          <p className="text-4xl font-black text-slate-900 mb-6">Free</p>
-          <ul className="text-sm space-y-4 mb-8 text-slate-600 font-medium flex-1">
-            <li className="flex items-center gap-2">✅ AI Chat Access</li>
-            <li className="flex items-center gap-2 text-slate-400">
-              ❌ AI Job Matcher
-            </li>
-            <li className="flex items-center gap-2 text-slate-400">
-              ❌ Market Predictor
-            </li>
-            <li className="flex items-center gap-2 text-slate-400">
-              ❌ Resume & Email Console
-            </li>
-          </ul>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
+        <div className="bg-white p-10 rounded-3xl border border-[#E8E6DF] flex flex-col items-center text-center">
+          <h3 className="font-serif text-2xl text-[#2D2D2D] mb-2">Basic</h3>
+          <p className="text-sm text-[#7A756D] mb-8">Standard access</p>
+          <p className="font-sans text-4xl text-[#2D2D2D] mb-10 font-medium">
+            Free
+          </p>
           <button
             disabled
-            className="w-full py-3 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed"
+            className="w-full py-3 bg-[#F3F1EC] text-[#A8A39D] rounded-full text-sm font-medium"
           >
-            {currentPlan === "basic" ? "Current Plan" : "Included"}
+            Included
           </button>
         </div>
 
-        <div className="bg-white p-8 rounded-3xl border-2 border-blue-600 shadow-xl relative scale-105 z-10 flex flex-col">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+        <div className="bg-[#FAF9F6] p-10 rounded-3xl border border-[#D97D54] flex flex-col items-center text-center relative shadow-sm">
+          <div className="absolute -top-3 bg-[#D97D54] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
             Recommended
           </div>
-          <h3 className="text-lg font-bold text-blue-600 mb-1">Essential</h3>
-          <p className="text-4xl font-black text-slate-900 mb-6">
-            $9<span className="text-sm text-slate-400 font-medium">/mo</span>
+          <h3 className="font-serif text-2xl text-[#2D2D2D] mb-2">Essential</h3>
+          <p className="text-sm text-[#7A756D] mb-8">
+            AI Roadmaps & Forecaster
           </p>
-          <ul className="text-sm space-y-4 mb-8 text-slate-700 font-bold flex-1">
-            <li className="flex items-center gap-2">✅ AI Chat Access</li>
-            <li className="flex items-center gap-2">✅ Semantic Job Matcher</li>
-            <li className="flex items-center gap-2">
-              ✅ Market Demand Predictor
-            </li>
-            <li className="flex items-center gap-2">
-              ✅ Career Roadmap Builder
-            </li>
-            <li className="flex items-center gap-2 text-slate-400">
-              ❌ Resume & Email Console
-            </li>
-          </ul>
+          <p className="font-sans text-4xl text-[#2D2D2D] mb-10 font-medium">
+            $9<span className="text-sm text-[#7A756D]">/mo</span>
+          </p>
           <button
-            onClick={() => handleInitiateUpgrade("essential")}
-            disabled={currentPlan === "essential" || currentPlan === "pro"}
-            className={`w-full py-4 rounded-xl font-bold transition-all ${currentPlan === "essential" || currentPlan === "pro" ? "bg-blue-100 text-blue-600 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-1"}`}
+            onClick={() => setSelectedPlan("essential")}
+            className="w-full py-3 bg-[#D97D54] text-white rounded-full text-sm font-medium hover:bg-[#C26B45] transition"
           >
-            {currentPlan === "essential"
-              ? "Active Plan"
-              : currentPlan === "pro"
-                ? "Included in Pro"
-                : "Upgrade to Essential"}
+            Upgrade
           </button>
         </div>
 
-        <div className="bg-slate-900 p-8 rounded-3xl border border-slate-800 text-white shadow-2xl flex flex-col">
-          <h3 className="text-lg font-bold text-slate-400 mb-1">Pro</h3>
-          <p className="text-4xl font-black text-white mb-6">
-            $19<span className="text-sm text-slate-500 font-medium">/mo</span>
+        <div className="bg-[#2D2D2D] p-10 rounded-3xl border border-[#1A1A1A] flex flex-col items-center text-center">
+          <h3 className="font-serif text-2xl text-[#FAF9F6] mb-2">Pro</h3>
+          <p className="text-sm text-[#A8A39D] mb-8">Full access & Audits</p>
+          <p className="font-sans text-4xl text-[#FAF9F6] mb-10 font-medium">
+            $19<span className="text-sm text-[#A8A39D]">/mo</span>
           </p>
-          <ul className="text-sm space-y-4 mb-8 text-slate-300 font-medium flex-1">
-            <li className="flex items-center gap-2">
-              ✅ All Essential Features
-            </li>
-            <li className="flex items-center gap-2">
-              ✅ Deep Resume Architect
-            </li>
-            <li className="flex items-center gap-2">
-              ✅ Professional Email Studio
-            </li>
-            <li className="flex items-center gap-2 text-emerald-400">
-              ✅ Priority AI Processing
-            </li>
-          </ul>
           <button
-            onClick={() => handleInitiateUpgrade("pro")}
-            disabled={currentPlan === "pro"}
-            className={`w-full py-4 rounded-xl font-bold transition-all ${currentPlan === "pro" ? "bg-slate-700 text-slate-300 cursor-not-allowed" : "bg-white text-slate-900 hover:bg-slate-100 hover:-translate-y-1"}`}
+            onClick={() => setSelectedPlan("pro")}
+            className="w-full py-3 bg-[#FAF9F6] text-[#2D2D2D] rounded-full text-sm font-medium hover:bg-white transition"
           >
-            {currentPlan === "pro" ? "Active Plan" : "Get Pro"}
+            Get Pro
           </button>
         </div>
       </div>
@@ -1102,222 +730,112 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
   const [videos, setVideos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("All");
-
-  const POPULAR_CHANNELS = [
-    "All",
-    "FreeCodeCamp",
-    "Fireship",
-    "Web Dev Simplified",
-    "Traversy Media",
-    "Beyond Fire",
-  ];
-
-  const timeAgo = (dateString) => {
-    const now = new Date();
-    const past = new Date(dateString);
-    const seconds = Math.floor((now - past) / 1000);
-    if (seconds / 31536000 > 1) return Math.floor(seconds / 31536000) + "y ago";
-    if (seconds / 2592000 > 1) return Math.floor(seconds / 2592000) + "mo ago";
-    if (seconds / 86400 > 1) return Math.floor(seconds / 86400) + "d ago";
-    return Math.floor(seconds / 3600) + "h ago";
-  };
 
   const fetchVideos = async (query) => {
     if (!YOUTUBE_API_KEY || !query) return;
     setLoading(true);
     try {
       const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=13&q=${encodeURIComponent(query + " course tutorial")}&type=video&key=${YOUTUBE_API_KEY}`,
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=13&q=${encodeURIComponent(query + " course tutorial masterclass")}&type=video&key=${YOUTUBE_API_KEY}`,
       );
       const data = await response.json();
       setVideos(data.items || []);
     } catch (error) {
-      console.error("YouTube Fetch Error:", error);
-    } finally {
-      setLoading(false);
+      console.error("YouTube Error", error);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    const topic = recommendedTopic || "Full Stack Development";
+    const topic = recommendedTopic || "Full Stack Architecture";
     setSearchQuery(topic);
     fetchVideos(topic);
   }, [recommendedTopic]);
 
-  const handleSearch = (e) => {
-    if (e.key === "Enter") fetchVideos(searchQuery);
-  };
-
   return (
-    <div className="h-full flex flex-col bg-[#FDFDFD] relative overflow-hidden font-sans">
-      <div className="bg-white border-b border-slate-100 px-8 py-6 sticky top-0 z-20 shadow-sm/50">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                <BookOpen
-                  className="w-8 h-8 text-slate-900"
-                  strokeWidth={2.5}
-                />
-                Knowledge Hub
-              </h2>
-              <div className="flex items-center gap-2 mt-2">
-                {isAnalyzing ? (
-                  <span className="flex items-center gap-2 text-blue-600 text-xs font-bold uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-full animate-pulse">
-                    <Sparkles className="w-3 h-3" /> Analyzing Context...
-                  </span>
-                ) : (
-                  <span className="text-slate-500 text-sm font-medium">
-                    Curated technical masterclasses & resources.
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="relative w-full md:w-[420px] group">
-              <input
-                type="text"
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 pl-12 text-slate-900 font-medium focus:bg-white focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all placeholder:text-slate-400"
-                placeholder="What do you want to master?"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
-              />
-              <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
-            </div>
+    <div className="h-full flex flex-col bg-[#FAF9F6] overflow-y-auto no-scrollbar p-8 md:p-16">
+      <div className="max-w-6xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+          <div>
+            <h2 className="font-serif text-4xl text-[#2D2D2D] mb-2">Library</h2>
+            <p className="text-[#7A756D] text-sm">
+              Curated technical masterclasses.
+            </p>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {POPULAR_CHANNELS.map((name) => (
-              <button
-                key={name}
-                onClick={() => {
-                  setActiveFilter(name);
-                  fetchVideos(
-                    name === "All" ? searchQuery : `${name} ${searchQuery}`,
-                  );
-                }}
-                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
-                  activeFilter === name
-                    ? "bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                }`}
-              >
-                {name}
-              </button>
-            ))}
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-4 top-3.5 w-4 h-4 text-[#A8A39D]" />
+            <input
+              type="text"
+              className="w-full bg-white border border-[#E8E6DF] rounded-2xl px-5 py-3 pl-12 text-[#2D2D2D] text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+              placeholder="Search concepts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchVideos(searchQuery)}
+            />
           </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto custom-scroll p-8">
-        <div className="max-w-7xl mx-auto">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="col-span-1 md:col-span-3 h-[400px] bg-slate-100 rounded-3xl animate-pulse"></div>
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <div className="h-48 bg-slate-100 rounded-2xl animate-pulse"></div>
-                  <div className="h-4 bg-slate-100 rounded w-3/4"></div>
-                  <div className="h-4 bg-slate-100 rounded w-1/2"></div>
-                </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 opacity-50">
+            <div className="col-span-1 md:col-span-3 h-80 bg-[#E8E6DF] rounded-3xl animate-pulse"></div>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {videos.length > 0 && (
+              <div>
+                <a
+                  href={`https://www.youtube.com/watch?v=${videos[0].id.videoId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block relative w-full h-[400px] rounded-3xl overflow-hidden group"
+                >
+                  <img
+                    src={videos[0].snippet.thumbnails.high.url}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    alt="Featured"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/90 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 p-10 w-full md:w-2/3">
+                    <span className="text-[10px] font-bold text-[#FAF9F6] bg-[#2D2D2D]/50 backdrop-blur-md px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-[#FAF9F6]/20">
+                      Featured
+                    </span>
+                    <h1 className="font-serif text-3xl md:text-4xl text-[#FAF9F6] leading-tight mb-2">
+                      {videos[0].snippet.title}
+                    </h1>
+                    <p className="text-[#D1CEC7] text-sm">
+                      {videos[0].snippet.channelTitle}
+                    </p>
+                  </div>
+                </a>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {videos.slice(1).map((video) => (
+                <a
+                  key={video.id.videoId}
+                  href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex flex-col"
+                >
+                  <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#F3F1EC] mb-4 border border-[#E8E6DF]">
+                    <img
+                      src={video.snippet.thumbnails.high.url}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <h3 className="font-sans text-sm font-medium text-[#2D2D2D] leading-snug line-clamp-2 mb-1">
+                    {video.snippet.title}
+                  </h3>
+                  <p className="text-xs text-[#7A756D]">
+                    {video.snippet.channelTitle}
+                  </p>
+                </a>
               ))}
             </div>
-          ) : (
-            <>
-              {videos.length > 0 && (
-                <div className="mb-12">
-                  <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" /> Top Recommendation
-                  </h3>
-                  <a
-                    href={`https://www.youtube.com/watch?v=${videos[0].id.videoId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group relative block w-full h-[400px] rounded-3xl overflow-hidden shadow-xl shadow-slate-200 cursor-pointer"
-                  >
-                    <img
-                      src={videos[0].snippet.thumbnails.high.url}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      alt="Featured"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                    <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full md:w-2/3">
-                      <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">
-                        <Sparkles className="w-3 h-3 text-yellow-300" />{" "}
-                        Featured Masterclass
-                      </div>
-                      <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4 line-clamp-2">
-                        {videos[0].snippet.title}
-                      </h1>
-                      <div className="flex items-center gap-4 text-slate-200 text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={`https://api.dicebear.com/9.x/initials/svg?seed=${videos[0].snippet.channelTitle}`}
-                            className="w-6 h-6 rounded-full bg-white/10"
-                            alt=""
-                          />
-                          {videos[0].snippet.channelTitle}
-                        </div>
-                        <span>•</span>
-                        <span>{timeAgo(videos[0].snippet.publishedAt)}</span>
-                      </div>
-                    </div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100">
-                      <Play className="w-8 h-8 text-white fill-white" />
-                    </div>
-                  </a>
-                </div>
-              )}
-              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                <Filter className="w-4 h-4" /> Quick Picks
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-                {videos.slice(1).map((video) => (
-                  <a
-                    key={video.id.videoId}
-                    href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex flex-col cursor-pointer"
-                  >
-                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-sm bg-slate-100 mb-4 ring-1 ring-slate-900/5 group-hover:ring-slate-900/10 transition-all">
-                      <img
-                        src={video.snippet.thumbnails.high.url}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                        <Play className="text-white opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 w-10 h-10 fill-white/20" />
-                      </div>
-                      <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
-                        <Clock className="w-3 h-3" />{" "}
-                        {timeAgo(video.snippet.publishedAt)}
-                      </div>
-                    </div>
-                    <div className="space-y-1 px-1">
-                      <h3 className="text-[15px] font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
-                        {video.snippet.title}
-                      </h3>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 hover:text-slate-800 transition">
-                          <div className="w-5 h-5 rounded-full bg-slate-200 overflow-hidden">
-                            <img
-                              src={`https://api.dicebear.com/9.x/initials/svg?seed=${video.snippet.channelTitle}`}
-                              alt=""
-                            />
-                          </div>
-                          {video.snippet.channelTitle}
-                        </div>
-                        <button className="text-slate-300 hover:text-slate-900 transition">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1330,7 +848,6 @@ const FeedbackView = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
     suggestion: "",
   });
   const [status, setStatus] = useState("idle");
@@ -1352,111 +869,72 @@ const FeedbackView = () => {
 
   if (status === "success") {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-enter">
-        <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-6 shadow-sm">
-          <svg
-            className="w-10 h-10"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            viewBox="0 0 24 24"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-        <h2 className="text-3xl font-black text-slate-800">Feedback Sent</h2>
-        <p className="text-slate-500 mt-3 mb-10 text-lg">
-          We appreciate your contribution.
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in bg-[#FAF9F6]">
+        <CheckCircle
+          className="w-12 h-12 text-[#D97D54] mb-6"
+          strokeWidth={1.5}
+        />
+        <h2 className="font-serif text-3xl text-[#2D2D2D] mb-2">
+          Message Sent
+        </h2>
+        <p className="text-[#7A756D] mb-8">
+          We appreciate your thoughtful input.
         </p>
         <button
           onClick={() => {
             setStatus("idle");
-            setFormData({ name: "", email: "", phone: "", suggestion: "" });
+            setFormData({ name: "", email: "", suggestion: "" });
           }}
-          className="text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-1 hover:text-blue-600 hover:border-blue-600 transition"
+          className="text-sm font-medium text-[#4A4A4A] hover:text-[#2D2D2D] underline underline-offset-4 decoration-[#E8E6DF]"
         >
-          Send Another
+          Send another
         </button>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col p-8 md:p-12 overflow-y-auto custom-scroll">
-      <div className="max-w-2xl mx-auto w-full">
-        <div className="mb-10">
-          <h2 className="text-3xl font-black text-slate-900 mb-2">Feedback</h2>
-          <p className="text-slate-500 text-lg">
-            Help us engineer a better experience.
-          </p>
-        </div>
+    <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
+      <div className="max-w-lg mx-auto w-full">
+        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+          Feedback
+        </h2>
+        <p className="text-[#7A756D] text-lg mb-10 font-sans">
+          Help us refine the experience.
+        </p>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Name
-              </label>
-              <input
-                required
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full p-4 rounded-xl text-slate-900 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
-                placeholder="John Doe"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Email
-              </label>
-              <input
-                required
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full p-4 rounded-xl text-slate-900 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
-                placeholder="john@example.com"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Phone
-            </label>
-            <input
-              required
-              type="tel"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              className="w-full p-4 rounded-xl text-slate-900 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"
-              placeholder="+1 234 567 890"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Message
-            </label>
-            <textarea
-              required
-              rows="5"
-              value={formData.suggestion}
-              onChange={(e) =>
-                setFormData({ ...formData, suggestion: e.target.value })
-              }
-              className="w-full p-4 rounded-xl text-slate-900 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition resize-none"
-              placeholder="Your thoughts..."
-            />
-          </div>
+          <input
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full p-4 rounded-2xl bg-white border border-[#E8E6DF] text-sm text-[#2D2D2D] focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+            placeholder="Name"
+          />
+          <input
+            required
+            type="email"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            className="w-full p-4 rounded-2xl bg-white border border-[#E8E6DF] text-sm text-[#2D2D2D] focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+            placeholder="Email Address"
+          />
+          <textarea
+            required
+            rows="5"
+            value={formData.suggestion}
+            onChange={(e) =>
+              setFormData({ ...formData, suggestion: e.target.value })
+            }
+            className="w-full p-4 rounded-2xl bg-white border border-[#E8E6DF] text-sm text-[#2D2D2D] focus:border-[#D1CEC7] outline-none resize-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+            placeholder="Your thoughts..."
+          />
           <button
             disabled={status === "loading"}
-            className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50"
+            className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
           >
-            {status === "loading" ? "Sending..." : "Submit Feedback"}
+            {status === "loading" ? "Sending..." : "Submit"}
           </button>
         </form>
       </div>
@@ -1482,7 +960,7 @@ const ResumeAnalyzer = () => {
         f.type.includes("officedocument"))
     )
       setFile(f);
-    else alert("Please upload a PDF or DOCX file.");
+    else alert("Please upload a PDF or DOCX.");
   };
 
   const extractText = async (file) => {
@@ -1515,22 +993,7 @@ const ResumeAnalyzer = () => {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
       });
-      const prompt = `
-        You are a Senior Technical Recruiter at a top FAANG company. 
-        Conduct a ruthless, deep-dive review of this resume.
-        Resume Text: "${resumeText}"
-        Output STRICTLY in this format:
-        Score: <number 0-100>
-        Critical Flaws:
-        - <Point 1>
-        Technical Gaps:
-        - <Point 1>
-        Impact & Metrics Improvements:
-        - <Point 1>
-        Formatting & ATS Check:
-        - <Point 1>
-      `;
-
+      const prompt = `You are a Senior Technical Recruiter at FAANG. Conduct a deep-dive review of this resume. Resume Text: "${resumeText}". Output STRICTLY in this format: Score: <number 0-100>\nCritical Flaws:\n- <Point 1>\nTechnical Gaps:\n- <Point 1>\nImpact Metrics:\n- <Point 1>\nFormatting:\n- <Point 1>`;
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       const scoreMatch = text.match(/Score:\s*(\d+)/);
@@ -1559,81 +1022,63 @@ const ResumeAnalyzer = () => {
   };
 
   return (
-    <div className="h-full flex flex-col p-8 md:p-12 overflow-y-auto custom-scroll">
+    <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-3xl mx-auto w-full">
-        <h2 className="text-3xl font-black text-slate-900 mb-2">
+        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
           Resume Architect
         </h2>
-        <p className="text-slate-500 mb-8 text-lg">
-          Senior-level audit for your career documents.
+        <p className="text-[#7A756D] mb-12 text-lg font-sans">
+          Deep structural audit for career documents.
         </p>
 
-        <div className="border-2 border-dashed border-slate-300 rounded-2xl p-10 bg-slate-50 hover:bg-slate-100 hover:border-slate-400 transition-all text-center mb-8">
-          <div className="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-900 mx-auto mb-4">
-            <Icon.Upload />
-          </div>
+        <div className="border border-dashed border-[#D1CEC7] rounded-3xl p-16 bg-white hover:bg-[#F3F1EC]/50 transition-all text-center mb-8 cursor-pointer relative shadow-[0_2px_10px_rgb(0,0,0,0.01)]">
           <input
             type="file"
             onChange={handleFile}
-            className="hidden"
-            id="resume-upload"
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             accept=".pdf,.docx"
           />
-          <label
-            htmlFor="resume-upload"
-            className="block text-lg font-bold text-slate-900 cursor-pointer hover:underline mb-1"
-          >
-            {file ? file.name : "Upload Resume (PDF/DOCX)"}
-          </label>
-          <p className="text-sm text-slate-400">
-            AI Analysis powered by Gemini 2.5
+          <UploadCloud
+            strokeWidth={1}
+            className="w-10 h-10 text-[#7A756D] mx-auto mb-4"
+          />
+          <p className="text-lg font-medium text-[#2D2D2D] mb-2">
+            {file ? file.name : "Select document (PDF/DOCX)"}
           </p>
+          <p className="text-sm text-[#A8A39D]">Powered by Gemini 2.5</p>
         </div>
 
         <button
           onClick={analyze}
           disabled={!file || loading}
-          className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 transition shadow-lg"
+          className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
         >
-          {loading ? "Auditing Profile..." : "Run Career Audit"}
+          {loading ? "Auditing Document..." : "Run Analysis"}
         </button>
 
         {score !== null && (
-          <div className="mt-12 animate-enter">
-            <div className="flex justify-between items-end mb-4">
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+          <div className="mt-16 animate-fade-in">
+            <div className="flex items-center justify-between mb-8 pb-8 border-b border-[#E8E6DF]">
+              <span className="font-serif text-2xl text-[#2D2D2D]">
                 Hiring Probability
               </span>
-              <span
-                className={`text-5xl font-black ${score > 75 ? "text-emerald-600" : "text-amber-500"}`}
-              >
+              <span className="font-serif text-5xl text-[#2D2D2D]">
                 {score}%
               </span>
             </div>
-            <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-10">
-              <div
-                className={`h-full ${score > 75 ? "bg-emerald-500" : "bg-amber-500"}`}
-                style={{ width: `${score}%` }}
-              ></div>
-            </div>
-
-            <div className="grid gap-6">
+            <div className="space-y-10">
               {Object.entries(suggestions).map(([k, v]) => (
-                <div
-                  key={k}
-                  className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm"
-                >
-                  <h3 className="text-md font-bold text-slate-900 mb-4 uppercase tracking-wide border-b border-slate-100 pb-2">
+                <div key={k}>
+                  <h3 className="text-xs font-semibold text-[#A8A39D] uppercase tracking-widest mb-4">
                     {k}
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-4">
                     {v.map((item, i) => (
                       <li
                         key={i}
-                        className="text-slate-700 leading-relaxed flex items-start gap-3"
+                        className="text-[#4A4A4A] text-sm leading-relaxed flex items-start gap-3 bg-white p-4 rounded-xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)]"
                       >
-                        <span className="text-red-500 font-bold mt-1">×</span>{" "}
-                        {item}
+                        <span className="text-[#D97D54] mt-0.5">•</span> {item}
                       </li>
                     ))}
                   </ul>
@@ -1648,15 +1093,15 @@ const ResumeAnalyzer = () => {
 };
 
 // =========================================================================================
-// MAIN COMPONENT: LENAI (FULL SCREEN CONSOLE)
+// MAIN COMPONENT: LENAI
 // =========================================================================================
 export const LenAi = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("chat");
-  const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
-  const [isFading, setIsFading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState("general");
 
   // Data States
   const [messages, setMessages] = useState([]);
@@ -1667,8 +1112,6 @@ export const LenAi = () => {
   const chatEndRef = useRef(null);
 
   const [storeTopic, setStoreTopic] = useState("");
-  const [analyzingProfile, setAnalyzingProfile] = useState(false);
-
   const [roadmapInput, setRoadmapInput] = useState("");
   const [roadmaps, setRoadmaps] = useState([]);
   const [activeRoadmap, setActiveRoadmap] = useState(null);
@@ -1679,22 +1122,18 @@ export const LenAi = () => {
   const [emailResult, setEmailResult] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
 
-  // Notification State
-  const [notifications, setNotifications] = useState([]);
-
   const userPlan = user?.plan || "basic";
   const hasAccess = PLAN_ACCESS[activeTab]?.includes(userPlan);
 
-  useEffect(() => {
-    const t1 = setTimeout(() => setIsFading(true), 2500);
-    const t2 = setTimeout(() => setShowSplash(false), 4000);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
+  // Helper for dynamic greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
-  // Fetch Chats
+  // Firebase Subscriptions
   useEffect(() => {
     if (!user) return;
     return onSnapshot(
@@ -1710,7 +1149,6 @@ export const LenAi = () => {
     );
   }, [user]);
 
-  // Fetch Messages
   useEffect(() => {
     if (!user || !activeChatId) {
       setMessages([]);
@@ -1731,7 +1169,6 @@ export const LenAi = () => {
     );
   }, [user, activeChatId]);
 
-  // Fetch Roadmaps
   useEffect(() => {
     if (!user) return;
     return onSnapshot(
@@ -1745,48 +1182,22 @@ export const LenAi = () => {
     );
   }, [user]);
 
-  // Fetch Notifications
-  useEffect(() => {
-    if (!user) return;
-    return onSnapshot(
-      query(
-        collection(db, "users", user.uid, "notifications"),
-        where("read", "==", false),
-      ),
-      (s) => {
-        setNotifications(s.docs.map((d) => ({ id: d.id, ...d.data() })));
-      },
-    );
-  }, [user]);
-
-  const dismissNotification = async (id) => {
-    await updateDoc(doc(db, "users", user.uid, "notifications", id), {
-      read: true,
-    });
-  };
-
   const analyzeUserInterests = async () => {
     const recentChats = chats
       .slice(0, 5)
       .map((c) => c.title)
       .join(", ");
-    const recentRoadmaps = roadmaps
-      .slice(0, 3)
-      .map((r) => r.role)
-      .join(", ");
-    if (!recentChats && !recentRoadmaps) return;
-    setAnalyzingProfile(true);
+    if (!recentChats) return;
     try {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
       });
-      const prompt = `User Context: Recent Chats: ${recentChats}. Roadmaps: ${recentRoadmaps}. Output SINGLE relevant tech skill to learn (no punctuation).`;
+      const prompt = `Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`;
       const result = await model.generateContent(prompt);
       setStoreTopic(result.response.text().trim());
     } catch (e) {
       console.error(e);
     }
-    setAnalyzingProfile(false);
   };
 
   useEffect(() => {
@@ -1815,15 +1226,20 @@ export const LenAi = () => {
       createdAt: serverTimestamp(),
     });
     try {
+      // Injected the user's name directly into the system instructions// change from here
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
-        systemInstruction:
-          "You are a Principal Software Architect. Be concise, expert, and direct.",
+        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context.
+        Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD .`,
       });
-      const history = messages.map((m) => ({
+
+      // Sliced to keep only the last 30 messages in memory for context
+      const recentMessages = messages.slice(-3);
+      const history = recentMessages.map((m) => ({
         role: m.sender === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
+
       const result = await model.startChat({ history }).sendMessage(textToSend);
       await addDoc(
         collection(db, "users", user.uid, "chats", cid, "messages"),
@@ -1841,6 +1257,7 @@ export const LenAi = () => {
 
   const createChat = async () => {
     setActiveTab("chat");
+    setActiveRoadmap(null);
     if (user) {
       const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
         title: "New Session",
@@ -1853,7 +1270,6 @@ export const LenAi = () => {
   const generateRoadmap = async () => {
     if (!roadmapInput || !genAI) return;
     setRoadmapLoading(true);
-    setStoreTopic(roadmapInput);
     try {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
@@ -1886,7 +1302,7 @@ export const LenAi = () => {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
       });
-      const prompt = `You are a professional email writer. Task: Write a polished, professional email based on the user's notes below. STRICT RULES: Return ONLY the email text. Do NOT write "Here is your email" or use Markdown blocks. User Notes: "${emailInput}"`;
+      const prompt = `You are a professional email writer. Task: Write a polished email based on user notes. Return ONLY email text. Notes: "${emailInput}"`;
       const parts = [prompt];
       if (emailImage) {
         const reader = new FileReader();
@@ -1916,484 +1332,628 @@ export const LenAi = () => {
 
   return (
     <>
-      {showSplash && (
-        <div
-          className={`fixed inset-0 z-50 bg-slate-950 flex items-center justify-center transition-opacity duration-[1500ms] ease-out ${isFading ? "opacity-0" : "opacity-100"}`}
-        >
-          <div className="flex flex-col items-center">
-            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-slate-950 font-black text-5xl mb-6 shadow-2xl shadow-blue-500/20 animate-pulse">
-              L
-            </div>
-            <div className="h-1 w-32 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-white w-full animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-      )}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@300;400;500;600&display=swap');
+        .font-serif { font-family: 'Newsreader', serif; }
+        .font-sans { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
 
-      {/* Admin Notifications Render */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl space-y-2 px-4 pointer-events-none">
-        {notifications.map((n) => (
-          <div
-            key={n.id}
-            className="bg-blue-600 text-white p-4 rounded-xl shadow-2xl flex items-start justify-between pointer-events-auto border border-blue-500 animate-enter"
-          >
-            <div className="flex items-start gap-3">
-              <Bell className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-bold text-sm">
-                  {n.title || "Admin Notification"}
-                </h4>
-                <p className="text-sm text-blue-100">{n.message}</p>
-              </div>
-            </div>
+      <div className="h-screen w-screen flex bg-[#FAF9F6] text-[#2D2D2D] font-sans overflow-hidden selection:bg-[#E8E6DF] selection:text-[#2D2D2D]">
+        {/* SIDEBAR */}
+        <div
+          className={`${sidebarOpen ? "w-64 border-r border-[#E8E6DF]" : "w-0"} bg-[#F3F1EC] transition-all duration-300 flex flex-col shrink-0 overflow-hidden relative`}
+        >
+          <div className="p-4 flex items-center justify-between mt-2">
             <button
-              onClick={() => dismissNotification(n.id)}
-              className="text-blue-200 hover:text-white"
+              onClick={() => setSidebarOpen(false)}
+              className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors"
             >
-              <X className="w-5 h-5" />
+              <Menu strokeWidth={1.5} className="w-5 h-5" />
+            </button>
+            <button
+              onClick={createChat}
+              className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors"
+            >
+              <Plus strokeWidth={1.5} className="w-5 h-5" />
             </button>
           </div>
-        ))}
-      </div>
 
-      <div className="h-screen w-screen console-window flex relative bg-white overflow-hidden">
-        {/* ICON RAIL */}
-        <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-8 shrink-0 z-30 overflow-y-auto no-scrollbar">
-          <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black mb-10 shadow-lg text-lg shrink-0">
-            L
-          </div>
-          <nav className="flex flex-col gap-6 w-full px-2 items-center shrink-0">
+          <div className="px-3 mt-4 space-y-1">
             {[
-              { id: "chat", icon: Icon.Message, label: "Chat" },
-              { id: "roadmap", icon: Icon.Map, label: "Roadmap" },
-              { id: "market", icon: Icon.Market, label: "Market" },
-              { id: "jobs", icon: Icon.Jobs, label: "Match Jobs" }, // NEW JOB MATCHER ICON
-              { id: "store", icon: Icon.Video, label: "Store" },
-              { id: "resume", icon: Icon.FileText, label: "Resume" },
-              { id: "email", icon: Icon.Mail, label: "Email" },
-              { id: "feedback", icon: Icon.Heart, label: "Feedback" },
+              { id: "chat", icon: MessageSquare, label: "Chat" },
+              { id: "roadmap", icon: BookOpen, label: "Roadmaps" },
+              { id: "market", icon: TrendingUp, label: "Market Forecaster" },
+              { id: "jobs", icon: Target, label: "Job Matcher" },
+              { id: "resume", icon: FileText, label: "Resume Architect" },
+              { id: "email", icon: Mail, label: "Email Studio" },
+              { id: "store", icon: LayoutGrid, label: "Library" },
+              { id: "feedback", icon: Heart, label: "Feedback" },
             ].map((t) => (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                className={`btn-icon w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${activeTab === t.id ? "bg-slate-900 text-white scale-105 shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
-                title={t.label}
+                onClick={() => {
+                  setActiveTab(t.id);
+                  if (t.id !== "roadmap") setActiveRoadmap(null);
+                }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${activeTab === t.id && !activeRoadmap ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
               >
-                <t.icon />
+                <t.icon strokeWidth={1.5} className="w-4 h-4" /> {t.label}
               </button>
             ))}
-            <div className="w-8 h-px bg-slate-200 my-2"></div>
-            <button
-              onClick={() => setActiveTab("billing")}
-              className={`btn-icon w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${activeTab === "billing" ? "bg-blue-600 text-white scale-105 shadow-lg shadow-blue-600/30" : "text-blue-500 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"}`}
-              title="Upgrade Plan"
-            >
-              <Icon.Billing />
-            </button>
-          </nav>
-          <div className="mt-auto mb-4 relative shrink-0 pt-6">
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="outline-none"
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600 border hover:ring-2 transition select-none">
-                {user?.displayName ? user.displayName[0].toUpperCase() : "U"}
-              </div>
-            </button>
-            {profileOpen && (
-              <div className="absolute bottom-12 left-14 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 animate-enter">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500 shrink-0 select-none">
-                    {user?.displayName
-                      ? user.displayName[0].toUpperCase()
-                      : "U"}
-                  </div>
-                  <div className="overflow-hidden">
-                    <div className="font-bold text-slate-900 truncate">
-                      {user?.displayName || "User"}
-                    </div>
-                    <div className="text-xs text-slate-500 truncate">
-                      {user?.email}
-                    </div>
-                    <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mt-1">
-                      {userPlan} Plan
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setProfileOpen(false)}
-                  className="w-full text-xs font-bold text-slate-400 border-t pt-2 hover:text-slate-600"
+          </div>
+
+          {/* History List */}
+          <div className="flex-1 overflow-y-auto no-scrollbar px-3 mt-6">
+            <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest px-3 mb-2">
+              History
+            </h3>
+            {(activeTab === "roadmap" || activeRoadmap ? roadmaps : chats).map(
+              (item) => (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    if (item.role) {
+                      setActiveRoadmap(item);
+                      setActiveTab("roadmap");
+                    } else {
+                      setActiveChatId(item.id);
+                      setActiveTab("chat");
+                    }
+                  }}
+                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors ${(item.role && activeRoadmap?.id === item.id) || (!item.role && activeChatId === item.id) ? "bg-[#E8E6DF] text-[#2D2D2D]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
                 >
-                  Close
-                </button>
-              </div>
+                  <span className="truncate pr-2">
+                    {item.role || item.title}
+                  </span>
+                  <Trash2
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteItem(item.role ? "roadmaps" : "chats", item.id);
+                    }}
+                    strokeWidth={1.5}
+                    className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 hover:text-red-400"
+                  />
+                </div>
+              ),
             )}
           </div>
-        </div>
 
-        {/* SIDEBAR */}
-        <div
-          className={`${sidebarVisible ? "w-72" : "w-0"} bg-slate-50/50 border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 overflow-hidden`}
-        >
-          <div className="p-6 border-b border-slate-200/50 flex justify-between items-center min-w-[288px]">
-            <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
-              {activeTab === "roadmap" ? "My Paths" : "History"}
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={
-                  activeTab === "roadmap"
-                    ? () => setActiveRoadmap(null)
-                    : createChat
-                }
-                className="text-slate-400 hover:text-slate-900"
-              >
-                <Icon.Plus />
-              </button>
-              <button
-                onClick={() => setSidebarVisible(false)}
-                className="text-slate-400 hover:text-slate-900"
-              >
-                <Icon.ChevronLeft />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto custom-scroll p-3 space-y-1 min-w-[288px]">
-            {activeTab === "roadmap"
-              ? roadmaps.map((r) => (
-                  <div
-                    key={r.id}
-                    onClick={() => {
-                      setActiveRoadmap(r);
-                      setActiveTab("roadmap");
-                    }}
-                    className={`p-4 rounded-xl text-sm font-semibold cursor-pointer flex justify-between items-center group transition-all ${activeRoadmap?.id === r.id ? "bg-slate-900 text-white shadow-md" : "text-slate-600 hover:bg-white hover:shadow-sm"}`}
-                  >
-                    <span className="truncate">{r.role}</span>
+          {/* PROFILE DROPDOWN AREA */}
+          <div className="mt-auto p-4 border-t border-[#E8E6DF]/50 bg-[#F3F1EC] relative">
+            {profileMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setProfileMenuOpen(false)}
+                ></div>
+                <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-1 z-50 animate-fade-in overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[#E8E6DF]/50 bg-[#FAF9F6]">
+                    <p className="text-sm font-medium text-[#2D2D2D] truncate">
+                      {user?.displayName || "User"}
+                    </p>
+                    <p className="text-xs text-[#7A756D] truncate">
+                      {user?.email || ""}
+                    </p>
+                  </div>
+                  <div className="p-1.5 border-b border-[#E8E6DF]/50">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteItem("roadmaps", r.id);
+                      onClick={() => {
+                        setActiveTab("billing");
+                        setProfileMenuOpen(false);
                       }}
-                      className={`opacity-0 group-hover:opacity-100 transition ${activeRoadmap?.id === r.id ? "text-slate-400 hover:text-white" : "text-slate-300 hover:text-red-500"}`}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
                     >
-                      <Icon.Trash />
+                      <Crown
+                        strokeWidth={1.5}
+                        className="w-4 h-4 text-[#D97D54]"
+                      />{" "}
+                      Upgrade Plan
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsSettingsOpen(true);
+                        setProfileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
+                    >
+                      <Settings strokeWidth={1.5} className="w-4 h-4" />{" "}
+                      Settings
                     </button>
                   </div>
-                ))
-              : chats.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => {
-                      setActiveChatId(c.id);
-                      setActiveTab("chat");
-                    }}
-                    className={`p-4 rounded-xl text-sm font-semibold cursor-pointer flex justify-between items-center group transition-all ${activeChatId === c.id ? "bg-slate-900 text-white shadow-md" : "text-slate-600 hover:bg-white hover:shadow-sm"}`}
-                  >
-                    <span className="truncate">{c.title}</span>
+                  <div className="p-1.5">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteItem("chats", c.id);
+                      onClick={() => {
+                        if (logout) logout();
+                        setProfileMenuOpen(false);
                       }}
-                      className={`opacity-0 group-hover:opacity-100 transition ${activeChatId === c.id ? "text-slate-400 hover:text-white" : "text-slate-300 hover:text-red-500"}`}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
                     >
-                      <Icon.Trash />
+                      <LogOut strokeWidth={1.5} className="w-4 h-4" /> Log out
                     </button>
                   </div>
-                ))}
-          </div>
-        </div>
+                </div>
+              </>
+            )}
 
-        {/* WORKSPACE */}
-        <div className="flex-1 bg-white relative flex flex-col min-w-0">
-          <header className="h-20 border-b border-slate-100 flex items-center px-10 justify-between shrink-0 bg-white z-10">
-            <div className="flex items-center gap-4">
-              {!sidebarVisible && (
-                <button
-                  onClick={() => setSidebarVisible(true)}
-                  className="text-slate-400 p-2 hover:bg-slate-50 rounded-lg"
-                >
-                  <Icon.ChevronRight />
-                </button>
-              )}
-              <div>
-                <h1 className="text-xl font-black text-slate-900 capitalize tracking-tight">
-                  {activeTab} Console
-                </h1>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">
-                  LenAi v2.3 • Online
-                </p>
+            <button
+              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#E8E6DF]/50 rounded-xl transition-colors text-left"
+            >
+              <div className="w-6 h-6 bg-[#D1CEC7] rounded-full flex items-center justify-center text-[10px] font-medium text-[#2D2D2D] shrink-0">
+                {user?.displayName?.[0]?.toUpperCase() || "U"}
               </div>
-            </div>
-          </header>
+              <div className="text-xs font-medium text-[#4A4A4A] truncate flex-1">
+                {user?.displayName || "User"}
+              </div>
+            </button>
+          </div>
+        </div>
 
-          <main className="flex-1 overflow-hidden relative bg-slate-50">
-            {activeTab === "billing" ? (
-              <BillingDashboard currentPlan={userPlan} user={user} />
-            ) : (
-              <FeatureWrapper
-                isLocked={!hasAccess}
-                featureName={
-                  activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
-                }
-                onUpgradeClick={() => setActiveTab("billing")}
+        {/* MAIN WORKSPACE */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#FAF9F6] relative">
+          {!sidebarOpen && (
+            <div className="absolute top-4 left-4 z-10">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 text-[#7A756D] hover:bg-[#F3F1EC] rounded-lg transition-colors"
               >
-                {/* CHAT */}
-                {activeTab === "chat" && (
-                  <div className="h-full flex flex-col bg-white">
-                    <div className="flex-1 overflow-y-auto custom-scroll p-10 space-y-8">
-                      {messages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center">
-                          <div className="w-20 h-20 bg-slate-100 rounded-3xl mb-6 flex items-center justify-center text-slate-400">
-                            <Icon.Message />
-                          </div>
-                          <p className="font-bold text-slate-900 text-lg mb-8">
-                            Start a new session
-                          </p>
-                          <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
-                            {SUGGESTIONS.map((s, i) => (
-                              <button
-                                key={i}
-                                onClick={() => sendChat(s.prompt)}
-                                className="text-left p-4 rounded-xl border border-slate-200 hover:border-slate-900 hover:bg-slate-50 transition-all group bg-white shadow-sm"
-                              >
-                                <div className="font-bold text-slate-700 text-sm mb-1 group-hover:text-slate-900">
-                                  {s.label}
-                                </div>
-                                <div className="text-xs text-slate-400 truncate">
-                                  {s.prompt}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        messages.map((m) => (
-                          <div
-                            key={m.id}
-                            className={`flex gap-6 ${m.sender === "user" ? "flex-row-reverse" : ""}`}
-                          >
-                            <div
-                              className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 shadow-sm select-none ${m.sender === "user" ? "bg-slate-900 text-white" : "bg-white border text-blue-600"}`}
-                            >
-                              {m.sender === "user"
-                                ? user?.displayName
-                                  ? user.displayName[0].toUpperCase()
-                                  : "U"
-                                : "AI"}
-                            </div>
-                            <div
-                              className={`max-w-3xl p-6 rounded-2xl text-[15px] leading-relaxed shadow-sm ${m.sender === "user" ? "bg-slate-50 text-slate-800 border border-slate-200" : "bg-white text-slate-700 border border-slate-100"}`}
-                            >
-                              {m.text}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                      {chatLoading && (
-                        <div className="text-xs font-bold text-slate-400 ml-16 animate-pulse">
-                          LenAi is thinking...
-                        </div>
-                      )}
-                      <div ref={chatEndRef}></div>
-                    </div>
-                    <div className="p-8 border-t border-slate-100 bg-white">
-                      <div className="relative shadow-xl shadow-slate-200/50 rounded-2xl max-w-5xl mx-auto">
+                <Menu strokeWidth={1.5} className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
+          {activeTab === "billing" ? (
+            <BillingDashboard currentPlan={userPlan} user={user} />
+          ) : activeTab !== "chat" &&
+            activeTab !== "roadmap" &&
+            activeTab !== "email" ? (
+            <FeatureWrapper
+              isLocked={!hasAccess}
+              featureName={activeTab}
+              onUpgradeClick={() => setActiveTab("billing")}
+            >
+              {activeTab === "market" && <MarketAnalyzer />}
+              {activeTab === "jobs" && <AIJobMatcher />}
+              {activeTab === "resume" && <ResumeAnalyzer />}
+              {activeTab === "store" && (
+                <ELearningStore recommendedTopic={storeTopic} />
+              )}
+              {activeTab === "feedback" && <FeedbackView />}
+            </FeatureWrapper>
+          ) : activeTab === "email" ? (
+            <FeatureWrapper
+              isLocked={!hasAccess}
+              featureName="Email Studio"
+              onUpgradeClick={() => setActiveTab("billing")}
+            >
+              <div className="h-full flex bg-[#FAF9F6]">
+                <div className="w-1/2 p-12 border-r border-[#E8E6DF] overflow-y-auto no-scrollbar">
+                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                    Drafting Board
+                  </h2>
+                  <div className="space-y-6">
+                    <textarea
+                      className="w-full h-48 bg-white border border-[#E8E6DF] rounded-2xl p-5 text-[#2D2D2D] text-sm outline-none resize-none shadow-[0_2px_10px_rgb(0,0,0,0.01)] placeholder:text-[#A8A39D]"
+                      placeholder="Core message or rough notes..."
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                    />
+                    <div className="bg-white p-5 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] flex items-center justify-between">
+                      <span className="text-sm font-medium text-[#7A756D]">
+                        Attach Context (Image)
+                      </span>
+                      <div className="relative">
                         <input
-                          className="w-full bg-white border border-slate-200 rounded-2xl pl-6 pr-16 py-5 outline-none font-medium text-lg focus:border-slate-400 transition-all"
-                          placeholder="Type a command..."
-                          value={input}
-                          onChange={(e) => setInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && sendChat()}
-                          disabled={chatLoading}
+                          type="file"
+                          onChange={(e) => setEmailImage(e.target.files[0])}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                         />
-                        <button
-                          onClick={() => sendChat()}
-                          disabled={!input.trim()}
-                          className="absolute right-3 top-3 bottom-3 w-12 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition disabled:opacity-50"
-                        >
-                          <Icon.Send />
+                        <button className="px-4 py-2 bg-[#F3F1EC] text-[#4A4A4A] text-xs font-medium rounded-lg hover:bg-[#E8E6DF] transition">
+                          {emailImage ? "Attached" : "Upload"}
                         </button>
                       </div>
                     </div>
+                    <button
+                      onClick={generateEmail}
+                      disabled={emailLoading}
+                      className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
+                    >
+                      {emailLoading
+                        ? "Polishing Draft..."
+                        : "Generate Professional Draft"}
+                    </button>
                   </div>
-                )}
-
-                {/* ROADMAP */}
-                {activeTab === "roadmap" && (
-                  <div className="h-full bg-white overflow-y-auto custom-scroll p-10">
-                    {!activeRoadmap ? (
-                      <div className="max-w-2xl mx-auto mt-24 text-center">
-                        <h2 className="text-4xl font-black text-slate-900 mb-4">
-                          Career Architect
-                        </h2>
-                        <p className="text-slate-500 mb-10 text-lg">
-                          Design a masterclass-level learning path for any role.
-                        </p>
-                        <div className="flex gap-3 shadow-2xl shadow-slate-200/50 rounded-2xl p-2 bg-white border border-slate-200">
-                          <input
-                            className="flex-1 p-4 rounded-xl text-lg outline-none"
-                            placeholder="e.g. Senior Backend Engineer"
-                            value={roadmapInput}
-                            onChange={(e) => setRoadmapInput(e.target.value)}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && generateRoadmap()
-                            }
-                          />
-                          <button
-                            onClick={generateRoadmap}
-                            disabled={roadmapLoading}
-                            className="px-8 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition"
-                          >
-                            {roadmapLoading ? "..." : "Create"}
-                          </button>
-                        </div>
+                </div>
+                <div className="w-1/2 p-12 overflow-y-auto no-scrollbar bg-white">
+                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                    Preview
+                  </h2>
+                  <div className="bg-[#FAF9F6] rounded-3xl p-8 border border-[#E8E6DF] min-h-[500px]">
+                    {emailResult ? (
+                      <div className="whitespace-pre-wrap text-[#4A4A4A] text-[15px] leading-loose">
+                        {emailResult}
                       </div>
                     ) : (
-                      <div className="max-w-4xl mx-auto">
-                        <h1 className="text-4xl font-black text-slate-900 mb-2 capitalize">
-                          {activeRoadmap.role}
-                        </h1>
-                        <p className="text-slate-400 font-bold text-sm uppercase tracking-wider mb-12">
-                          Generated Curriculum
-                        </p>
-                        <div className="space-y-10 relative before:absolute before:left-5 before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-200">
-                          {activeRoadmap.steps.map((s, i) => (
-                            <div key={i} className="relative pl-16">
-                              <div className="absolute left-2.5 top-2 w-5 h-5 rounded-full bg-white border-4 border-slate-900 shadow-sm z-10"></div>
-                              <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-4">
-                                  <h3 className="text-xl font-bold text-slate-900">
-                                    {s.title}
-                                  </h3>
-                                  <span className="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg">
-                                    {s.duration}
-                                  </span>
-                                </div>
-                                <p className="text-slate-600 text-base leading-relaxed mb-6">
-                                  {s.description}
-                                </p>
-                                <div className="flex gap-3 flex-wrap">
-                                  {s.resources.map((r, idx) => (
-                                    <a
-                                      key={idx}
-                                      href={`https://www.youtube.com/results?search_query=${r}`}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-xs font-bold border border-slate-200 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-900 hover:text-white transition flex items-center gap-2"
-                                    >
-                                      <span>▶</span> {r}
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
+                      <p className="text-[#A8A39D] text-sm text-center mt-20">
+                        Draft will appear here.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </FeatureWrapper>
+          ) : activeTab === "roadmap" ? (
+            <FeatureWrapper
+              isLocked={!hasAccess}
+              featureName="Career Roadmaps"
+              onUpgradeClick={() => setActiveTab("billing")}
+            >
+              <div className="h-full bg-[#FAF9F6] overflow-y-auto no-scrollbar p-12">
+                {!activeRoadmap ? (
+                  <div className="max-w-2xl mx-auto mt-20 text-center animate-fade-in">
+                    <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">
+                      Career Architect
+                    </h2>
+                    <p className="text-[#7A756D] mb-12 text-lg">
+                      Design a masterclass-level learning path for any role.
+                    </p>
+                    <div className="flex gap-3 bg-white p-2 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_15px_rgb(0,0,0,0.02)]">
+                      <input
+                        className="flex-1 p-4 bg-transparent outline-none text-[#2D2D2D] text-sm placeholder:text-[#A8A39D]"
+                        placeholder="e.g. Senior Backend Engineer"
+                        value={roadmapInput}
+                        onChange={(e) => setRoadmapInput(e.target.value)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && generateRoadmap()
+                        }
+                      />
+                      <button
+                        onClick={generateRoadmap}
+                        disabled={roadmapLoading}
+                        className="px-8 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition disabled:opacity-50"
+                      >
+                        {roadmapLoading ? "Planning..." : "Create"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-3xl mx-auto animate-fade-in">
+                    <h1 className="font-serif text-4xl text-[#2D2D2D] mb-12 capitalize">
+                      {activeRoadmap.role} Curriculum
+                    </h1>
+                    <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-[#E8E6DF]">
+                      {activeRoadmap.steps.map((s, i) => (
+                        <div key={i} className="relative pl-10">
+                          <div className="absolute left-0 top-3 w-6 h-6 rounded-full bg-[#FAF9F6] border border-[#E8E6DF] flex items-center justify-center text-[10px] font-medium text-[#7A756D]">
+                            {s.step}
+                          </div>
+                          <div className="bg-white border border-[#E8E6DF] p-8 rounded-3xl shadow-[0_2px_10px_rgb(0,0,0,0.01)]">
+                            <div className="flex justify-between items-start mb-4">
+                              <h3 className="font-serif text-2xl text-[#2D2D2D]">
+                                {s.title}
+                              </h3>
+                              <span className="text-[10px] font-medium bg-[#F3F1EC] text-[#7A756D] px-3 py-1 rounded-full">
+                                {s.duration}
+                              </span>
                             </div>
-                          ))}
+                            <p className="text-[#4A4A4A] text-sm leading-relaxed mb-6">
+                              {s.description}
+                            </p>
+                            <div className="flex gap-2 flex-wrap">
+                              {s.resources.map((r, idx) => (
+                                <a
+                                  key={idx}
+                                  href={`https://www.youtube.com/results?search_query=${r}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-xs font-medium border border-[#E8E6DF] px-3 py-1.5 rounded-lg text-[#7A756D] hover:bg-[#F3F1EC] transition flex items-center gap-1.5"
+                                >
+                                  <Play strokeWidth={1.5} className="w-3 h-3" />{" "}
+                                  {r}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </FeatureWrapper>
+          ) : (
+            // CHAT INTERFACE
+            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 h-full">
+              <div className="flex-1 overflow-y-auto no-scrollbar py-12 px-2 md:px-8">
+                {messages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center -mt-10 animate-fade-in">
+                    <h1 className="font-serif text-4xl md:text-5xl text-[#2D2D2D] mb-4">
+                      {getGreeting()}
+                      {user?.displayName
+                        ? `, ${user.displayName.split(" ")[0]}`
+                        : "."}
+                    </h1>
+                    <p className="text-[#7A756D] text-lg mb-12">
+                      How can I assist your career today?
+                    </p>
+                    <div className="flex flex-wrap gap-3 justify-center max-w-2xl">
+                      {SUGGESTIONS.map((s, i) => (
+                        <button
+                          key={i}
+                          onClick={() => sendChat(s.prompt)}
+                          className="px-5 py-2.5 rounded-full border border-[#E8E6DF] bg-transparent text-sm text-[#7A756D] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
+                        >
+                          {s.prompt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-10 pb-10">
+                    {messages.map((m) => (
+                      <div
+                        key={m.id}
+                        className={`flex gap-4 animate-fade-in w-full ${
+                          m.sender === "user" ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        {m.sender !== "user" && (
+                          <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
+                            <Sparkles
+                              strokeWidth={1.5}
+                              className="w-5 h-5 text-[#D97D54]"
+                            />
+                          </div>
+                        )}
+                        <div
+                          className={`text-[15px] leading-relaxed ${
+                            m.sender === "user"
+                              ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl max-w-[85%] text-[#2D2D2D]"
+                              : "text-[#4A4A4A] flex-1"
+                          }`}
+                        >
+                          {m.text}
+                        </div>
+                      </div>
+                    ))}
+                    {chatLoading && (
+                      <div className="flex gap-4 justify-start animate-fade-in">
+                        <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
+                          <Sparkles
+                            strokeWidth={1.5}
+                            className="w-5 h-5 text-[#D97D54] opacity-50"
+                          />
+                        </div>
+                        <div className="text-sm text-[#A8A39D] flex items-center gap-1">
+                          Thinking<span className="animate-pulse">...</span>
                         </div>
                       </div>
                     )}
+                    <div ref={chatEndRef}></div>
                   </div>
                 )}
+              </div>
 
-                {/* NEW TOOLS */}
-                {activeTab === "market" && <MarketAnalyzer />}
-                {activeTab === "jobs" && <AIJobMatcher />}
+              <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0">
+                <div className="relative rounded-3xl bg-[#F3F1EC] border border-[#E8E6DF] focus-within:border-[#D1CEC7] transition-all flex flex-col">
+                  <textarea
+                    className="w-full bg-transparent border-none rounded-3xl p-5 pl-5 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
+                    placeholder="Message LenAi..."
+                    rows={1}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChat();
+                      }
+                    }}
+                    disabled={chatLoading}
+                    style={{ minHeight: "60px", maxHeight: "200px" }}
+                  />
+                  <button
+                    onClick={() => sendChat()}
+                    disabled={!input.trim()}
+                    className="absolute right-3 bottom-3 p-2 bg-[#2D2D2D] text-[#FAF9F6] rounded-full hover:bg-[#1A1A1A] transition disabled:opacity-30 disabled:bg-[#D1CEC7] disabled:text-white"
+                  >
+                    <ArrowRight strokeWidth={2} className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="text-center mt-3 text-[10px] text-[#A8A39D]">
+                  LenAi can make mistakes. Consider verifying important
+                  information.
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-                {/* EMAIL STUDIO */}
-                {activeTab === "email" && (
-                  <div className="h-full flex overflow-hidden bg-white">
-                    <div className="w-1/2 p-8 border-r border-slate-200 overflow-y-auto custom-scroll bg-slate-50/30">
-                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">
-                        Drafting Board
-                      </h3>
-                      <div className="space-y-6">
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                          <label className="block text-sm font-bold text-slate-900 mb-3">
-                            Core Message / Rough Notes
-                          </label>
-                          <textarea
-                            className="w-full h-48 bg-slate-50 rounded-xl p-4 text-slate-900 border-none focus:ring-2 focus:ring-slate-200 resize-none outline-none"
-                            placeholder="e.g. Tell the client I need 2 more days because the API is broken..."
-                            value={emailInput}
-                            onChange={(e) => setEmailInput(e.target.value)}
-                          />
-                        </div>
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                          <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-1">
-                              Attach Context
-                            </label>
-                            <p className="text-xs text-slate-500">
-                              Upload screenshot of thread
-                            </p>
-                          </div>
-                          <div className="relative">
+        {/* SETTINGS MODAL */}
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            <div
+              className="absolute inset-0 bg-[#2D2D2D]/20 backdrop-blur-sm"
+              onClick={() => setIsSettingsOpen(false)}
+            ></div>
+            <div className="relative w-full max-w-4xl bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-[#E8E6DF] flex flex-col md:flex-row overflow-hidden animate-fade-in max-h-[85vh]">
+              {/* Settings Sidebar */}
+              <div className="w-full md:w-64 bg-[#F3F1EC] border-r border-[#E8E6DF] p-6 flex flex-col">
+                <h2 className="font-serif text-2xl text-[#2D2D2D] mb-8">
+                  Settings
+                </h2>
+                <nav className="space-y-1">
+                  {[
+                    { id: "general", label: "General", icon: Settings },
+                    { id: "account", label: "Account", icon: UserCheck },
+                    { id: "api", label: "API Keys", icon: Lock },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setSettingsTab(tab.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors ${settingsTab === tab.id ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
+                    >
+                      <tab.icon strokeWidth={1.5} className="w-4 h-4" />{" "}
+                      {tab.label}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Settings Content */}
+              <div className="flex-1 p-8 md:p-12 overflow-y-auto no-scrollbar bg-white relative">
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="absolute top-6 right-6 p-2 text-[#7A756D] hover:bg-[#F3F1EC] rounded-full transition-colors"
+                >
+                  <X strokeWidth={1.5} className="w-5 h-5" />
+                </button>
+
+                {settingsTab === "general" && (
+                  <div className="max-w-xl animate-fade-in">
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                      General
+                    </h3>
+                    <div className="space-y-8">
+                      <div>
+                        <label className="block text-sm font-medium text-[#2D2D2D] mb-3">
+                          Interface Theme
+                        </label>
+                        <div className="flex flex-col gap-3">
+                          <label className="flex items-center gap-3 text-sm text-[#4A4A4A] cursor-pointer p-3 rounded-xl border border-[#E8E6DF] bg-[#FAF9F6]">
                             <input
-                              type="file"
-                              onChange={(e) => setEmailImage(e.target.files[0])}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              type="radio"
+                              name="theme"
+                              defaultChecked
+                              className="accent-[#2D2D2D] w-4 h-4"
                             />
-                            <button className="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition">
-                              {emailImage ? "Image Attached" : "Upload Image"}
-                            </button>
-                          </div>
+                            <span>Alabaster (Light)</span>
+                          </label>
+                          <label className="flex items-center gap-3 text-sm text-[#A8A39D] cursor-not-allowed p-3 rounded-xl border border-[#E8E6DF] bg-white opacity-60">
+                            <input
+                              type="radio"
+                              name="theme"
+                              disabled
+                              className="accent-[#2D2D2D] w-4 h-4"
+                            />
+                            <span>
+                              Obsidian (Dark) —{" "}
+                              <span className="text-xs">Coming soon</span>
+                            </span>
+                          </label>
                         </div>
-                        <button
-                          onClick={generateEmail}
-                          disabled={emailLoading}
-                          className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition disabled:opacity-50"
-                        >
-                          {emailLoading
-                            ? "Polishing..."
-                            : "Generate Professional Draft"}
+                      </div>
+                      <div className="h-px bg-[#E8E6DF] w-full"></div>
+                      <div>
+                        <h4 className="text-sm font-medium text-[#2D2D2D] mb-1">
+                          Clear Conversation History
+                        </h4>
+                        <p className="text-sm text-[#7A756D] mb-4">
+                          This will permanently delete all your chats and
+                          generated roadmaps.
+                        </p>
+                        <button className="px-5 py-2.5 border border-[#E8E6DF] text-[#D97D54] text-sm font-medium rounded-xl hover:bg-[#FAF9F6] transition-colors">
+                          Clear History
                         </button>
                       </div>
                     </div>
-                    <div className="w-1/2 p-8 overflow-y-auto custom-scroll bg-white">
-                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">
-                        Preview
-                      </h3>
-                      <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 min-h-[500px] shadow-inner">
-                        {emailResult ? (
-                          <div className="whitespace-pre-wrap text-slate-800 text-lg leading-loose font-medium font-serif">
-                            {emailResult}
-                          </div>
-                        ) : (
-                          <div className="h-full flex flex-col items-center justify-center text-slate-300">
-                            <Icon.Magic />
-                            <p className="mt-4 font-medium">
-                              AI Draft will appear here
-                            </p>
-                          </div>
-                        )}
+                  </div>
+                )}
+
+                {settingsTab === "account" && (
+                  <div className="max-w-xl animate-fade-in">
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                      Account
+                    </h3>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-[#7A756D] mb-2">
+                          Display Name
+                        </label>
+                        <input
+                          type="text"
+                          disabled
+                          value={user?.displayName || "Unknown User"}
+                          className="w-full bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] px-4 py-3 rounded-xl text-sm outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#7A756D] mb-2">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          disabled
+                          value={user?.email || "No Email"}
+                          className="w-full bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] px-4 py-3 rounded-xl text-sm outline-none"
+                        />
+                      </div>
+                      <div className="pt-6">
+                        <button
+                          onClick={() => {
+                            setIsSettingsOpen(false);
+                            setActiveTab("billing");
+                          }}
+                          className="w-full px-5 py-3.5 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Crown
+                            strokeWidth={1.5}
+                            className="w-4 h-4 text-[#D97D54]"
+                          />{" "}
+                          Manage Subscription ({user?.plan || "Basic"})
+                        </button>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* STORE, RESUME, FEEDBACK */}
-                {activeTab === "store" && (
-                  <ELearningStore
-                    recommendedTopic={storeTopic}
-                    isAnalyzing={analyzingProfile}
-                  />
-                )}
-                {activeTab === "resume" && (
-                  <div className="bg-white h-full">
-                    <ResumeAnalyzer />
+                {settingsTab === "api" && (
+                  <div className="max-w-xl animate-fade-in">
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
+                      API Configuration
+                    </h3>
+                    <p className="text-sm text-[#7A756D] mb-8 leading-relaxed">
+                      PathifyAI uses system-provided API keys by default. If you
+                      are experiencing rate limits, you can configure your own
+                      personal keys here. Keys are stored locally in your
+                      browser.
+                    </p>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">
+                          Google Gemini API Key
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="AIzaSy..."
+                          className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">
+                          JSearch RapidAPI Key (Job Matcher)
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="Enter your key..."
+                          className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+                        />
+                      </div>
+                      <div className="pt-4">
+                        <button className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors">
+                          Save API Keys
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
-                {activeTab === "feedback" && (
-                  <div className="bg-white h-full">
-                    <FeedbackView />
-                  </div>
-                )}
-              </FeatureWrapper>
-            )}
-          </main>
-        </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

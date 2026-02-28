@@ -2,18 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- TECHNICAL BACKGROUND --- */
-body {
-  background-color: #f3f4f6; /* Slate-100 */
-  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-  background-size: 24px 24px;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* --- REMOVED BODY STYLES TO FIX MARGIN/SCROLL ISSUES --- */
 
 /* --- THE CONSOLE CONTAINER --- */
 .console-window {
