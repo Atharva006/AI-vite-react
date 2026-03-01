@@ -41,6 +41,11 @@ import {
   Heart,
   Settings,
   LogOut,
+  Mic,
+  FileAudio,
+  Loader2,
+  Headphones,
+  User,
 } from "lucide-react";
 import {
   collection,
@@ -63,6 +68,25 @@ const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
+// ==================================================================
+// SUB-COMPONENT: Custom Image Icon for AI Speaking Status
+// ==================================================================
+const CustomSpeechBubbleIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    stroke="none"
+  >
+    <path
+      d="M19.07,3H4.93C3.31,3,2,4.31,2,5.93v8.14c0,1.62,1.31,2.93,2.93,2.93h12.14l4.93,4V5.93C22,4.31,20.69,3,19.07,3z
+    M7,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S7.83,11.5,7,11.5z M12,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5
+    s1.5,0.67,1.5,1.5S12.83,11.5,12,11.5z M17,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S17.83,11.5,17,11.5z"
+    />
+  </svg>
+);
+
 // --- ACCESS CONTROL CONFIGURATION ---
 const PLAN_ACCESS = {
   chat: ["basic", "essential", "pro"],
@@ -83,23 +107,36 @@ const SUGGESTIONS = [
   },
   { label: "Explain React", prompt: "Explain React hooks like I'm 5." },
   { label: "Debug Code", prompt: "I have a bug in my code. Can you help?" },
-  { label: "Career Path", prompt: "Steps to become a Full Stack Dev in 2025?" },
+  { label: "Career Path", prompt: "Steps to become a Full Stack Dev in 2026?" },
 ];
 
-// =========================================================================================
-// SUB-COMPONENT: FEATURE WRAPPER
-// =========================================================================================
-const FeatureWrapper = ({
-  isLocked,
-  featureName,
-  onUpgradeClick,
-  children,
-}) => {
+const TOUR_STEPS = [
+  {
+    title: "Welcome to LenAi",
+    desc: "Your intelligent career architect. Let's take a quick tour of your new workspace and see what you can achieve.",
+    icon: Sparkles,
+  },
+  {
+    title: "AI Career Chat",
+    desc: "Chat with a Principal Software Architect AI. Ask for advice, debugging help, or structural career guidance.",
+    icon: MessageSquare,
+  },
+  {
+    title: "Full-Duplex Voice",
+    desc: "Engage in real-time, interruptible live conversation. Use the Microphone to start the session, and the speech bubble icon will show status. If you speak, the AI will stop and listen.",
+    icon: Headphones,
+  },
+  {
+    title: "Career Roadmaps",
+    desc: "Generate masterclass-level learning paths for any tech role, complete with estimated durations and YouTube resources.",
+    icon: BookOpen,
+  },
+];
+
+const FeatureWrapper = ({ isLocked, featureName, onUpgradeClick, children }) => {
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#FAF9F6]">
-      <div
-        className={`w-full h-full transition-all duration-700 ${isLocked ? "blur-md opacity-40 pointer-events-none select-none scale-[0.99]" : ""}`}
-      >
+      <div className={`w-full h-full transition-all duration-700 ${isLocked ? "blur-md opacity-40 pointer-events-none select-none scale-[0.99]" : ""}`}>
         {children}
       </div>
       {isLocked && (
@@ -108,17 +145,11 @@ const FeatureWrapper = ({
             <div className="w-12 h-12 bg-[#F3F1EC] text-[#7A756D] rounded-full flex items-center justify-center mx-auto mb-6">
               <Lock strokeWidth={1.5} className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-3xl text-[#2D2D2D] mb-4 tracking-tight">
-              Unlock {featureName}
-            </h3>
+            <h3 className="font-serif text-3xl text-[#2D2D2D] mb-4 tracking-tight">Unlock {featureName}</h3>
             <p className="text-[#7A756D] text-sm mb-8 leading-relaxed font-sans">
-              This advanced capability is reserved for upgraded members. Elevate
-              your workspace to access this feature.
+              This advanced capability is reserved for upgraded members. Elevate your workspace to access this feature.
             </p>
-            <button
-              onClick={onUpgradeClick}
-              className="w-full py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors"
-            >
+            <button onClick={onUpgradeClick} className="w-full py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors">
               View Plans
             </button>
           </div>
@@ -194,7 +225,7 @@ const AIJobMatcher = () => {
       }));
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash",
       });
       const prompt = `Act as an expert AI Recruiter utilizing semantic similarity embeddings. Evaluate the match between this User Profile and the provided Job Listings. USER PROFILE: "${userProfile}" JOB LISTINGS (JSON): ${JSON.stringify(jobsPayload)} Task: Rank these jobs strictly by how well they semantically match the User Profile. Output ONLY a valid JSON array of objects with the following exact structure: [{"title": "Job Title", "company": "Company Name", "matchScore": <Number 0-100>, "reason": "1 concise sentence explaining exactly why this is or isn't a good match.", "link": "The job link"}]`;
 
@@ -351,7 +382,7 @@ const MarketAnalyzer = () => {
 
     try {
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash",
       });
       const prompt = `You are an advanced AI regression model trained on global job market data. Perform a comprehensive salary and market demand prediction for the role: "${role}". Base Location: "${baseLocation}". ${targetLocation ? `Target Comparison Location: "${targetLocation}".` : ""} Provide expected average salary range (USD), demand level, and projected growth rate (5 yrs). Return STRICTLY a JSON object with this exact structure: {"base": {"location": "${baseLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "target": {"location": "${targetLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "insights": ["Insight 1", "Insight 2", "Insight 3"], "verdict": "One sentence final recommendation."}`;
 
@@ -991,7 +1022,7 @@ const ResumeAnalyzer = () => {
     try {
       const resumeText = await extractText(file);
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash",
       });
       const prompt = `You are a Senior Technical Recruiter at FAANG. Conduct a deep-dive review of this resume. Resume Text: "${resumeText}". Output STRICTLY in this format: Score: <number 0-100>\nCritical Flaws:\n- <Point 1>\nTechnical Gaps:\n- <Point 1>\nImpact Metrics:\n- <Point 1>\nFormatting:\n- <Point 1>`;
       const result = await model.generateContent(prompt);
@@ -1103,7 +1134,9 @@ export const LenAi = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState("general");
 
-  // Data States
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [chats, setChats] = useState([]);
@@ -1122,10 +1155,39 @@ export const LenAi = () => {
   const [emailResult, setEmailResult] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
 
+  // --- MODEL 1: SIMPLE TRANSCRIPTION (VOICE TO TEXT) ---
+  const [isDictating, setIsDictating] = useState(false);
+  const dictationRecognitionRef = useRef(null);
+
+  // --- MODEL 2: FULL DUPLEX LIVE AUDIO (INTERACTIVE) ---
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState("idle"); 
+  const [transcriptResult, setTranscriptResult] = useState("");
+  
+  const isVoiceModeRef = useRef(false);
+  const voiceStatusRef = useRef("idle");
+  const silenceTimerRef = useRef(null);
+  const transcriptRef = useRef("");
+  const interactiveRecognitionRef = useRef(null);
+  const synthRef = useRef(window.speechSynthesis);
+
+  // Refs for state used inside speech event handlers (prevents stale closure bugs)
+  const activeChatIdRef = useRef(activeChatId);
+  const messagesRef = useRef(messages);
+
   const userPlan = user?.plan || "basic";
   const hasAccess = PLAN_ACCESS[activeTab]?.includes(userPlan);
 
-  // Helper for dynamic greeting
+  useEffect(() => {
+    isVoiceModeRef.current = isVoiceMode;
+    voiceStatusRef.current = voiceStatus;
+  }, [isVoiceMode, voiceStatus]);
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+    messagesRef.current = messages;
+  }, [activeChatId, messages]);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -1133,84 +1195,150 @@ export const LenAi = () => {
     return "Good evening";
   };
 
-  // Firebase Subscriptions
+  // =========================================================================
+  // SETUP FOR MODEL 1: SIMPLE DICTATION
+  // =========================================================================
   useEffect(() => {
-    if (!user) return;
-    return onSnapshot(
-      query(
-        collection(db, "users", user.uid, "chats"),
-        orderBy("createdAt", "desc"),
-      ),
-      (s) => {
-        const data = s.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setChats(data);
-        if (!activeChatId && data.length > 0) setActiveChatId(data[0].id);
-      },
-    );
-  }, [user]);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
 
-  useEffect(() => {
-    if (!user || !activeChatId) {
-      setMessages([]);
-      return;
-    }
-    return onSnapshot(
-      query(
-        collection(db, "users", user.uid, "chats", activeChatId, "messages"),
-        orderBy("createdAt", "asc"),
-      ),
-      (s) => {
-        setMessages(s.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setTimeout(
-          () => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }),
-          100,
-        );
-      },
-    );
-  }, [user, activeChatId]);
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
 
-  useEffect(() => {
-    if (!user) return;
-    return onSnapshot(
-      query(
-        collection(db, "users", user.uid, "roadmaps"),
-        orderBy("createdAt", "desc"),
-      ),
-      (s) => {
-        setRoadmaps(s.docs.map((d) => ({ id: d.id, ...d.data() })));
-      },
-    );
-  }, [user]);
+    recognition.onresult = (event) => {
+      let final = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        }
+      }
+      if (final) {
+        // Appends the spoken text directly into the main chat input
+        setInput((prev) => (prev + " " + final).trim());
+      }
+    };
 
-  const analyzeUserInterests = async () => {
-    const recentChats = chats
-      .slice(0, 5)
-      .map((c) => c.title)
-      .join(", ");
-    if (!recentChats) return;
-    try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
-      });
-      const prompt = `Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`;
-      const result = await model.generateContent(prompt);
-      setStoreTopic(result.response.text().trim());
-    } catch (e) {
-      console.error(e);
+    recognition.onerror = (e) => {
+      if (e.error !== "no-speech") setIsDictating(false);
+    };
+
+    recognition.onend = () => {
+      // Auto restart if still actively dictating
+      if (isDictating) {
+        try { recognition.start(); } catch(e){}
+      }
+    };
+
+    dictationRecognitionRef.current = recognition;
+  }, [isDictating]);
+
+  const toggleDictation = () => {
+    if (isVoiceMode) return alert("Please close the Interactive Audio Session first.");
+    if (isDictating) {
+      setIsDictating(false);
+      dictationRecognitionRef.current?.stop();
+    } else {
+      setIsDictating(true);
+      try { dictationRecognitionRef.current?.start(); } catch(e){}
     }
   };
 
+  // =========================================================================
+  // SETUP FOR MODEL 2: INTERACTIVE LIVE CONVERSATION
+  // =========================================================================
   useEffect(() => {
-    if (activeTab === "store") analyzeUserInterests();
-  }, [activeTab]);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
 
-  const sendChat = async (customPrompt = null) => {
-    const textToSend = customPrompt || input;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      if (!isVoiceModeRef.current) return;
+
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      const currentSpokenText = finalTranscript || interimTranscript;
+
+      if (currentSpokenText.trim()) {
+        if (voiceStatusRef.current === "speaking") {
+          synthRef.current?.cancel();
+          setVoiceStatus("listening");
+          voiceStatusRef.current = "listening";
+        }
+
+        transcriptRef.current += finalTranscript;
+        setTranscriptResult(transcriptRef.current + interimTranscript);
+
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (transcriptRef.current.trim() && voiceStatusRef.current !== "thinking") {
+            const finalSpokenToSend = transcriptRef.current.trim();
+            transcriptRef.current = ""; 
+            setTranscriptResult("");
+            sendVoiceChat(finalSpokenToSend);
+          }
+        }, 1500);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error !== "no-speech") {
+        console.error("Speech recognition error", event.error);
+      }
+    };
+
+    recognition.onend = () => {
+      if (isVoiceModeRef.current) {
+        try { recognition.start(); } catch (e) {}
+      }
+    };
+
+    interactiveRecognitionRef.current = recognition;
+  }, []);
+
+  const toggleVoiceMode = () => {
+    if (isDictating) return alert("Please stop dictation first.");
+    if (isVoiceMode) {
+      setIsVoiceMode(false);
+      setVoiceStatus("idle");
+      interactiveRecognitionRef.current?.stop();
+      synthRef.current?.cancel();
+      clearTimeout(silenceTimerRef.current);
+      transcriptRef.current = "";
+      setTranscriptResult("");
+    } else {
+      if (!interactiveRecognitionRef.current) {
+        alert("Live speech recognition is not supported in this browser. Try Chrome.");
+        return;
+      }
+      setIsVoiceMode(true);
+      setVoiceStatus("listening");
+      transcriptRef.current = "";
+      setTranscriptResult("");
+      try { interactiveRecognitionRef.current.start(); } catch (e) {}
+    }
+  };
+
+  const sendVoiceChat = async (textToSend) => {
     if (!textToSend.trim() || !user || !genAI) return;
-    setInput("");
+    setVoiceStatus("thinking");
     setChatLoading(true);
 
-    let cid = activeChatId;
+    let cid = activeChatIdRef.current;
     if (!cid) {
       const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
         title: textToSend.slice(0, 25) + "...",
@@ -1218,6 +1346,84 @@ export const LenAi = () => {
       });
       cid = ref.id;
       setActiveChatId(ref.id);
+      activeChatIdRef.current = ref.id; 
+    }
+
+    await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
+      text: textToSend,
+      sender: "user",
+      createdAt: serverTimestamp(),
+    });
+
+    try {
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        systemInstruction: `You are Len, an interactive AI career assistant. Because this is a live audio conversation, your answers MUST be extremely short—no more than 1 or 2 conversational sentences. Do not use formatting, lists, or code blocks. Always reply like a human talking on a phone call. Address the user directly.`
+      });
+
+      const recentMessages = messagesRef.current.slice(-10);
+      const history = recentMessages.map((m) => ({
+        role: m.sender === "user" ? "user" : "model",
+        parts: [{ text: m.text }],
+      }));
+
+      const result = await model.startChat({ history }).sendMessage(textToSend);
+      const aiResponseText = result.response.text();
+
+      await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
+        text: aiResponseText,
+        sender: "ai",
+        createdAt: serverTimestamp(),
+      });
+
+      speakText(aiResponseText);
+    } catch (e) {
+      console.error(e);
+      setVoiceStatus("listening");
+    }
+    setChatLoading(false);
+  };
+
+  const speakText = (text) => {
+    if (!synthRef.current) return;
+    synthRef.current.cancel();
+
+    setVoiceStatus("speaking");
+    const cleanText = text.replace(/```[\s\S]*?```/g, "Code provided in chat.").replace(/[#*_~`]/g, "");
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    utterance.onend = () => {
+      if (isVoiceModeRef.current) setVoiceStatus("listening");
+    };
+    utterance.onerror = () => {
+      if (isVoiceModeRef.current) setVoiceStatus("listening");
+    };
+    
+    synthRef.current.speak(utterance);
+  };
+
+  const sendChat = async (customPrompt = null) => {
+    const textToSend = customPrompt || input;
+    if (!textToSend.trim() || !user || !genAI) return;
+    setInput("");
+    
+    // Auto-stop dictation if the user sends the message
+    if (isDictating) {
+      setIsDictating(false);
+      dictationRecognitionRef.current?.stop();
+    }
+    
+    setChatLoading(true);
+
+    let cid = activeChatIdRef.current;
+    if (!cid) {
+      const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
+        title: textToSend.slice(0, 25) + "...",
+        createdAt: serverTimestamp(),
+      });
+      cid = ref.id;
+      setActiveChatId(ref.id);
+      activeChatIdRef.current = ref.id;
     }
 
     await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
@@ -1226,29 +1432,23 @@ export const LenAi = () => {
       createdAt: serverTimestamp(),
     });
     try {
-      // Injected the user's name directly into the system instructions// change from here
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
-        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context.
-        Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD .`,
+        model: "gemini-2.5-flash",
+        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD .`,
       });
 
-      // Sliced to keep only the last 30 messages in memory for context
-      const recentMessages = messages.slice(-3);
+      const recentMessages = messagesRef.current.slice(-10);
       const history = recentMessages.map((m) => ({
         role: m.sender === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
 
       const result = await model.startChat({ history }).sendMessage(textToSend);
-      await addDoc(
-        collection(db, "users", user.uid, "chats", cid, "messages"),
-        {
-          text: result.response.text(),
-          sender: "ai",
-          createdAt: serverTimestamp(),
-        },
-      );
+      await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
+        text: result.response.text(),
+        sender: "ai",
+        createdAt: serverTimestamp(),
+      });
     } catch (e) {
       console.error(e);
     }
@@ -1271,17 +1471,10 @@ export const LenAi = () => {
     if (!roadmapInput || !genAI) return;
     setRoadmapLoading(true);
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
-      });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = `Create a masterclass-level career roadmap for a "${roadmapInput}". Return RAW JSON array: [{ "step": 1, "title": "", "duration": "", "description": "", "resources": [""] }]`;
       const result = await model.generateContent(prompt);
-      const data = JSON.parse(
-        result.response
-          .text()
-          .replace(/```json|```/g, "")
-          .trim(),
-      );
+      const data = JSON.parse(result.response.text().replace(/```json|```/g, "").trim());
       const ref = await addDoc(collection(db, "users", user.uid, "roadmaps"), {
         role: roadmapInput,
         steps: data,
@@ -1299,9 +1492,7 @@ export const LenAi = () => {
     if ((!emailInput && !emailImage) || !genAI) return;
     setEmailLoading(true);
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
-      });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = `You are a professional email writer. Task: Write a polished email based on user notes. Return ONLY email text. Notes: "${emailInput}"`;
       const parts = [prompt];
       if (emailImage) {
@@ -1309,10 +1500,7 @@ export const LenAi = () => {
         reader.readAsDataURL(emailImage);
         await new Promise((r) => (reader.onload = r));
         parts.push({
-          inlineData: {
-            data: reader.result.split(",")[1],
-            mimeType: emailImage.type,
-          },
+          inlineData: { data: reader.result.split(",")[1], mimeType: emailImage.type },
         });
       }
       const result = await model.generateContent(parts);
@@ -1330,6 +1518,68 @@ export const LenAi = () => {
     if (col === "roadmaps" && activeRoadmap?.id === id) setActiveRoadmap(null);
   };
 
+  useEffect(() => {
+    if (user) {
+      const tourCompleted = localStorage.getItem(`tour_completed_${user.uid}`);
+      if (!tourCompleted) setShowTour(true);
+    }
+  }, [user]);
+
+  const completeTour = () => {
+    if (user) localStorage.setItem(`tour_completed_${user.uid}`, "true");
+    setShowTour(false);
+  };
+
+  const nextTourStep = () => {
+    if (tourStep < TOUR_STEPS.length - 1) setTourStep(tourStep + 1);
+    else completeTour();
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    return onSnapshot(
+      query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "desc")),
+      (s) => {
+        const data = s.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setChats(data);
+        if (!activeChatId && data.length > 0) setActiveChatId(data[0].id);
+      }
+    );
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !activeChatId) {
+      setMessages([]);
+      return;
+    }
+    return onSnapshot(
+      query(collection(db, "users", user.uid, "chats", activeChatId, "messages"), orderBy("createdAt", "asc")),
+      (s) => {
+        setMessages(s.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      }
+    );
+  }, [user, activeChatId]);
+
+  useEffect(() => {
+    if (!user) return;
+    return onSnapshot(
+      query(collection(db, "users", user.uid, "roadmaps"), orderBy("createdAt", "desc")),
+      (s) => setRoadmaps(s.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
+  }, [user]);
+
+  useEffect(() => {
+    if (activeTab === "store") {
+      const recentChats = chats.slice(0, 5).map((c) => c.title).join(", ");
+      if (!recentChats) return;
+      genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+        .generateContent(`Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`)
+        .then(r => setStoreTopic(r.response.text().trim()))
+        .catch(console.error);
+    }
+  }, [activeTab]);
+
   return (
     <>
       <style>{`
@@ -1343,21 +1593,41 @@ export const LenAi = () => {
       `}</style>
 
       <div className="h-screen w-screen flex bg-[#FAF9F6] text-[#2D2D2D] font-sans overflow-hidden selection:bg-[#E8E6DF] selection:text-[#2D2D2D]">
+        
+        {/* --- ONBOARDING TOUR OVERLAY --- */}
+        {showTour && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[#2D2D2D]/30 backdrop-blur-sm" onClick={completeTour}></div>
+            <div className="relative w-full max-w-lg bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-[#E8E6DF] p-10 animate-fade-in text-center">
+              <div className="w-16 h-16 bg-[#F3F1EC] text-[#2D2D2D] rounded-full flex items-center justify-center mx-auto mb-6">
+                {React.createElement(TOUR_STEPS[tourStep].icon, { strokeWidth: 1.5, className: "w-8 h-8 text-[#D97D54]" })}
+              </div>
+              <h2 className="font-serif text-3xl text-[#2D2D2D] mb-4">{TOUR_STEPS[tourStep].title}</h2>
+              <p className="text-[#7A756D] text-[15px] leading-relaxed mb-10 h-16 flex items-center justify-center">
+                {TOUR_STEPS[tourStep].desc}
+              </p>
+              <div className="flex items-center justify-between">
+                <button onClick={completeTour} className="text-sm font-medium text-[#A8A39D] hover:text-[#7A756D] transition-colors">Skip Tour</button>
+                <div className="flex gap-2">
+                  {TOUR_STEPS.map((_, i) => (
+                    <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === tourStep ? "bg-[#2D2D2D]" : "bg-[#E8E6DF]"}`}></div>
+                  ))}
+                </div>
+                <button onClick={nextTourStep} className="px-6 py-2.5 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition-colors">
+                  {tourStep === TOUR_STEPS.length - 1 ? "Get Started" : "Next"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* SIDEBAR */}
-        <div
-          className={`${sidebarOpen ? "w-64 border-r border-[#E8E6DF]" : "w-0"} bg-[#F3F1EC] transition-all duration-300 flex flex-col shrink-0 overflow-hidden relative`}
-        >
+        <div className={`${sidebarOpen ? "w-64 border-r border-[#E8E6DF]" : "w-0"} bg-[#F3F1EC] transition-all duration-300 flex flex-col shrink-0 overflow-hidden relative`}>
           <div className="p-4 flex items-center justify-between mt-2">
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors"
-            >
+            <button onClick={() => setSidebarOpen(false)} className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors">
               <Menu strokeWidth={1.5} className="w-5 h-5" />
             </button>
-            <button
-              onClick={createChat}
-              className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors"
-            >
+            <button onClick={createChat} className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors">
               <Plus strokeWidth={1.5} className="w-5 h-5" />
             </button>
           </div>
@@ -1375,10 +1645,7 @@ export const LenAi = () => {
             ].map((t) => (
               <button
                 key={t.id}
-                onClick={() => {
-                  setActiveTab(t.id);
-                  if (t.id !== "roadmap") setActiveRoadmap(null);
-                }}
+                onClick={() => { setActiveTab(t.id); if (t.id !== "roadmap") setActiveRoadmap(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${activeTab === t.id && !activeRoadmap ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
               >
                 <t.icon strokeWidth={1.5} className="w-4 h-4" /> {t.label}
@@ -1386,109 +1653,53 @@ export const LenAi = () => {
             ))}
           </div>
 
-          {/* History List */}
           <div className="flex-1 overflow-y-auto no-scrollbar px-3 mt-6">
-            <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest px-3 mb-2">
-              History
-            </h3>
-            {(activeTab === "roadmap" || activeRoadmap ? roadmaps : chats).map(
-              (item) => (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (item.role) {
-                      setActiveRoadmap(item);
-                      setActiveTab("roadmap");
-                    } else {
-                      setActiveChatId(item.id);
-                      setActiveTab("chat");
-                    }
-                  }}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors ${(item.role && activeRoadmap?.id === item.id) || (!item.role && activeChatId === item.id) ? "bg-[#E8E6DF] text-[#2D2D2D]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
-                >
-                  <span className="truncate pr-2">
-                    {item.role || item.title}
-                  </span>
-                  <Trash2
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteItem(item.role ? "roadmaps" : "chats", item.id);
-                    }}
-                    strokeWidth={1.5}
-                    className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 hover:text-red-400"
-                  />
-                </div>
-              ),
-            )}
+            <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest px-3 mb-2">History</h3>
+            {(activeTab === "roadmap" || activeRoadmap ? roadmaps : chats).map((item) => (
+              <div
+                key={item.id}
+                onClick={() => {
+                  if (item.role) { setActiveRoadmap(item); setActiveTab("roadmap"); }
+                  else { setActiveChatId(item.id); setActiveTab("chat"); }
+                }}
+                className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors ${(item.role && activeRoadmap?.id === item.id) || (!item.role && activeChatId === item.id) ? "bg-[#E8E6DF] text-[#2D2D2D]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
+              >
+                <span className="truncate pr-2">{item.role || item.title}</span>
+                <Trash2 onClick={(e) => { e.stopPropagation(); deleteItem(item.role ? "roadmaps" : "chats", item.id); }} strokeWidth={1.5} className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 hover:text-red-400" />
+              </div>
+            ))}
           </div>
 
-          {/* PROFILE DROPDOWN AREA */}
           <div className="mt-auto p-4 border-t border-[#E8E6DF]/50 bg-[#F3F1EC] relative">
             {profileMenuOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setProfileMenuOpen(false)}
-                ></div>
+                <div className="fixed inset-0 z-40" onClick={() => setProfileMenuOpen(false)}></div>
                 <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-1 z-50 animate-fade-in overflow-hidden">
                   <div className="px-4 py-3 border-b border-[#E8E6DF]/50 bg-[#FAF9F6]">
-                    <p className="text-sm font-medium text-[#2D2D2D] truncate">
-                      {user?.displayName || "User"}
-                    </p>
-                    <p className="text-xs text-[#7A756D] truncate">
-                      {user?.email || ""}
-                    </p>
+                    <p className="text-sm font-medium text-[#2D2D2D] truncate">{user?.displayName || "User"}</p>
+                    <p className="text-xs text-[#7A756D] truncate">{user?.email || ""}</p>
                   </div>
                   <div className="p-1.5 border-b border-[#E8E6DF]/50">
-                    <button
-                      onClick={() => {
-                        setActiveTab("billing");
-                        setProfileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
-                    >
-                      <Crown
-                        strokeWidth={1.5}
-                        className="w-4 h-4 text-[#D97D54]"
-                      />{" "}
-                      Upgrade Plan
+                    <button onClick={() => { setActiveTab("billing"); setProfileMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors">
+                      <Crown strokeWidth={1.5} className="w-4 h-4 text-[#D97D54]" /> Upgrade Plan
                     </button>
-                    <button
-                      onClick={() => {
-                        setIsSettingsOpen(true);
-                        setProfileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
-                    >
-                      <Settings strokeWidth={1.5} className="w-4 h-4" />{" "}
-                      Settings
+                    <button onClick={() => { setIsSettingsOpen(true); setProfileMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors">
+                      <Settings strokeWidth={1.5} className="w-4 h-4" /> Settings
                     </button>
                   </div>
                   <div className="p-1.5">
-                    <button
-                      onClick={() => {
-                        if (logout) logout();
-                        setProfileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
-                    >
+                    <button onClick={() => { if (logout) logout(); setProfileMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors">
                       <LogOut strokeWidth={1.5} className="w-4 h-4" /> Log out
                     </button>
                   </div>
                 </div>
               </>
             )}
-
-            <button
-              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#E8E6DF]/50 rounded-xl transition-colors text-left"
-            >
+            <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#E8E6DF]/50 rounded-xl transition-colors text-left">
               <div className="w-6 h-6 bg-[#D1CEC7] rounded-full flex items-center justify-center text-[10px] font-medium text-[#2D2D2D] shrink-0">
                 {user?.displayName?.[0]?.toUpperCase() || "U"}
               </div>
-              <div className="text-xs font-medium text-[#4A4A4A] truncate flex-1">
-                {user?.displayName || "User"}
-              </div>
+              <div className="text-xs font-medium text-[#4A4A4A] truncate flex-1">{user?.displayName || "User"}</div>
             </button>
           </div>
         </div>
@@ -1497,196 +1708,24 @@ export const LenAi = () => {
         <div className="flex-1 flex flex-col min-w-0 bg-[#FAF9F6] relative">
           {!sidebarOpen && (
             <div className="absolute top-4 left-4 z-10">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="p-2 text-[#7A756D] hover:bg-[#F3F1EC] rounded-lg transition-colors"
-              >
+              <button onClick={() => setSidebarOpen(true)} className="p-2 text-[#7A756D] hover:bg-[#F3F1EC] rounded-lg transition-colors">
                 <Menu strokeWidth={1.5} className="w-5 h-5" />
               </button>
             </div>
           )}
 
-          {activeTab === "billing" ? (
-            <BillingDashboard currentPlan={userPlan} user={user} />
-          ) : activeTab !== "chat" &&
-            activeTab !== "roadmap" &&
-            activeTab !== "email" ? (
-            <FeatureWrapper
-              isLocked={!hasAccess}
-              featureName={activeTab}
-              onUpgradeClick={() => setActiveTab("billing")}
-            >
-              {activeTab === "market" && <MarketAnalyzer />}
-              {activeTab === "jobs" && <AIJobMatcher />}
-              {activeTab === "resume" && <ResumeAnalyzer />}
-              {activeTab === "store" && (
-                <ELearningStore recommendedTopic={storeTopic} />
-              )}
-              {activeTab === "feedback" && <FeedbackView />}
-            </FeatureWrapper>
-          ) : activeTab === "email" ? (
-            <FeatureWrapper
-              isLocked={!hasAccess}
-              featureName="Email Studio"
-              onUpgradeClick={() => setActiveTab("billing")}
-            >
-              <div className="h-full flex bg-[#FAF9F6]">
-                <div className="w-1/2 p-12 border-r border-[#E8E6DF] overflow-y-auto no-scrollbar">
-                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">
-                    Drafting Board
-                  </h2>
-                  <div className="space-y-6">
-                    <textarea
-                      className="w-full h-48 bg-white border border-[#E8E6DF] rounded-2xl p-5 text-[#2D2D2D] text-sm outline-none resize-none shadow-[0_2px_10px_rgb(0,0,0,0.01)] placeholder:text-[#A8A39D]"
-                      placeholder="Core message or rough notes..."
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                    />
-                    <div className="bg-white p-5 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] flex items-center justify-between">
-                      <span className="text-sm font-medium text-[#7A756D]">
-                        Attach Context (Image)
-                      </span>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          onChange={(e) => setEmailImage(e.target.files[0])}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                        />
-                        <button className="px-4 py-2 bg-[#F3F1EC] text-[#4A4A4A] text-xs font-medium rounded-lg hover:bg-[#E8E6DF] transition">
-                          {emailImage ? "Attached" : "Upload"}
-                        </button>
-                      </div>
-                    </div>
-                    <button
-                      onClick={generateEmail}
-                      disabled={emailLoading}
-                      className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
-                    >
-                      {emailLoading
-                        ? "Polishing Draft..."
-                        : "Generate Professional Draft"}
-                    </button>
-                  </div>
-                </div>
-                <div className="w-1/2 p-12 overflow-y-auto no-scrollbar bg-white">
-                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">
-                    Preview
-                  </h2>
-                  <div className="bg-[#FAF9F6] rounded-3xl p-8 border border-[#E8E6DF] min-h-[500px]">
-                    {emailResult ? (
-                      <div className="whitespace-pre-wrap text-[#4A4A4A] text-[15px] leading-loose">
-                        {emailResult}
-                      </div>
-                    ) : (
-                      <p className="text-[#A8A39D] text-sm text-center mt-20">
-                        Draft will appear here.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </FeatureWrapper>
-          ) : activeTab === "roadmap" ? (
-            <FeatureWrapper
-              isLocked={!hasAccess}
-              featureName="Career Roadmaps"
-              onUpgradeClick={() => setActiveTab("billing")}
-            >
-              <div className="h-full bg-[#FAF9F6] overflow-y-auto no-scrollbar p-12">
-                {!activeRoadmap ? (
-                  <div className="max-w-2xl mx-auto mt-20 text-center animate-fade-in">
-                    <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">
-                      Career Architect
-                    </h2>
-                    <p className="text-[#7A756D] mb-12 text-lg">
-                      Design a masterclass-level learning path for any role.
-                    </p>
-                    <div className="flex gap-3 bg-white p-2 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_15px_rgb(0,0,0,0.02)]">
-                      <input
-                        className="flex-1 p-4 bg-transparent outline-none text-[#2D2D2D] text-sm placeholder:text-[#A8A39D]"
-                        placeholder="e.g. Senior Backend Engineer"
-                        value={roadmapInput}
-                        onChange={(e) => setRoadmapInput(e.target.value)}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" && generateRoadmap()
-                        }
-                      />
-                      <button
-                        onClick={generateRoadmap}
-                        disabled={roadmapLoading}
-                        className="px-8 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition disabled:opacity-50"
-                      >
-                        {roadmapLoading ? "Planning..." : "Create"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="max-w-3xl mx-auto animate-fade-in">
-                    <h1 className="font-serif text-4xl text-[#2D2D2D] mb-12 capitalize">
-                      {activeRoadmap.role} Curriculum
-                    </h1>
-                    <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-[#E8E6DF]">
-                      {activeRoadmap.steps.map((s, i) => (
-                        <div key={i} className="relative pl-10">
-                          <div className="absolute left-0 top-3 w-6 h-6 rounded-full bg-[#FAF9F6] border border-[#E8E6DF] flex items-center justify-center text-[10px] font-medium text-[#7A756D]">
-                            {s.step}
-                          </div>
-                          <div className="bg-white border border-[#E8E6DF] p-8 rounded-3xl shadow-[0_2px_10px_rgb(0,0,0,0.01)]">
-                            <div className="flex justify-between items-start mb-4">
-                              <h3 className="font-serif text-2xl text-[#2D2D2D]">
-                                {s.title}
-                              </h3>
-                              <span className="text-[10px] font-medium bg-[#F3F1EC] text-[#7A756D] px-3 py-1 rounded-full">
-                                {s.duration}
-                              </span>
-                            </div>
-                            <p className="text-[#4A4A4A] text-sm leading-relaxed mb-6">
-                              {s.description}
-                            </p>
-                            <div className="flex gap-2 flex-wrap">
-                              {s.resources.map((r, idx) => (
-                                <a
-                                  key={idx}
-                                  href={`https://www.youtube.com/results?search_query=${r}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-xs font-medium border border-[#E8E6DF] px-3 py-1.5 rounded-lg text-[#7A756D] hover:bg-[#F3F1EC] transition flex items-center gap-1.5"
-                                >
-                                  <Play strokeWidth={1.5} className="w-3 h-3" />{" "}
-                                  {r}
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </FeatureWrapper>
-          ) : (
-            // CHAT INTERFACE
-            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 h-full">
+          {activeTab === "chat" ? (
+            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 h-full relative">
               <div className="flex-1 overflow-y-auto no-scrollbar py-12 px-2 md:px-8">
                 {messages.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center -mt-10 animate-fade-in">
                     <h1 className="font-serif text-4xl md:text-5xl text-[#2D2D2D] mb-4">
-                      {getGreeting()}
-                      {user?.displayName
-                        ? `, ${user.displayName.split(" ")[0]}`
-                        : "."}
+                      {getGreeting()}{user?.displayName ? `, ${user.displayName.split(" ")[0]}` : "."}
                     </h1>
-                    <p className="text-[#7A756D] text-lg mb-12">
-                      How can I assist your career today?
-                    </p>
+                    <p className="text-[#7A756D] text-lg mb-12">How can I assist your career today?</p>
                     <div className="flex flex-wrap gap-3 justify-center max-w-2xl">
                       {SUGGESTIONS.map((s, i) => (
-                        <button
-                          key={i}
-                          onClick={() => sendChat(s.prompt)}
-                          className="px-5 py-2.5 rounded-full border border-[#E8E6DF] bg-transparent text-sm text-[#7A756D] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
-                        >
+                        <button key={i} onClick={() => sendChat(s.prompt)} className="px-5 py-2.5 rounded-full border border-[#E8E6DF] bg-transparent text-sm text-[#7A756D] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors">
                           {s.prompt}
                         </button>
                       ))}
@@ -1695,27 +1734,13 @@ export const LenAi = () => {
                 ) : (
                   <div className="space-y-10 pb-10">
                     {messages.map((m) => (
-                      <div
-                        key={m.id}
-                        className={`flex gap-4 animate-fade-in w-full ${
-                          m.sender === "user" ? "justify-end" : "justify-start"
-                        }`}
-                      >
+                      <div key={m.id} className={`flex gap-4 animate-fade-in w-full ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
                         {m.sender !== "user" && (
                           <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
-                            <Sparkles
-                              strokeWidth={1.5}
-                              className="w-5 h-5 text-[#D97D54]"
-                            />
+                            <Sparkles strokeWidth={1.5} className="w-5 h-5 text-[#D97D54]" />
                           </div>
                         )}
-                        <div
-                          className={`text-[15px] leading-relaxed ${
-                            m.sender === "user"
-                              ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl max-w-[85%] text-[#2D2D2D]"
-                              : "text-[#4A4A4A] flex-1"
-                          }`}
-                        >
+                        <div className={`text-[15px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl max-w-[85%] text-[#2D2D2D]" : "text-[#4A4A4A] flex-1"}`}>
                           {m.text}
                         </div>
                       </div>
@@ -1723,14 +1748,9 @@ export const LenAi = () => {
                     {chatLoading && (
                       <div className="flex gap-4 justify-start animate-fade-in">
                         <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
-                          <Sparkles
-                            strokeWidth={1.5}
-                            className="w-5 h-5 text-[#D97D54] opacity-50"
-                          />
+                          <Sparkles strokeWidth={1.5} className="w-5 h-5 text-[#D97D54] opacity-50" />
                         </div>
-                        <div className="text-sm text-[#A8A39D] flex items-center gap-1">
-                          Thinking<span className="animate-pulse">...</span>
-                        </div>
+                        <div className="text-sm text-[#A8A39D] flex items-center gap-1">Thinking<span className="animate-pulse">...</span></div>
                       </div>
                     )}
                     <div ref={chatEndRef}></div>
@@ -1738,11 +1758,75 @@ export const LenAi = () => {
                 )}
               </div>
 
-              <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0">
-                <div className="relative rounded-3xl bg-[#F3F1EC] border border-[#E8E6DF] focus-within:border-[#D1CEC7] transition-all flex flex-col">
+              {/* INPUT AREA */}
+              <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0 z-10 w-full">
+                
+                {/* --- LIVE FULL DUPLEX AUDIO PANEL --- */}
+                {isVoiceMode && (
+                  <div className="mb-4 bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in relative z-20">
+                    <div className="flex items-center justify-between mb-4 border-b border-[#E8E6DF] pb-4">
+                      <div className="flex items-center gap-3">
+                        <CustomSpeechBubbleIcon className={`w-5 h-5 ${voiceStatus === 'speaking' ? 'text-blue-500 animate-pulse' : 'text-[#7A756D]'}`} />
+                        <span className="text-sm font-medium text-[#4A4A4A]">
+                          {voiceStatus === 'thinking' ? "Thinking..." :
+                           voiceStatus === 'speaking' ? "Len is speaking... (Speak to interrupt)" :
+                           "Listening... (Auto-sends when you pause)"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={toggleVoiceMode}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F0FE] text-[#1A73E8] rounded-full text-sm font-medium hover:bg-[#D2E3FC] transition-colors"
+                      >
+                        <span className="flex gap-0.5">
+                          <span className="w-1 h-1 bg-[#1A73E8] rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
+                          <span className="w-1 h-1 bg-[#1A73E8] rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
+                          <span className="w-1 h-1 bg-[#1A73E8] rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
+                        </span>
+                        Cancel
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <textarea
+                        value={transcriptResult}
+                        readOnly
+                        placeholder="Live transcript will appear here..."
+                        className="w-full h-24 text-sm text-[#4A4A4A] leading-relaxed p-4 bg-[#F3F1EC]/50 rounded-xl border border-[#E8E6DF] resize-none outline-none focus:border-[#D1CEC7]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* --- CHAT INPUT BOX --- */}
+                <div className="relative rounded-3xl bg-[#F3F1EC] border border-[#E8E6DF] focus-within:border-[#D1CEC7] transition-all flex items-center gap-1.5 pl-2">
+                  
+                  {/* MODEL 1: DICTATION (Microphone) */}
+                  <button
+                    onClick={toggleDictation}
+                    disabled={chatLoading || isVoiceMode}
+                    title="Simple Voice Typing"
+                    className={`p-2 rounded-full flex items-center justify-center transition-colors ${
+                      isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#E8E6DF]"
+                    }`}
+                  >
+                    {isDictating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mic strokeWidth={1.5} className="w-5 h-5" />}
+                  </button>
+
+                  {/* MODEL 2: INTERACTIVE AUDIO (Headphones) */}
+                  <button
+                    onClick={toggleVoiceMode}
+                    disabled={chatLoading || isDictating}
+                    title="Live Audio Session"
+                    className={`p-2 rounded-full flex items-center justify-center transition-colors ${
+                      isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#E8E6DF]"
+                    }`}
+                  >
+                    <Headphones strokeWidth={1.5} className="w-5 h-5" />
+                  </button>
+
                   <textarea
-                    className="w-full bg-transparent border-none rounded-3xl p-5 pl-5 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
-                    placeholder="Message LenAi..."
+                    className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
+                    placeholder="Ask anything about your career..."
                     rows={1}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -1764,97 +1848,161 @@ export const LenAi = () => {
                   </button>
                 </div>
                 <div className="text-center mt-3 text-[10px] text-[#A8A39D]">
-                  LenAi can make mistakes. Consider verifying important
-                  information.
+                  LenAi can make mistakes. Consider verifying important information.
                 </div>
               </div>
             </div>
+          ) : activeTab === "billing" ? (
+            <BillingDashboard currentPlan={userPlan} user={user} />
+          ) : activeTab === "email" ? (
+            <FeatureWrapper isLocked={!hasAccess} featureName="Email Studio" onUpgradeClick={() => setActiveTab("billing")}>
+              <div className="h-full flex bg-[#FAF9F6]">
+                <div className="w-1/2 p-12 border-r border-[#E8E6DF] overflow-y-auto no-scrollbar">
+                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">Drafting Board</h2>
+                  <div className="space-y-6">
+                    <textarea
+                      className="w-full h-48 bg-white border border-[#E8E6DF] rounded-2xl p-5 text-[#2D2D2D] text-sm outline-none resize-none shadow-[0_2px_10px_rgb(0,0,0,0.01)] placeholder:text-[#A8A39D]"
+                      placeholder="Core message or rough notes..."
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                    />
+                    <div className="bg-white p-5 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] flex items-center justify-between">
+                      <span className="text-sm font-medium text-[#7A756D]">Attach Context (Image)</span>
+                      <div className="relative">
+                        <input type="file" onChange={(e) => setEmailImage(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                        <button className="px-4 py-2 bg-[#F3F1EC] text-[#4A4A4A] text-xs font-medium rounded-lg hover:bg-[#E8E6DF] transition">
+                          {emailImage ? "Attached" : "Upload"}
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={generateEmail}
+                      disabled={emailLoading}
+                      className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
+                    >
+                      {emailLoading ? "Polishing Draft..." : "Generate Professional Draft"}
+                    </button>
+                  </div>
+                </div>
+                <div className="w-1/2 p-12 overflow-y-auto no-scrollbar bg-white">
+                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">Preview</h2>
+                  <div className="bg-[#FAF9F6] rounded-3xl p-8 border border-[#E8E6DF] min-h-[500px]">
+                    {emailResult ? (
+                      <div className="whitespace-pre-wrap text-[#4A4A4A] text-[15px] leading-loose">{emailResult}</div>
+                    ) : (
+                      <p className="text-[#A8A39D] text-sm text-center mt-20">Draft will appear here.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </FeatureWrapper>
+          ) : activeTab === "roadmap" ? (
+            <FeatureWrapper isLocked={!hasAccess} featureName="Career Roadmaps" onUpgradeClick={() => setActiveTab("billing")}>
+              <div className="h-full bg-[#FAF9F6] overflow-y-auto no-scrollbar p-12">
+                {!activeRoadmap ? (
+                  <div className="max-w-2xl mx-auto mt-20 text-center animate-fade-in">
+                    <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">Career Architect</h2>
+                    <p className="text-[#7A756D] mb-12 text-lg">Design a masterclass-level learning path for any role.</p>
+                    <div className="flex gap-3 bg-white p-2 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_15px_rgb(0,0,0,0.02)]">
+                      <input
+                        className="flex-1 p-4 bg-transparent outline-none text-[#2D2D2D] text-sm placeholder:text-[#A8A39D]"
+                        placeholder="e.g. Senior Backend Engineer"
+                        value={roadmapInput}
+                        onChange={(e) => setRoadmapInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && generateRoadmap()}
+                      />
+                      <button
+                        onClick={generateRoadmap}
+                        disabled={roadmapLoading}
+                        className="px-8 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition disabled:opacity-50"
+                      >
+                        {roadmapLoading ? "Planning..." : "Create"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-3xl mx-auto animate-fade-in">
+                    <h1 className="font-serif text-4xl text-[#2D2D2D] mb-12 capitalize">{activeRoadmap.role} Curriculum</h1>
+                    <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-[#E8E6DF]">
+                      {activeRoadmap.steps.map((s, i) => (
+                        <div key={i} className="relative pl-10">
+                          <div className="absolute left-0 top-3 w-6 h-6 rounded-full bg-[#FAF9F6] border border-[#E8E6DF] flex items-center justify-center text-[10px] font-medium text-[#7A756D]">
+                            {s.step}
+                          </div>
+                          <div className="bg-white border border-[#E8E6DF] p-8 rounded-3xl shadow-[0_2px_10px_rgb(0,0,0,0.01)]">
+                            <div className="flex justify-between items-start mb-4">
+                              <h3 className="font-serif text-2xl text-[#2D2D2D]">{s.title}</h3>
+                              <span className="text-[10px] font-medium bg-[#F3F1EC] text-[#7A756D] px-3 py-1 rounded-full">{s.duration}</span>
+                            </div>
+                            <p className="text-[#4A4A4A] text-sm leading-relaxed mb-6">{s.description}</p>
+                            <div className="flex gap-2 flex-wrap">
+                              {s.resources.map((r, idx) => (
+                                <a key={idx} href={`https://www.youtube.com/results?search_query=${r}`} target="_blank" rel="noreferrer" className="text-xs font-medium border border-[#E8E6DF] px-3 py-1.5 rounded-lg text-[#7A756D] hover:bg-[#F3F1EC] transition flex items-center gap-1.5">
+                                  <Play strokeWidth={1.5} className="w-3 h-3" /> {r}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </FeatureWrapper>
+          ) : (
+            <FeatureWrapper isLocked={!hasAccess} featureName={activeTab} onUpgradeClick={() => setActiveTab("billing")}>
+              {activeTab === "market" && <MarketAnalyzer />}
+              {activeTab === "jobs" && <AIJobMatcher />}
+              {activeTab === "resume" && <ResumeAnalyzer />}
+              {activeTab === "store" && <ELearningStore recommendedTopic={storeTopic} />}
+              {activeTab === "feedback" && <FeedbackView />}
+            </FeatureWrapper>
           )}
         </div>
 
         {/* SETTINGS MODAL */}
         {isSettingsOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            <div
-              className="absolute inset-0 bg-[#2D2D2D]/20 backdrop-blur-sm"
-              onClick={() => setIsSettingsOpen(false)}
-            ></div>
+            <div className="absolute inset-0 bg-[#2D2D2D]/20 backdrop-blur-sm" onClick={() => setIsSettingsOpen(false)}></div>
             <div className="relative w-full max-w-4xl bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-[#E8E6DF] flex flex-col md:flex-row overflow-hidden animate-fade-in max-h-[85vh]">
-              {/* Settings Sidebar */}
               <div className="w-full md:w-64 bg-[#F3F1EC] border-r border-[#E8E6DF] p-6 flex flex-col">
-                <h2 className="font-serif text-2xl text-[#2D2D2D] mb-8">
-                  Settings
-                </h2>
+                <h2 className="font-serif text-2xl text-[#2D2D2D] mb-8">Settings</h2>
                 <nav className="space-y-1">
-                  {[
-                    { id: "general", label: "General", icon: Settings },
-                    { id: "account", label: "Account", icon: UserCheck },
-                    { id: "api", label: "API Keys", icon: Lock },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setSettingsTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors ${settingsTab === tab.id ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
-                    >
-                      <tab.icon strokeWidth={1.5} className="w-4 h-4" />{" "}
-                      {tab.label}
+                  {[{ id: "general", label: "General", icon: Settings }, { id: "account", label: "Account", icon: UserCheck }, { id: "api", label: "API Keys", icon: Lock }].map((tab) => (
+                    <button key={tab.id} onClick={() => setSettingsTab(tab.id)} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors ${settingsTab === tab.id ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}>
+                      <tab.icon strokeWidth={1.5} className="w-4 h-4" /> {tab.label}
                     </button>
                   ))}
                 </nav>
               </div>
 
-              {/* Settings Content */}
               <div className="flex-1 p-8 md:p-12 overflow-y-auto no-scrollbar bg-white relative">
-                <button
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="absolute top-6 right-6 p-2 text-[#7A756D] hover:bg-[#F3F1EC] rounded-full transition-colors"
-                >
+                <button onClick={() => setIsSettingsOpen(false)} className="absolute top-6 right-6 p-2 text-[#7A756D] hover:bg-[#F3F1EC] rounded-full transition-colors">
                   <X strokeWidth={1.5} className="w-5 h-5" />
                 </button>
 
                 {settingsTab === "general" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
-                      General
-                    </h3>
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">General</h3>
                     <div className="space-y-8">
                       <div>
-                        <label className="block text-sm font-medium text-[#2D2D2D] mb-3">
-                          Interface Theme
-                        </label>
+                        <label className="block text-sm font-medium text-[#2D2D2D] mb-3">Interface Theme</label>
                         <div className="flex flex-col gap-3">
                           <label className="flex items-center gap-3 text-sm text-[#4A4A4A] cursor-pointer p-3 rounded-xl border border-[#E8E6DF] bg-[#FAF9F6]">
-                            <input
-                              type="radio"
-                              name="theme"
-                              defaultChecked
-                              className="accent-[#2D2D2D] w-4 h-4"
-                            />
+                            <input type="radio" name="theme" defaultChecked className="accent-[#2D2D2D] w-4 h-4" />
                             <span>Alabaster (Light)</span>
                           </label>
                           <label className="flex items-center gap-3 text-sm text-[#A8A39D] cursor-not-allowed p-3 rounded-xl border border-[#E8E6DF] bg-white opacity-60">
-                            <input
-                              type="radio"
-                              name="theme"
-                              disabled
-                              className="accent-[#2D2D2D] w-4 h-4"
-                            />
-                            <span>
-                              Obsidian (Dark) —{" "}
-                              <span className="text-xs">Coming soon</span>
-                            </span>
+                            <input type="radio" name="theme" disabled className="accent-[#2D2D2D] w-4 h-4" />
+                            <span>Obsidian (Dark) — <span className="text-xs">Coming soon</span></span>
                           </label>
                         </div>
                       </div>
                       <div className="h-px bg-[#E8E6DF] w-full"></div>
                       <div>
-                        <h4 className="text-sm font-medium text-[#2D2D2D] mb-1">
-                          Clear Conversation History
-                        </h4>
-                        <p className="text-sm text-[#7A756D] mb-4">
-                          This will permanently delete all your chats and
-                          generated roadmaps.
-                        </p>
+                        <h4 className="text-sm font-medium text-[#2D2D2D] mb-1">Clear Conversation History</h4>
+                        <p className="text-sm text-[#7A756D] mb-4">This will permanently delete all your chats and generated roadmaps.</p>
                         <button className="px-5 py-2.5 border border-[#E8E6DF] text-[#D97D54] text-sm font-medium rounded-xl hover:bg-[#FAF9F6] transition-colors">
                           Clear History
                         </button>
@@ -1865,45 +2013,19 @@ export const LenAi = () => {
 
                 {settingsTab === "account" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
-                      Account
-                    </h3>
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">Account</h3>
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-[#7A756D] mb-2">
-                          Display Name
-                        </label>
-                        <input
-                          type="text"
-                          disabled
-                          value={user?.displayName || "Unknown User"}
-                          className="w-full bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] px-4 py-3 rounded-xl text-sm outline-none"
-                        />
+                        <label className="block text-sm font-medium text-[#7A756D] mb-2">Display Name</label>
+                        <input type="text" disabled value={user?.displayName || "Unknown User"} className="w-full bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] px-4 py-3 rounded-xl text-sm outline-none" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[#7A756D] mb-2">
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          disabled
-                          value={user?.email || "No Email"}
-                          className="w-full bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] px-4 py-3 rounded-xl text-sm outline-none"
-                        />
+                        <label className="block text-sm font-medium text-[#7A756D] mb-2">Email Address</label>
+                        <input type="email" disabled value={user?.email || "No Email"} className="w-full bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] px-4 py-3 rounded-xl text-sm outline-none" />
                       </div>
                       <div className="pt-6">
-                        <button
-                          onClick={() => {
-                            setIsSettingsOpen(false);
-                            setActiveTab("billing");
-                          }}
-                          className="w-full px-5 py-3.5 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Crown
-                            strokeWidth={1.5}
-                            className="w-4 h-4 text-[#D97D54]"
-                          />{" "}
-                          Manage Subscription ({user?.plan || "Basic"})
+                        <button onClick={() => { setIsSettingsOpen(false); setActiveTab("billing"); }} className="w-full px-5 py-3.5 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors flex items-center justify-center gap-2">
+                          <Crown strokeWidth={1.5} className="w-4 h-4 text-[#D97D54]" /> Manage Subscription ({user?.plan || "Basic"})
                         </button>
                       </div>
                     </div>
@@ -1912,35 +2034,18 @@ export const LenAi = () => {
 
                 {settingsTab === "api" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
-                      API Configuration
-                    </h3>
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">API Configuration</h3>
                     <p className="text-sm text-[#7A756D] mb-8 leading-relaxed">
-                      PathifyAI uses system-provided API keys by default. If you
-                      are experiencing rate limits, you can configure your own
-                      personal keys here. Keys are stored locally in your
-                      browser.
+                      PathifyAI uses system-provided API keys by default. If you are experiencing rate limits, you can configure your own personal keys here. Keys are stored locally in your browser.
                     </p>
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">
-                          Google Gemini API Key
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="AIzaSy..."
-                          className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
-                        />
+                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">Google Gemini API Key</label>
+                        <input type="password" placeholder="AIzaSy..." className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">
-                          JSearch RapidAPI Key (Job Matcher)
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Enter your key..."
-                          className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
-                        />
+                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">JSearch RapidAPI Key (Job Matcher)</label>
+                        <input type="password" placeholder="Enter your key..." className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]" />
                       </div>
                       <div className="pt-4">
                         <button className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors">
