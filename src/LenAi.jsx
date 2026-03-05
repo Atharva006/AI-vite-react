@@ -46,6 +46,12 @@ import {
   Loader2,
   Headphones,
   User,
+  Check,
+  Paperclip,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
 } from "lucide-react";
 import {
   collection,
@@ -63,10 +69,40 @@ import {
 // --- CONFIGURATION ---
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+let GEMINI_API_KEY =
+  localStorage.getItem("gemini_api_key") || import.meta.env.VITE_GEMINI_API_KEY;
+let RAPIDAPI_KEY =
+  localStorage.getItem("rapid_api_key") || import.meta.env.VITE_RAPIDAPI_KEY;
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
-const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+
+let genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+
+// Function to update global API keys dynamically
+const updateAPIKeys = (gemini, rapid) => {
+  if (gemini !== undefined) {
+    localStorage.setItem("gemini_api_key", gemini);
+    GEMINI_API_KEY = gemini || import.meta.env.VITE_GEMINI_API_KEY;
+    genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+  }
+  if (rapid !== undefined) {
+    localStorage.setItem("rapid_api_key", rapid);
+    RAPIDAPI_KEY = rapid || import.meta.env.VITE_RAPIDAPI_KEY;
+  }
+};
+
+// ==================================================================
+// SUB-COMPONENT: Custom Claude-like Logo
+// ==================================================================
+const ClaudeLogo = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+  </svg>
+);
 
 // ==================================================================
 // SUB-COMPONENT: Custom Image Icon for AI Speaking Status
@@ -123,7 +159,7 @@ const TOUR_STEPS = [
   },
   {
     title: "Full-Duplex Voice",
-    desc: "Engage in real-time, interruptible live conversation. Use the Microphone to start the session, and the speech bubble icon will show status. If you speak, the AI will stop and listen.",
+    desc: "Engage in real-time, interruptible live conversation. Use the Microphone to start the session.",
     icon: Headphones,
   },
   {
@@ -774,6 +810,7 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
   const [videos, setVideos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [playingVideo, setPlayingVideo] = useState(null);
 
   const fetchVideos = async (query) => {
     if (!YOUTUBE_API_KEY || !query) return;
@@ -795,6 +832,46 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
     setSearchQuery(topic);
     fetchVideos(topic);
   }, [recommendedTopic]);
+
+  if (playingVideo) {
+    return (
+      <div className="h-full flex flex-col bg-[#FAF9F6] overflow-y-auto no-scrollbar p-8 md:p-16 animate-fade-in">
+        <div className="max-w-6xl mx-auto w-full">
+          <button
+            onClick={() => setPlayingVideo(null)}
+            className="flex items-center gap-2 text-[#7A756D] hover:text-[#2D2D2D] text-sm mb-8 transition"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Library
+          </button>
+
+          <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden mb-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF]">
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${playingVideo.id.videoId}?autoplay=1`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+
+          <h1 className="font-serif text-3xl md:text-4xl text-[#2D2D2D] mb-4">
+            {playingVideo.snippet.title}
+          </h1>
+          <p className="text-[#7A756D] text-lg font-medium mb-6">
+            {playingVideo.snippet.channelTitle}
+          </p>
+
+          <div className="bg-white p-6 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+            <p className="text-[#4A4A4A] text-sm leading-relaxed whitespace-pre-wrap">
+              {playingVideo.snippet.description || "No description provided."}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-[#FAF9F6] overflow-y-auto no-scrollbar p-8 md:p-16">
@@ -827,19 +904,21 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
           <div className="space-y-12">
             {videos.length > 0 && (
               <div>
-                <a
-                  href={`https://www.youtube.com/watch?v=${videos[0].id.videoId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block relative w-full h-[400px] rounded-3xl overflow-hidden group"
+                <div
+                  onClick={() => setPlayingVideo(videos[0])}
+                  className="block relative w-full h-[400px] rounded-3xl overflow-hidden group cursor-pointer"
                 >
                   <img
                     src={videos[0].snippet.thumbnails.high.url}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     alt="Featured"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/90 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 p-10 w-full md:w-2/3">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/90 to-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="w-16 h-16 bg-[#D97D54] rounded-full flex items-center justify-center pl-1 shadow-lg">
+                      <Play strokeWidth={2} className="w-8 h-8 text-white" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 p-10 w-full md:w-2/3 pointer-events-none">
                     <span className="text-[10px] font-bold text-[#FAF9F6] bg-[#2D2D2D]/50 backdrop-blur-md px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-[#FAF9F6]/20">
                       Featured
                     </span>
@@ -850,17 +929,15 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
                       {videos[0].snippet.channelTitle}
                     </p>
                   </div>
-                </a>
+                </div>
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {videos.slice(1).map((video) => (
-                <a
+                <div
                   key={video.id.videoId}
-                  href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex flex-col"
+                  onClick={() => setPlayingVideo(video)}
+                  className="group flex flex-col cursor-pointer"
                 >
                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#F3F1EC] mb-4 border border-[#E8E6DF]">
                     <img
@@ -868,6 +945,11 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
                       alt=""
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-10 h-10 bg-[#D97D54] rounded-full flex items-center justify-center pl-1 shadow-lg">
+                        <Play strokeWidth={2} className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
                   </div>
                   <h3 className="font-sans text-sm font-medium text-[#2D2D2D] leading-snug line-clamp-2 mb-1">
                     {video.snippet.title}
@@ -875,7 +957,7 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
                   <p className="text-xs text-[#7A756D]">
                     {video.snippet.channelTitle}
                   </p>
-                </a>
+                </div>
               ))}
             </div>
           </div>
@@ -1147,6 +1229,13 @@ export const LenAi = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState("general");
 
+  // Custom API Keys State
+  const [apiKeys, setApiKeys] = useState({
+    gemini: localStorage.getItem("gemini_api_key") || "",
+    rapid: localStorage.getItem("rapid_api_key") || "",
+  });
+  const [apiSaveStatus, setApiSaveStatus] = useState("");
+
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
 
@@ -1184,12 +1273,30 @@ export const LenAi = () => {
   const interactiveRecognitionRef = useRef(null);
   const synthRef = useRef(window.speechSynthesis);
 
+  // --- YOUTUBE SIDEBAR INTEGRATION ---
+  const [videoSidebarOpen, setVideoSidebarOpen] = useState(false);
+  const [activeVideoQuery, setActiveVideoQuery] = useState("");
+  const [activeVideoId, setActiveVideoId] = useState("");
+  const [videoLoading, setVideoLoading] = useState(false);
+
   // Refs for state used inside speech event handlers (prevents stale closure bugs)
   const activeChatIdRef = useRef(activeChatId);
   const messagesRef = useRef(messages);
 
   const userPlan = user?.plan || "basic";
   const hasAccess = PLAN_ACCESS[activeTab]?.includes(userPlan);
+
+  // --- CALCULATE PROGRESS ---
+  const totalResourcesCount =
+    activeRoadmap?.steps?.reduce(
+      (acc, step) => acc + (step.resources?.length || 0),
+      0,
+    ) || 0;
+  const completedCount = activeRoadmap?.completedResources?.length || 0;
+  const progressPercent =
+    totalResourcesCount === 0
+      ? 0
+      : Math.round((completedCount / totalResourcesCount) * 100);
 
   useEffect(() => {
     isVoiceModeRef.current = isVoiceMode;
@@ -1206,6 +1313,101 @@ export const LenAi = () => {
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
+  };
+
+  const handleSaveApiKeys = () => {
+    updateAPIKeys(apiKeys.gemini, apiKeys.rapid);
+    setApiSaveStatus("Saved successfully!");
+    setTimeout(() => setApiSaveStatus(""), 3000);
+  };
+
+  // --- YOUTUBE SIDEBAR HANDLER ---
+  const handleOpenVideo = async (query) => {
+    setVideoSidebarOpen(true);
+    setActiveVideoQuery(query);
+    setActiveVideoId("");
+
+    if (!YOUTUBE_API_KEY) {
+      alert("YouTube API Key is missing. Cannot fetch video.");
+      setVideoSidebarOpen(false);
+      return;
+    }
+
+    setVideoLoading(true);
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query + " tutorial course")}&type=video&key=${YOUTUBE_API_KEY}`,
+      );
+      const data = await response.json();
+      if (data.items && data.items.length > 0) {
+        setActiveVideoId(data.items[0].id.videoId);
+      } else {
+        alert("No video found for this topic.");
+        setVideoSidebarOpen(false);
+      }
+    } catch (error) {
+      console.error("YouTube Fetch Error", error);
+      alert("Failed to load video.");
+      setVideoSidebarOpen(false);
+    }
+    setVideoLoading(false);
+  };
+
+  // --- MARK AS COMPLETE & GO TO NEXT ---
+  const handleMarkCompleteAndNext = async () => {
+    if (!user || !activeRoadmap || !activeVideoQuery) return;
+
+    const currentCompleted = activeRoadmap.completedResources || [];
+    let updatedCompleted = [...currentCompleted];
+
+    if (!updatedCompleted.includes(activeVideoQuery)) {
+      updatedCompleted.push(activeVideoQuery);
+
+      // Update local state immediately for snappy UI
+      setActiveRoadmap((prev) => ({
+        ...prev,
+        completedResources: updatedCompleted,
+      }));
+
+      // Update in Firestore
+      try {
+        const roadmapRef = doc(
+          db,
+          "users",
+          user.uid,
+          "roadmaps",
+          activeRoadmap.id,
+        );
+        await updateDoc(roadmapRef, { completedResources: updatedCompleted });
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    }
+
+    // Find next unwatched video automatically
+    let foundCurrent = false;
+    let nextResource = null;
+
+    for (const step of activeRoadmap.steps) {
+      for (const res of step.resources) {
+        if (foundCurrent && !updatedCompleted.includes(res)) {
+          nextResource = res;
+          break;
+        }
+        if (res === activeVideoQuery) {
+          foundCurrent = true;
+        }
+      }
+      if (nextResource) break;
+    }
+
+    if (nextResource) {
+      handleOpenVideo(nextResource);
+    } else {
+      // Roadmap complete!
+      setVideoSidebarOpen(false);
+      setActiveVideoId("");
+    }
   };
 
   // =========================================================================
@@ -1229,7 +1431,6 @@ export const LenAi = () => {
         }
       }
       if (final) {
-        // Appends the spoken text directly into the main chat input
         setInput((prev) => (prev + " " + final).trim());
       }
     };
@@ -1239,7 +1440,6 @@ export const LenAi = () => {
     };
 
     recognition.onend = () => {
-      // Auto restart if still actively dictating
       if (isDictating) {
         try {
           recognition.start();
@@ -1468,10 +1668,11 @@ export const LenAi = () => {
     try {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
-        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD .`,
+        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD .
+        `,
       });
 
-      const recentMessages = messagesRef.current.slice(-10);
+      const recentMessages = messagesRef.current.slice(-3);
       const history = recentMessages.map((m) => ({
         role: m.sender === "user" ? "user" : "model",
         parts: [{ text: m.text }],
@@ -1490,6 +1691,14 @@ export const LenAi = () => {
       console.error(e);
     }
     setChatLoading(false);
+  };
+
+  const handleRetry = async () => {
+    const userMsgs = messagesRef.current.filter((m) => m.sender === "user");
+    if (userMsgs.length > 0) {
+      const lastUserMessage = userMsgs[userMsgs.length - 1];
+      sendChat(lastUserMessage.text);
+    }
   };
 
   const createChat = async () => {
@@ -1520,9 +1729,15 @@ export const LenAi = () => {
       const ref = await addDoc(collection(db, "users", user.uid, "roadmaps"), {
         role: roadmapInput,
         steps: data,
+        completedResources: [],
         createdAt: serverTimestamp(),
       });
-      setActiveRoadmap({ id: ref.id, role: roadmapInput, steps: data });
+      setActiveRoadmap({
+        id: ref.id,
+        role: roadmapInput,
+        steps: data,
+        completedResources: [],
+      });
       setRoadmapInput("");
     } catch (e) {
       console.error(e);
@@ -1646,9 +1861,9 @@ export const LenAi = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap');
         .font-serif { font-family: 'Newsreader', serif; }
-        .font-sans { font-family: 'Inter', sans-serif; }
+        .font-sans { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .animate-fade-in { animation: fadeIn 0.5s ease-out; }
@@ -1862,185 +2077,380 @@ export const LenAi = () => {
             </div>
           )}
 
-          {activeTab === "chat" ? (
-            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 h-full relative">
-              <div className="flex-1 overflow-y-auto no-scrollbar py-12 px-2 md:px-8">
-                {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center -mt-10 animate-fade-in">
-                    <h1 className="font-serif text-4xl md:text-5xl text-[#2D2D2D] mb-4">
-                      {getGreeting()}
-                      {user?.displayName
-                        ? `, ${user.displayName.split(" ")[0]}`
-                        : "."}
-                    </h1>
-                    <p className="text-[#7A756D] text-lg mb-12">
-                      How can I assist your career today?
-                    </p>
-                    <div className="flex flex-wrap gap-3 justify-center max-w-2xl">
-                      {SUGGESTIONS.map((s, i) => (
-                        <button
-                          key={i}
-                          onClick={() => sendChat(s.prompt)}
-                          className="px-5 py-2.5 rounded-full border border-[#E8E6DF] bg-transparent text-sm text-[#7A756D] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
-                        >
-                          {s.prompt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-10 pb-10">
-                    {messages.map((m) => (
-                      <div
-                        key={m.id}
-                        className={`flex gap-4 animate-fade-in w-full ${m.sender === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        {m.sender !== "user" && (
-                          <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
-                            <Sparkles
-                              strokeWidth={1.5}
-                              className="w-5 h-5 text-[#D97D54]"
-                            />
-                          </div>
-                        )}
-                        <div
-                          className={`text-[15px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl max-w-[85%] text-[#2D2D2D]" : "text-[#4A4A4A] flex-1"}`}
-                        >
-                          {m.text}
-                        </div>
-                      </div>
-                    ))}
-                    {chatLoading && (
-                      <div className="flex gap-4 justify-start animate-fade-in">
-                        <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
-                          <Sparkles
-                            strokeWidth={1.5}
-                            className="w-5 h-5 text-[#D97D54] opacity-50"
-                          />
-                        </div>
-                        <div className="text-sm text-[#A8A39D] flex items-center gap-1">
-                          Thinking<span className="animate-pulse">...</span>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={chatEndRef}></div>
-                  </div>
-                )}
+          {/* --- VIDEO SIDEBAR OVERLAY/SLIDER --- */}
+          {videoSidebarOpen && (
+            <div className="absolute top-0 right-0 bottom-0 w-full md:w-[450px] bg-white border-l border-[#E8E6DF] shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-[150] flex flex-col transform transition-transform duration-300 translate-x-0">
+              <div className="p-4 border-b border-[#E8E6DF] flex justify-between items-center bg-[#FAF9F6]">
+                <h3 className="font-serif text-xl text-[#2D2D2D] truncate pr-4">
+                  {activeVideoQuery || "Learning Resource"}
+                </h3>
+                <button
+                  onClick={() => {
+                    setVideoSidebarOpen(false);
+                    setActiveVideoId("");
+                  }}
+                  className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-full transition-colors shrink-0"
+                >
+                  <X strokeWidth={1.5} className="w-5 h-5" />
+                </button>
               </div>
-
-              {/* INPUT AREA */}
-              <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0 z-10 w-full">
-                {/* --- LIVE FULL DUPLEX AUDIO PANEL --- */}
-                {isVoiceMode && (
-                  <div className="mb-4 bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in relative z-20">
-                    <div className="flex items-center justify-between mb-4 border-b border-[#E8E6DF] pb-4">
-                      <div className="flex items-center gap-3">
-                        <CustomSpeechBubbleIcon
-                          className={`w-5 h-5 ${voiceStatus === "speaking" ? "text-blue-500 animate-pulse" : "text-[#7A756D]"}`}
-                        />
-                        <span className="text-sm font-medium text-[#4A4A4A]">
-                          {voiceStatus === "thinking"
-                            ? "Thinking..."
-                            : voiceStatus === "speaking"
-                              ? "Len is speaking... (Speak to interrupt)"
-                              : "Listening... (Auto-sends when you pause)"}
-                        </span>
+              <div className="flex-1 p-6 flex flex-col bg-white overflow-y-auto">
+                {videoLoading ? (
+                  <div className="w-full aspect-video bg-[#F3F1EC] rounded-2xl animate-pulse flex flex-col items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-[#A8A39D] animate-spin mb-2" />
+                    <span className="text-sm text-[#7A756D]">
+                      Finding best masterclass...
+                    </span>
+                  </div>
+                ) : activeVideoId ? (
+                  <div className="w-full flex flex-col gap-6 h-full">
+                    <div>
+                      <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[#E8E6DF] shadow-sm bg-black mb-4">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
                       </div>
+                      <p className="text-sm text-[#7A756D] leading-relaxed px-1 mb-8">
+                        This masterclass has been dynamically sourced for your
+                        curriculum requirement:{" "}
+                        <strong>{activeVideoQuery}</strong>.
+                      </p>
+                    </div>
+
+                    <div className="mt-auto pt-6 border-t border-[#E8E6DF]">
                       <button
-                        onClick={toggleVoiceMode}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F0FE] text-[#1A73E8] rounded-full text-sm font-medium hover:bg-[#D2E3FC] transition-colors"
+                        onClick={handleMarkCompleteAndNext}
+                        className="w-full flex items-center justify-center gap-2 py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors"
                       >
-                        <span className="flex gap-0.5">
-                          <span
-                            className="w-1 h-1 bg-[#1A73E8] rounded-full animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          ></span>
-                          <span
-                            className="w-1 h-1 bg-[#1A73E8] rounded-full animate-bounce"
-                            style={{ animationDelay: "150ms" }}
-                          ></span>
-                          <span
-                            className="w-1 h-1 bg-[#1A73E8] rounded-full animate-bounce"
-                            style={{ animationDelay: "300ms" }}
-                          ></span>
-                        </span>
-                        Cancel
+                        <CheckCircle
+                          strokeWidth={2}
+                          className="w-5 h-5 text-green-400"
+                        />
+                        Mark as Complete & Next
                       </button>
                     </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
 
-                    <div className="relative">
+          {activeTab === "chat" ? (
+            <div className="flex-1 flex flex-col mx-auto w-full relative h-full">
+              {messages.length === 0 ? (
+                // ==========================================
+                // CLAUDE-STYLE EMPTY STATE VIEW
+                // ==========================================
+                <div className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-4 animate-fade-in -mt-16">
+                  {/* Claude-like Minimalist Star Logo */}
+                  <div className="mb-6 text-[#D97D54]">
+                    <ClaudeLogo className="w-10 h-10" />
+                  </div>
+
+                  {/* Elegant Greeting */}
+                  <h1 className="font-serif text-3xl md:text-[40px] text-[#2D2D2D] mb-10 tracking-tight text-center font-medium">
+                    {getGreeting()},{" "}
+                    {user?.displayName
+                      ? user.displayName.split(" ")[0]
+                      : "Atharva"}
+                  </h1>
+
+                  {/* Centered Input Box Wrapper */}
+                  <div className="w-full relative z-20">
+                    {isVoiceMode && (
+                      <div className="absolute bottom-full left-0 w-full mb-4 bg-white p-4 rounded-2xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <CustomSpeechBubbleIcon
+                              className={`w-4 h-4 ${voiceStatus === "speaking" ? "text-blue-500 animate-pulse" : "text-[#7A756D]"}`}
+                            />
+                            <span className="text-xs font-medium text-[#4A4A4A]">
+                              {voiceStatus === "thinking"
+                                ? "Thinking..."
+                                : voiceStatus === "speaking"
+                                  ? "Len is speaking... (Speak to interrupt)"
+                                  : "Listening... (Auto-sends when you pause)"}
+                            </span>
+                          </div>
+                          <button
+                            onClick={toggleVoiceMode}
+                            className="text-xs text-red-500 hover:text-red-700 font-medium transition"
+                          >
+                            Cancel Session
+                          </button>
+                        </div>
+                        <textarea
+                          value={transcriptResult}
+                          readOnly
+                          placeholder="Live transcript..."
+                          className="w-full h-16 text-xs text-[#4A4A4A] p-2 bg-[#F3F1EC]/50 rounded-lg border border-transparent resize-none outline-none"
+                        />
+                      </div>
+                    )}
+
+                    <div className="w-full rounded-2xl bg-white border border-[#E8E6DF] focus-within:border-[#D1CEC7] focus-within:shadow-[0_4px_20px_rgb(0,0,0,0.04)] shadow-[0_2px_15px_rgb(0,0,0,0.02)] transition-all flex flex-col p-4">
                       <textarea
-                        value={transcriptResult}
-                        readOnly
-                        placeholder="Live transcript will appear here..."
-                        className="w-full h-24 text-sm text-[#4A4A4A] leading-relaxed p-4 bg-[#F3F1EC]/50 rounded-xl border border-[#E8E6DF] resize-none outline-none focus:border-[#D1CEC7]"
+                        className="w-full bg-transparent border-none text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
+                        placeholder="How can Len help you today?"
+                        rows={1}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            sendChat();
+                          }
+                        }}
+                        disabled={chatLoading}
+                        style={{ minHeight: "60px", maxHeight: "200px" }}
                       />
+
+                      <div className="flex justify-between items-center pt-2">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={toggleDictation}
+                            disabled={chatLoading || isVoiceMode}
+                            title="Simple Voice Typing"
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              isDictating
+                                ? "text-blue-500 bg-blue-50"
+                                : "text-[#7A756D] hover:bg-[#F3F1EC]"
+                            }`}
+                          >
+                            {isDictating ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Mic strokeWidth={1.5} className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={toggleVoiceMode}
+                            disabled={chatLoading || isDictating}
+                            title="Live Audio Session"
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              isVoiceMode
+                                ? "text-red-500 bg-red-50"
+                                : "text-[#7A756D] hover:bg-[#F3F1EC]"
+                            }`}
+                          >
+                            <Headphones strokeWidth={1.5} className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => sendChat()}
+                          disabled={!input.trim()}
+                          className="px-3 py-1.5 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition-colors disabled:opacity-40 disabled:bg-[#D1CEC7] disabled:text-white flex items-center justify-center shadow-sm"
+                        >
+                          <ArrowRight strokeWidth={2} className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {/* --- CHAT INPUT BOX --- */}
-                <div className="relative rounded-3xl bg-[#F3F1EC] border border-[#E8E6DF] focus-within:border-[#D1CEC7] transition-all flex items-center gap-1.5 pl-2">
-                  {/* MODEL 1: DICTATION (Microphone) */}
-                  <button
-                    onClick={toggleDictation}
-                    disabled={chatLoading || isVoiceMode}
-                    title="Simple Voice Typing"
-                    className={`p-2 rounded-full flex items-center justify-center transition-colors ${
-                      isDictating
-                        ? "text-blue-500 bg-blue-50"
-                        : "text-[#7A756D] hover:bg-[#E8E6DF]"
-                    }`}
-                  >
-                    {isDictating ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Mic strokeWidth={1.5} className="w-5 h-5" />
+                  {/* Suggestion Chips */}
+                  <div className="flex flex-wrap gap-2.5 justify-center mt-8 w-full">
+                    {SUGGESTIONS.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => sendChat(s.prompt)}
+                        className="px-4 py-2 rounded-xl border border-[#E8E6DF] bg-white text-[13px] text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] hover:border-[#D1CEC7] transition-all shadow-sm flex items-center gap-2"
+                      >
+                        <Sparkles
+                          strokeWidth={1.5}
+                          className="w-3.5 h-3.5 text-[#D97D54]/70"
+                        />
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                // ==========================================
+                // ACTIVE CHAT VIEW (WITH BOTTOM INPUT)
+                // ==========================================
+                <>
+                  <div className="flex-1 overflow-y-auto no-scrollbar py-12 px-2 md:px-8 max-w-4xl mx-auto w-full">
+                    <div className="space-y-10 pb-10">
+                      {messages.map((m) => (
+                        <div
+                          key={m.id}
+                          className={`flex gap-4 animate-fade-in w-full ${m.sender === "user" ? "justify-end" : "justify-start"}`}
+                        >
+                          {m.sender !== "user" && (
+                            <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
+                              <ClaudeLogo className="w-5 h-5 text-[#D97D54]" />
+                            </div>
+                          )}
+                          <div
+                            className={`flex flex-col ${m.sender === "user" ? "items-end max-w-[85%]" : "flex-1"}`}
+                          >
+                            <div
+                              className={`text-[15.5px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#000000] font-[500] tracking-tight whitespace-pre-wrap"}`}
+                            >
+                              {m.text}
+                            </div>
+
+                            {/* Action Tools specifically styled for Claude-like feel */}
+                            {m.sender !== "user" && (
+                              <div className="flex items-center gap-1 mt-3 text-[#7A756D]">
+                                <button
+                                  onClick={() =>
+                                    navigator.clipboard.writeText(m.text)
+                                  }
+                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
+                                  title="Copy"
+                                >
+                                  <Copy strokeWidth={1.5} className="w-4 h-4" />
+                                </button>
+                                <button
+                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
+                                  title="Good response"
+                                >
+                                  <ThumbsUp
+                                    strokeWidth={1.5}
+                                    className="w-4 h-4"
+                                  />
+                                </button>
+                                <button
+                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
+                                  title="Bad response"
+                                >
+                                  <ThumbsDown
+                                    strokeWidth={1.5}
+                                    className="w-4 h-4"
+                                  />
+                                </button>
+                                <button
+                                  onClick={handleRetry}
+                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
+                                  title="Retry"
+                                >
+                                  <RotateCcw
+                                    strokeWidth={1.5}
+                                    className="w-4 h-4"
+                                  />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {chatLoading && (
+                        <div className="flex gap-4 justify-start animate-fade-in">
+                          <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
+                            <ClaudeLogo className="w-5 h-5 text-[#D97D54] opacity-50" />
+                          </div>
+                          <div className="text-sm text-[#000000] font-[500] flex items-center gap-1 mt-1.5">
+                            Thinking<span className="animate-pulse">...</span>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={chatEndRef}></div>
+                    </div>
+                  </div>
+
+                  {/* BOTTOM STICKY INPUT AREA */}
+                  <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0 z-10 w-full max-w-4xl mx-auto px-4">
+                    {/* --- LIVE FULL DUPLEX AUDIO PANEL --- */}
+                    {isVoiceMode && (
+                      <div className="mb-4 bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in relative z-20">
+                        <div className="flex items-center justify-between mb-4 border-b border-[#E8E6DF] pb-4">
+                          <div className="flex items-center gap-3">
+                            <CustomSpeechBubbleIcon
+                              className={`w-5 h-5 ${voiceStatus === "speaking" ? "text-blue-500 animate-pulse" : "text-[#7A756D]"}`}
+                            />
+                            <span className="text-sm font-medium text-[#4A4A4A]">
+                              {voiceStatus === "thinking"
+                                ? "Thinking..."
+                                : voiceStatus === "speaking"
+                                  ? "Len is speaking... (Speak to interrupt)"
+                                  : "Listening... (Auto-sends when you pause)"}
+                            </span>
+                          </div>
+                          <button
+                            onClick={toggleVoiceMode}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F0FE] text-[#1A73E8] rounded-full text-sm font-medium hover:bg-[#D2E3FC] transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <textarea
+                            value={transcriptResult}
+                            readOnly
+                            placeholder="Live transcript will appear here..."
+                            className="w-full h-24 text-sm text-[#4A4A4A] leading-relaxed p-4 bg-[#F3F1EC]/50 rounded-xl border border-[#E8E6DF] resize-none outline-none focus:border-[#D1CEC7]"
+                          />
+                        </div>
+                      </div>
                     )}
-                  </button>
 
-                  {/* MODEL 2: INTERACTIVE AUDIO (Headphones) */}
-                  <button
-                    onClick={toggleVoiceMode}
-                    disabled={chatLoading || isDictating}
-                    title="Live Audio Session"
-                    className={`p-2 rounded-full flex items-center justify-center transition-colors ${
-                      isVoiceMode
-                        ? "text-red-500 bg-red-50"
-                        : "text-[#7A756D] hover:bg-[#E8E6DF]"
-                    }`}
-                  >
-                    <Headphones strokeWidth={1.5} className="w-5 h-5" />
-                  </button>
+                    {/* --- BOTTOM CHAT INPUT BOX --- */}
+                    <div className="relative rounded-3xl bg-white border border-[#E8E6DF] shadow-sm focus-within:border-[#D1CEC7] transition-all flex items-center gap-1.5 pl-2">
+                      <button
+                        onClick={toggleDictation}
+                        disabled={chatLoading || isVoiceMode}
+                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${
+                          isDictating
+                            ? "text-blue-500 bg-blue-50"
+                            : "text-[#7A756D] hover:bg-[#F3F1EC]"
+                        }`}
+                      >
+                        {isDictating ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Mic strokeWidth={1.5} className="w-5 h-5" />
+                        )}
+                      </button>
+                      <button
+                        onClick={toggleVoiceMode}
+                        disabled={chatLoading || isDictating}
+                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${
+                          isVoiceMode
+                            ? "text-red-500 bg-red-50"
+                            : "text-[#7A756D] hover:bg-[#F3F1EC]"
+                        }`}
+                      >
+                        <Headphones strokeWidth={1.5} className="w-5 h-5" />
+                      </button>
 
-                  <textarea
-                    className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
-                    placeholder="Ask anything about your career..."
-                    rows={1}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        sendChat();
-                      }
-                    }}
-                    disabled={chatLoading}
-                    style={{ minHeight: "60px", maxHeight: "200px" }}
-                  />
-                  <button
-                    onClick={() => sendChat()}
-                    disabled={!input.trim()}
-                    className="absolute right-3 bottom-3 p-2 bg-[#2D2D2D] text-[#FAF9F6] rounded-full hover:bg-[#1A1A1A] transition disabled:opacity-30 disabled:bg-[#D1CEC7] disabled:text-white"
-                  >
-                    <ArrowRight strokeWidth={2} className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="text-center mt-3 text-[10px] text-[#A8A39D]">
-                  LenAi can make mistakes. Consider verifying important
-                  information.
-                </div>
-              </div>
+                      <textarea
+                        className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
+                        placeholder="Message Len..."
+                        rows={1}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            sendChat();
+                          }
+                        }}
+                        disabled={chatLoading}
+                        style={{ minHeight: "60px", maxHeight: "200px" }}
+                      />
+                      <button
+                        onClick={() => sendChat()}
+                        disabled={!input.trim()}
+                        className="absolute right-3 bottom-3 p-2 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition disabled:opacity-40 disabled:bg-[#D1CEC7] flex items-center justify-center shadow-sm"
+                      >
+                        <ArrowRight strokeWidth={2} className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="text-center mt-3 text-[10px] text-[#A8A39D]">
+                      Len can make mistakes. Consider verifying important
+                      information.
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           ) : activeTab === "billing" ? (
             <BillingDashboard currentPlan={userPlan} user={user} />
@@ -2141,10 +2551,35 @@ export const LenAi = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="max-w-3xl mx-auto animate-fade-in">
-                    <h1 className="font-serif text-4xl text-[#2D2D2D] mb-12 capitalize">
-                      {activeRoadmap.role} Curriculum
-                    </h1>
+                  <div className="max-w-3xl mx-auto animate-fade-in pb-16">
+                    <div className="mb-12">
+                      <h1 className="font-serif text-4xl text-[#2D2D2D] mb-6 capitalize">
+                        {activeRoadmap.role} Curriculum
+                      </h1>
+
+                      {/* --- PROGRESS BAR UI --- */}
+                      <div className="bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] mb-8">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-sm font-medium text-[#7A756D]">
+                            Your Progress
+                          </span>
+                          <span className="text-lg font-serif text-[#2D2D2D]">
+                            {progressPercent}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-[#F3F1EC] rounded-full h-2.5 overflow-hidden border border-[#E8E6DF]">
+                          <div
+                            className="bg-[#D97D54] h-2.5 rounded-full transition-all duration-700 ease-out"
+                            style={{ width: `${progressPercent}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-[#A8A39D] mt-3">
+                          Completed {completedCount} out of{" "}
+                          {totalResourcesCount} masterclasses.
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-[#E8E6DF]">
                       {activeRoadmap.steps.map((s, i) => (
                         <div key={i} className="relative pl-10">
@@ -2164,18 +2599,36 @@ export const LenAi = () => {
                               {s.description}
                             </p>
                             <div className="flex gap-2 flex-wrap">
-                              {s.resources.map((r, idx) => (
-                                <a
-                                  key={idx}
-                                  href={`https://www.youtube.com/results?search_query=${r}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-xs font-medium border border-[#E8E6DF] px-3 py-1.5 rounded-lg text-[#7A756D] hover:bg-[#F3F1EC] transition flex items-center gap-1.5"
-                                >
-                                  <Play strokeWidth={1.5} className="w-3 h-3" />{" "}
-                                  {r}
-                                </a>
-                              ))}
+                              {/* --- UPDATED BUTTON FOR YOUTUBE EMBED WITH PROGRESS STYLING --- */}
+                              {s.resources.map((r, idx) => {
+                                const isCompleted =
+                                  activeRoadmap.completedResources?.includes(r);
+
+                                return (
+                                  <button
+                                    key={idx}
+                                    onClick={() => handleOpenVideo(r)}
+                                    className={`text-xs font-medium border px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer text-left ${
+                                      isCompleted
+                                        ? "border-green-200 bg-green-50/50 text-green-700 hover:bg-green-100"
+                                        : "border-[#E8E6DF] text-[#7A756D] hover:bg-[#F3F1EC]"
+                                    }`}
+                                  >
+                                    {isCompleted ? (
+                                      <Check
+                                        strokeWidth={2}
+                                        className="w-3 h-3 text-green-600"
+                                      />
+                                    ) : (
+                                      <Play
+                                        strokeWidth={1.5}
+                                        className="w-3 h-3 text-[#D97D54]"
+                                      />
+                                    )}
+                                    {r}
+                                  </button>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
@@ -2356,6 +2809,10 @@ export const LenAi = () => {
                         </label>
                         <input
                           type="password"
+                          value={apiKeys.gemini}
+                          onChange={(e) =>
+                            setApiKeys({ ...apiKeys, gemini: e.target.value })
+                          }
                           placeholder="AIzaSy..."
                           className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                         />
@@ -2366,14 +2823,26 @@ export const LenAi = () => {
                         </label>
                         <input
                           type="password"
+                          value={apiKeys.rapid}
+                          onChange={(e) =>
+                            setApiKeys({ ...apiKeys, rapid: e.target.value })
+                          }
                           placeholder="Enter your key..."
                           className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                         />
                       </div>
-                      <div className="pt-4">
-                        <button className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors">
+                      <div className="pt-4 flex items-center gap-4">
+                        <button
+                          onClick={handleSaveApiKeys}
+                          className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors"
+                        >
                           Save API Keys
                         </button>
+                        {apiSaveStatus && (
+                          <span className="text-sm text-green-600 font-medium">
+                            {apiSaveStatus}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
