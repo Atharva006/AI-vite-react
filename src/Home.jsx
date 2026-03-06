@@ -69,7 +69,7 @@ const Home = () => {
               L
             </div>
             <span className="font-display text-2xl tracking-tight mt-1">
-              PathifyAI
+              Vitra
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -145,7 +145,7 @@ const Home = () => {
                 </div>
                 <div className="mx-auto bg-white border border-gray-200 rounded-md px-32 py-1 flex items-center gap-2 shadow-sm">
                   <span className="text-xs font-medium text-slate-400">
-                    pathify.ai/console
+                    Vitra.ai/console
                   </span>
                 </div>
               </div>
@@ -486,7 +486,7 @@ const Home = () => {
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-600 font-medium">
-                  I use <span className="font-bold text-black">PathifyAI</span>{" "}
+                  I use <span className="font-bold text-black">Vitra</span>{" "}
                   and it's been doing wonders. The Roadmap generator completely
                   structured my transition into Next.js. I used the Resume
                   Architect right before applying to roles and it caught three
@@ -517,7 +517,7 @@ const Home = () => {
                   L
                 </div>
                 <span className="font-display text-xl font-bold tracking-tight text-slate-900">
-                  PathifyAI
+                  Vitra
                 </span>
               </div>
               <div className="flex gap-6 text-xs text-slate-400 font-bold tracking-wider">

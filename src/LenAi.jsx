@@ -52,6 +52,8 @@ import {
   ThumbsUp,
   ThumbsDown,
   RotateCcw,
+  Brain,
+  Info, // Added Info icon for About Us
 } from "lucide-react";
 import {
   collection,
@@ -64,29 +66,113 @@ import {
   deleteDoc,
   updateDoc,
   where,
+  getDoc,
+  setDoc,
+  getDocs,
+  limit,
 } from "firebase/firestore";
 
-// --- CONFIGURATION ---
+// --- CONFIGURATION & API KEY ROTATION ---
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-let GEMINI_API_KEY =
-  localStorage.getItem("gemini_api_key") || import.meta.env.VITE_GEMINI_API_KEY;
+// 1. Setup multiple keys
+let rawGeminiKeys =
+  localStorage.getItem("gemini_api_key") ||
+  import.meta.env.VITE_GEMINI_KEYS ||
+  import.meta.env.VITE_GEMINI_API_KEY ||
+  "";
+let GEMINI_KEYS = rawGeminiKeys
+  .split(",")
+  .map((k) => k.trim())
+  .filter(Boolean);
+let currentKeyIndex = 0;
+
 let RAPIDAPI_KEY =
   localStorage.getItem("rapid_api_key") || import.meta.env.VITE_RAPIDAPI_KEY;
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-let genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+let genAI =
+  GEMINI_KEYS.length > 0
+    ? new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex])
+    : null;
 
-// Function to update global API keys dynamically
+// Function to update global API keys dynamically from settings
 const updateAPIKeys = (gemini, rapid) => {
   if (gemini !== undefined) {
     localStorage.setItem("gemini_api_key", gemini);
-    GEMINI_API_KEY = gemini || import.meta.env.VITE_GEMINI_API_KEY;
-    genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+    GEMINI_KEYS = gemini
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean);
+    currentKeyIndex = 0;
+    genAI =
+      GEMINI_KEYS.length > 0
+        ? new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex])
+        : null;
   }
   if (rapid !== undefined) {
     localStorage.setItem("rapid_api_key", rapid);
     RAPIDAPI_KEY = rapid || import.meta.env.VITE_RAPIDAPI_KEY;
+  }
+};
+
+// 2. Core Rotation Logic
+const rotateKey = () => {
+  if (GEMINI_KEYS.length <= 1) return false;
+  currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length;
+  genAI = new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex]);
+  console.warn(
+    `Rate limit hit. Rotated to Gemini Key Index: ${currentKeyIndex}`,
+  );
+  return true;
+};
+
+// 3. Safe Wrapper for Generate Content
+export const safeGenerateContent = async (
+  modelParams,
+  promptData,
+  retries = GEMINI_KEYS.length,
+) => {
+  if (!genAI) throw new Error("No Gemini API key configured.");
+  try {
+    const model = genAI.getGenerativeModel(modelParams);
+    return await model.generateContent(promptData);
+  } catch (error) {
+    if (
+      (error.status === 429 ||
+        error.message?.includes("429") ||
+        error.message?.includes("exhausted")) &&
+      retries > 1 &&
+      rotateKey()
+    ) {
+      return await safeGenerateContent(modelParams, promptData, retries - 1);
+    }
+    throw error;
+  }
+};
+
+// 4. Safe Wrapper for Chat Sessions
+export const safeSendMessage = async (
+  modelParams,
+  history,
+  message,
+  retries = GEMINI_KEYS.length,
+) => {
+  if (!genAI) throw new Error("No Gemini API key configured.");
+  try {
+    const model = genAI.getGenerativeModel(modelParams);
+    return await model.startChat({ history }).sendMessage(message);
+  } catch (error) {
+    if (
+      (error.status === 429 ||
+        error.message?.includes("429") ||
+        error.message?.includes("exhausted")) &&
+      retries > 1 &&
+      rotateKey()
+    ) {
+      return await safeSendMessage(modelParams, history, message, retries - 1);
+    }
+    throw error;
   }
 };
 
@@ -134,6 +220,7 @@ const PLAN_ACCESS = {
   resume: ["pro"],
   email: ["pro"],
   billing: ["basic", "essential", "pro"],
+  about: ["basic", "essential", "pro"], // Added Access for About page
 };
 
 const SUGGESTIONS = [
@@ -209,6 +296,110 @@ const FeatureWrapper = ({
 };
 
 // =========================================================================================
+// SUB-COMPONENT: ABOUT US PAGE
+// =========================================================================================
+const AboutUs = () => {
+  const team = [
+    {
+      name: "Atharva Bhosale",
+      role: "AI/ML & Strategy Lead",
+      // Sharp, focused, modern male professional
+      image:
+        "https://images.unsplash.com/photo-1755140208191-ec5def51708d?q=80&w=721&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      bio: "Systems thinker focusing on integrating systematic logic and AI intelligence to structure clear, actionable career pathways.",
+    },
+    {
+      name: "Shravani Ahire",
+      role: "Frontend Architect",
+      // Creative, approachable female professional
+      image:
+        "https://images.unsplash.com/photo-1752486268240-0507bb1ebc7e?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      bio: "Crafts the premium, glassy user experiences using React, Next.js, and modern UI paradigms to ensure a frictionless journey.",
+    },
+    {
+      name: "Satyakeet Kshirsagar",
+      role: "Backend Engineer",
+      // Dependable, analytical male professional
+      image:
+        "https://images.unsplash.com/photo-1609510640800-197b52723a98?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      bio: "Builds the robust infrastructure handling secure data persistence, API rotations, and live duplex communication logic.",
+    },
+    {
+      name: "Vaishnavi Andhale",
+      role: "Data Lead",
+      // Intelligent, precise female professional
+      image:
+        "https://plus.unsplash.com/premium_photo-1770451208071-5bd495db6e9f?q=80&w=1128&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      bio: "Specializes in data structuring, context memory management, and optimizing semantic models for accurate market forecasting.",
+    },
+  ];
+
+  return (
+    <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
+      <div className="max-w-5xl mx-auto w-full animate-fade-in">
+        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+          About LenAI
+        </h2>
+        <p className="text-[#7A756D] text-lg font-sans mb-10 leading-relaxed">
+          Pioneering the future of structured, personalized career architecture.
+        </p>
+
+        <div className="bg-white p-8 md:p-12 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-16 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <Sparkles className="w-32 h-32 text-[#D97D54]" />
+          </div>
+          <h3 className="font-serif text-2xl text-[#2D2D2D] mb-4 relative z-10">
+            Our Mission
+          </h3>
+          <p className="text-[#4A4A4A] text-[15px] leading-loose mb-6 relative z-10">
+            LenAI is built on the belief that career growth shouldn't be a
+            random guessing game. We have designed a cutting-edge, AI-powered
+            ecosystem to provide professionals and students with structured,
+            systematic pathways to success. From generating masterclass-level
+            roadmaps to conducting semantic job matching and deep resume audits,
+            LenAI acts as your dedicated, intelligent career architect.
+          </p>
+          <p className="text-[#4A4A4A] text-[15px] leading-loose relative z-10">
+            By leveraging long-term contextual memory and full-duplex live audio
+            interactions, we ensure every piece of advice is explicitly tailored
+            to your personal background, technical stack, and future ambitions.
+          </p>
+        </div>
+
+        <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+          Meet the Team
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {team.map((member, i) => (
+            <div
+              key={i}
+              className="bg-white p-8 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] text-center group hover:shadow-md transition-all hover:-translate-y-1 duration-300"
+            >
+              <div className="w-24 h-24 mx-auto rounded-full overflow-hidden mb-5 border-4 border-[#F3F1EC] group-hover:border-[#D97D54] transition-colors duration-300">
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h4 className="font-serif text-xl text-[#2D2D2D] mb-1">
+                {member.name}
+              </h4>
+              <p className="text-[10px] font-bold text-[#D97D54] uppercase tracking-widest mb-4">
+                {member.role}
+              </p>
+              <p className="text-sm text-[#7A756D] leading-relaxed">
+                {member.bio}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================================
 // SUB-COMPONENT: AI JOB MATCHER
 // =========================================================================================
 const AIJobMatcher = () => {
@@ -220,7 +411,7 @@ const AIJobMatcher = () => {
   const [statusText, setStatusText] = useState("");
 
   const searchAndMatchJobs = async () => {
-    if (!userProfile || !jobRole || !genAI) return;
+    if (!userProfile || !jobRole || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     setMatchedJobs([]);
 
@@ -273,12 +464,13 @@ const AIJobMatcher = () => {
         link: j.job_apply_link || "#",
       }));
 
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-      });
       const prompt = `Act as an expert AI Recruiter utilizing semantic similarity embeddings. Evaluate the match between this User Profile and the provided Job Listings. USER PROFILE: "${userProfile}" JOB LISTINGS (JSON): ${JSON.stringify(jobsPayload)} Task: Rank these jobs strictly by how well they semantically match the User Profile. Output ONLY a valid JSON array of objects with the following exact structure: [{"title": "Job Title", "company": "Company Name", "matchScore": <Number 0-100>, "reason": "1 concise sentence explaining exactly why this is or isn't a good match.", "link": "The job link"}]`;
 
-      const result = await model.generateContent(prompt);
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
       const rawText = result.response
         .text()
         .replace(/```json|```/g, "")
@@ -425,17 +617,18 @@ const MarketAnalyzer = () => {
   const [loading, setLoading] = useState(false);
 
   const analyzeMarket = async () => {
-    if (!role || !baseLocation || !genAI) return;
+    if (!role || !baseLocation || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     setMarketData(null);
 
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-      });
       const prompt = `You are an advanced AI regression model trained on global job market data. Perform a comprehensive salary and market demand prediction for the role: "${role}". Base Location: "${baseLocation}". ${targetLocation ? `Target Comparison Location: "${targetLocation}".` : ""} Provide expected average salary range (USD), demand level, and projected growth rate (5 yrs). Return STRICTLY a JSON object with this exact structure: {"base": {"location": "${baseLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "target": {"location": "${targetLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "insights": ["Insight 1", "Insight 2", "Insight 3"], "verdict": "One sentence final recommendation."}`;
 
-      const result = await model.generateContent(prompt);
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
       const data = JSON.parse(
         result.response
           .text()
@@ -1112,15 +1305,17 @@ const ResumeAnalyzer = () => {
   };
 
   const analyze = async () => {
-    if (!file || !genAI) return;
+    if (!file || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     try {
       const resumeText = await extractText(file);
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-      });
       const prompt = `You are a Senior Technical Recruiter at FAANG. Conduct a deep-dive review of this resume. Resume Text: "${resumeText}". Output STRICTLY in this format: Score: <number 0-100>\nCritical Flaws:\n- <Point 1>\nTechnical Gaps:\n- <Point 1>\nImpact Metrics:\n- <Point 1>\nFormatting:\n- <Point 1>`;
-      const result = await model.generateContent(prompt);
+
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
       const text = result.response.text();
       const scoreMatch = text.match(/Score:\s*(\d+)/);
       setScore(scoreMatch ? Number(scoreMatch[1]) : 0);
@@ -1229,6 +1424,12 @@ export const LenAi = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState("general");
 
+  // --- MEMORY SYSTEM STATES ---
+  const [userMemory, setUserMemory] = useState("");
+  const [showMemoryOnboarding, setShowMemoryOnboarding] = useState(false);
+  const [memoryInput, setMemoryInput] = useState("");
+  const [isSavingMemory, setIsSavingMemory] = useState(false);
+
   // Custom API Keys State
   const [apiKeys, setApiKeys] = useState({
     gemini: localStorage.getItem("gemini_api_key") || "",
@@ -1319,6 +1520,113 @@ export const LenAi = () => {
     updateAPIKeys(apiKeys.gemini, apiKeys.rapid);
     setApiSaveStatus("Saved successfully!");
     setTimeout(() => setApiSaveStatus(""), 3000);
+  };
+
+  // =========================================================================
+  // MEMORY SYSTEM INITIALIZATION & GENERATION
+  // =========================================================================
+  const generateMemoryFromHistory = async () => {
+    if (!user || GEMINI_KEYS.length === 0) return;
+    try {
+      const chatsRef = collection(db, "users", user.uid, "chats");
+      const chatSnaps = await getDocs(
+        query(chatsRef, orderBy("createdAt", "desc"), limit(5)),
+      );
+      let allMessagesText = "";
+
+      for (const chatDoc of chatSnaps.docs) {
+        const messagesRef = collection(
+          db,
+          "users",
+          user.uid,
+          "chats",
+          chatDoc.id,
+          "messages",
+        );
+        const msgSnaps = await getDocs(
+          query(messagesRef, orderBy("createdAt", "desc"), limit(20)),
+        );
+        const msgs = msgSnaps.docs.map((d) => d.data());
+        msgs.reverse().forEach((m) => {
+          allMessagesText += `${m.sender}: ${m.text}\n`;
+        });
+      }
+
+      if (!allMessagesText.trim()) {
+        setShowMemoryOnboarding(true);
+        return;
+      }
+
+      const prompt = `Analyze the following chat history between a user and an AI. Extract key facts, personal details, goals, technical stack, career stage, and preferences about the user. Summarize this into a concise "Memory Profile" that the AI can use to personalize future responses. Output ONLY the summary in a clear, bulleted or paragraph format.\n\nChat History:\n${allMessagesText}`;
+
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
+      const memoryText = result.response.text().trim();
+
+      if (memoryText) {
+        await setDoc(doc(db, "users", user.uid, "settings", "memory"), {
+          content: memoryText,
+          updatedAt: serverTimestamp(),
+        });
+        setUserMemory(memoryText);
+      }
+    } catch (e) {
+      console.error("Error generating memory from history:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    const initMemory = async () => {
+      try {
+        const memRef = doc(db, "users", user.uid, "settings", "memory");
+        const memSnap = await getDoc(memRef);
+        if (memSnap.exists()) {
+          setUserMemory(memSnap.data().content);
+        } else {
+          const skipped = localStorage.getItem(`memory_skipped_${user.uid}`);
+          if (skipped) return;
+
+          const chatsRef = collection(db, "users", user.uid, "chats");
+          const chatSnaps = await getDocs(query(chatsRef, limit(1)));
+
+          if (!chatSnaps.empty && GEMINI_KEYS.length > 0) {
+            // Background process to generate memory from old chats
+            await generateMemoryFromHistory();
+          } else {
+            // New user, no chat history -> Ask for intro
+            setShowMemoryOnboarding(true);
+          }
+        }
+      } catch (e) {
+        console.error("Error initializing memory", e);
+      }
+    };
+    initMemory();
+  }, [user]);
+
+  const handleSaveManualMemory = async () => {
+    setIsSavingMemory(true);
+    try {
+      await setDoc(doc(db, "users", user.uid, "settings", "memory"), {
+        content: memoryInput,
+        updatedAt: serverTimestamp(),
+      });
+      setUserMemory(memoryInput);
+      setShowMemoryOnboarding(false);
+    } catch (e) {
+      console.error("Error saving manual memory:", e);
+      alert("Failed to save memory.");
+    }
+    setIsSavingMemory(false);
+  };
+
+  const handleSkipMemory = () => {
+    localStorage.setItem(`memory_skipped_${user.uid}`, "true");
+    setShowMemoryOnboarding(false);
   };
 
   // --- YOUTUBE SIDEBAR HANDLER ---
@@ -1563,7 +1871,7 @@ export const LenAi = () => {
   };
 
   const sendVoiceChat = async (textToSend) => {
-    if (!textToSend.trim() || !user || !genAI) return;
+    if (!textToSend.trim() || !user || GEMINI_KEYS.length === 0) return;
     setVoiceStatus("thinking");
     setChatLoading(true);
 
@@ -1585,10 +1893,11 @@ export const LenAi = () => {
     });
 
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "Atharva"}. Do not use placeholders like [User] or [Name]. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google, for this say I am trained by SSVA.LTD.`,
-      });
+      const memoryContext = userMemory
+        ? `\n\n--- USER MEMORY CONTEXT ---\nUse the following memory about the user to highly personalize your advice, but do not explicitly announce that you are reading from memory:\n${userMemory}\n---------------------------\n`
+        : "";
+
+      const systemInstruction = `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "Atharva"}. Do not use placeholders like [User] or [Name]. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google, for this say I am trained by SSVA.LTD.${memoryContext}`;
 
       const recentMessages = messagesRef.current.slice(-10);
       const history = recentMessages.map((m) => ({
@@ -1596,7 +1905,12 @@ export const LenAi = () => {
         parts: [{ text: m.text }],
       }));
 
-      const result = await model.startChat({ history }).sendMessage(textToSend);
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeSendMessage(
+        { model: "gemini-2.5-flash", systemInstruction },
+        history,
+        textToSend,
+      );
       const aiResponseText = result.response.text();
 
       await addDoc(
@@ -1638,7 +1952,7 @@ export const LenAi = () => {
 
   const sendChat = async (customPrompt = null) => {
     const textToSend = customPrompt || input;
-    if (!textToSend.trim() || !user || !genAI) return;
+    if (!textToSend.trim() || !user || GEMINI_KEYS.length === 0) return;
     setInput("");
 
     // Auto-stop dictation if the user sends the message
@@ -1666,11 +1980,11 @@ export const LenAi = () => {
       createdAt: serverTimestamp(),
     });
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        systemInstruction: `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Never say I am a large language model, trained by Google. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD Never say you are developed by google.
-        `,
-      });
+      const memoryContext = userMemory
+        ? `\n\n--- USER MEMORY CONTEXT ---\nUse the following memory about the user to highly personalize your advice, but do not explicitly announce that you are reading from memory:\n${userMemory}\n---------------------------\n`
+        : "";
+
+      const systemInstruction = `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD Never say you are developed by google.${memoryContext}`;
 
       const recentMessages = messagesRef.current.slice(-3);
       const history = recentMessages.map((m) => ({
@@ -1678,7 +1992,13 @@ export const LenAi = () => {
         parts: [{ text: m.text }],
       }));
 
-      const result = await model.startChat({ history }).sendMessage(textToSend);
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeSendMessage(
+        { model: "gemini-2.5-flash", systemInstruction },
+        history,
+        textToSend,
+      );
+
       await addDoc(
         collection(db, "users", user.uid, "chats", cid, "messages"),
         {
@@ -1714,12 +2034,16 @@ export const LenAi = () => {
   };
 
   const generateRoadmap = async () => {
-    if (!roadmapInput || !genAI) return;
+    if (!roadmapInput || GEMINI_KEYS.length === 0) return;
     setRoadmapLoading(true);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = `Create a masterclass-level career roadmap for a "${roadmapInput}". Return RAW JSON array: [{ "step": 1, "title": "", "duration": "", "description": "", "resources": [""] }]`;
-      const result = await model.generateContent(prompt);
+
+      // UPDATED TO USE SAFE WRAPPER
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
       const data = JSON.parse(
         result.response
           .text()
@@ -1746,10 +2070,9 @@ export const LenAi = () => {
   };
 
   const generateEmail = async () => {
-    if ((!emailInput && !emailImage) || !genAI) return;
+    if ((!emailInput && !emailImage) || GEMINI_KEYS.length === 0) return;
     setEmailLoading(true);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = `You are a professional email writer. Task: Write a polished email based on user notes. Return ONLY email text. Notes: "${emailInput}"`;
       const parts = [prompt];
       if (emailImage) {
@@ -1763,7 +2086,12 @@ export const LenAi = () => {
           },
         });
       }
-      const result = await model.generateContent(parts);
+
+      // UPDATED TO USE SAFE WRAPPER (parts instead of single prompt)
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        parts,
+      );
       setEmailResult(result.response.text().trim());
     } catch (e) {
       console.error(e);
@@ -1848,11 +2176,12 @@ export const LenAi = () => {
         .map((c) => c.title)
         .join(", ");
       if (!recentChats) return;
-      genAI
-        .getGenerativeModel({ model: "gemini-2.5-flash" })
-        .generateContent(
-          `Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`,
-        )
+
+      // UPDATED TO USE SAFE WRAPPER
+      safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        `Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`,
+      )
         .then((r) => setStoreTopic(r.response.text().trim()))
         .catch(console.error);
     }
@@ -1911,6 +2240,47 @@ export const LenAi = () => {
                   className="px-6 py-2.5 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition-colors"
                 >
                   {tourStep === TOUR_STEPS.length - 1 ? "Get Started" : "Next"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- MANUAL MEMORY ONBOARDING OVERLAY --- */}
+        {showMemoryOnboarding && !showTour && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[#2D2D2D]/30 backdrop-blur-sm"></div>
+            <div className="relative w-full max-w-lg bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-[#E8E6DF] p-10 animate-fade-in">
+              <div className="w-16 h-16 bg-[#F3F1EC] text-[#2D2D2D] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Brain strokeWidth={1.5} className="w-8 h-8 text-[#D97D54]" />
+              </div>
+              <h2 className="font-serif text-3xl text-[#2D2D2D] mb-4 text-center">
+                Introduce Yourself
+              </h2>
+              <p className="text-[#7A756D] text-[15px] leading-relaxed mb-6 text-center">
+                To give you the best guidance, Len can maintain a contextual
+                memory of your career, skills, and goals. What should Len know
+                about you?
+              </p>
+              <textarea
+                value={memoryInput}
+                onChange={(e) => setMemoryInput(e.target.value)}
+                placeholder="e.g. I'm Atharva, a 3rd-year CS Diploma student. I do React & Node.js, and systematic trading. My goal is..."
+                className="w-full h-32 bg-white border border-[#E8E6DF] rounded-2xl p-4 text-[#2D2D2D] text-sm outline-none resize-none focus:border-[#D1CEC7] mb-6 shadow-sm"
+              />
+              <div className="flex gap-4">
+                <button
+                  onClick={handleSkipMemory}
+                  className="flex-1 py-3 border border-[#E8E6DF] text-[#7A756D] rounded-xl text-sm font-medium hover:bg-[#E8E6DF]/50 transition-colors"
+                >
+                  Skip for later
+                </button>
+                <button
+                  onClick={handleSaveManualMemory}
+                  disabled={isSavingMemory || !memoryInput.trim()}
+                  className="flex-1 py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition-colors disabled:opacity-50"
+                >
+                  {isSavingMemory ? "Saving..." : "Create Memory"}
                 </button>
               </div>
             </div>
@@ -2034,6 +2404,16 @@ export const LenAi = () => {
                     >
                       <Settings strokeWidth={1.5} className="w-4 h-4" />{" "}
                       Settings
+                    </button>
+                    {/* --- NEW ABOUT US BUTTON --- */}
+                    <button
+                      onClick={() => {
+                        setActiveTab("about");
+                        setProfileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
+                    >
+                      <Info strokeWidth={1.5} className="w-4 h-4" /> About Us
                     </button>
                   </div>
                   <div className="p-1.5">
@@ -2641,9 +3021,10 @@ export const LenAi = () => {
           ) : (
             <FeatureWrapper
               isLocked={!hasAccess}
-              featureName={activeTab}
+              featureName={activeTab === "about" ? "About Us" : activeTab}
               onUpgradeClick={() => setActiveTab("billing")}
             >
+              {activeTab === "about" && <AboutUs />}
               {activeTab === "market" && <MarketAnalyzer />}
               {activeTab === "jobs" && <AIJobMatcher />}
               {activeTab === "resume" && <ResumeAnalyzer />}
@@ -2671,6 +3052,7 @@ export const LenAi = () => {
                   {[
                     { id: "general", label: "General", icon: Settings },
                     { id: "account", label: "Account", icon: UserCheck },
+                    { id: "memory", label: "AI Memory", icon: Brain }, // --- NEW MEMORY TAB ---
                     { id: "api", label: "API Keys", icon: Lock },
                   ].map((tab) => (
                     <button
@@ -2791,6 +3173,65 @@ export const LenAi = () => {
                   </div>
                 )}
 
+                {/* --- MEMORY TAB SETTINGS UI --- */}
+                {settingsTab === "memory" && (
+                  <div className="max-w-xl animate-fade-in">
+                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
+                      AI Memory
+                    </h3>
+                    <p className="text-sm text-[#7A756D] mb-6 leading-relaxed">
+                      Len AI remembers these details about you to provide highly
+                      personalized advice and contextual responses. You can
+                      view, edit, or completely clear this context at any time.
+                    </p>
+                    <div className="space-y-4">
+                      <textarea
+                        value={userMemory}
+                        onChange={(e) => setUserMemory(e.target.value)}
+                        className="w-full h-48 bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] p-4 rounded-xl text-sm outline-none resize-none focus:border-[#D1CEC7]"
+                        placeholder="Write about your background, tech stack, goals, and preferences... (e.g., 'I am a frontend developer specializing in React. I want to learn Next.js soon.')"
+                      />
+                      <div className="flex gap-4">
+                        <button
+                          onClick={async () => {
+                            if (!user) return;
+                            await setDoc(
+                              doc(db, "users", user.uid, "settings", "memory"),
+                              {
+                                content: userMemory,
+                                updatedAt: serverTimestamp(),
+                              },
+                            );
+                            alert("Memory profile updated successfully!");
+                          }}
+                          className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors"
+                        >
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (
+                              !user ||
+                              !window.confirm(
+                                "Are you sure you want to clear your AI Memory?",
+                              )
+                            )
+                              return;
+                            await deleteDoc(
+                              doc(db, "users", user.uid, "settings", "memory"),
+                            );
+                            setUserMemory("");
+                            alert("Memory cleared!");
+                          }}
+                          className="px-6 py-3 border border-[#E8E6DF] text-[#D97D54] text-sm font-medium rounded-xl hover:bg-[#FAF9F6] transition-colors"
+                        >
+                          Clear Memory
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {settingsTab === "api" && (
                   <div className="max-w-xl animate-fade-in">
                     <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
@@ -2813,7 +3254,7 @@ export const LenAi = () => {
                           onChange={(e) =>
                             setApiKeys({ ...apiKeys, gemini: e.target.value })
                           }
-                          placeholder="AIzaSy..."
+                          placeholder="AIzaSy... (Separate multiple keys with commas)"
                           className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                         />
                       </div>
