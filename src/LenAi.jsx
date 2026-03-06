@@ -321,7 +321,7 @@ const AboutUs = () => {
       role: "Backend Engineer",
       // Dependable, analytical male professional
       image:
-        "https://images.unsplash.com/photo-1609510640800-197b52723a98?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       bio: "Builds the robust infrastructure handling secure data persistence, API rotations, and live duplex communication logic.",
     },
     {
