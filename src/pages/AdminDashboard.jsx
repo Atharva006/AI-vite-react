@@ -34,6 +34,10 @@ import {
   ShieldCheck,
   Zap,
   PieChart,
+  Briefcase,
+  FileText,
+  Mail,
+  MapPin,
 } from "lucide-react";
 
 // --- ROBUST DATE HELPERS ---
@@ -133,6 +137,11 @@ const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userChats, setUserChats] = useState([]);
   const [userRoadmaps, setUserRoadmaps] = useState([]);
+  const [userMarket, setUserMarket] = useState([]);
+  const [userJobs, setUserJobs] = useState([]);
+  const [userResume, setUserResume] = useState([]);
+  const [userEmail, setUserEmail] = useState([]);
+
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [adminMessage, setAdminMessage] = useState("");
@@ -190,7 +199,17 @@ const AdminDashboard = () => {
     setSelectedChat(null);
     setChatMessages([]);
     setActiveUserTab("overview");
+
+    // Clear previous user's data while loading
+    setUserChats([]);
+    setUserRoadmaps([]);
+    setUserMarket([]);
+    setUserJobs([]);
+    setUserResume([]);
+    setUserEmail([]);
+
     try {
+      // Fetch Chats
       const chatsSnap = await getDocs(
         query(
           collection(db, "users", u.id, "chats"),
@@ -199,6 +218,7 @@ const AdminDashboard = () => {
       );
       setUserChats(chatsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
 
+      // Fetch Roadmaps
       const roadmapsSnap = await getDocs(
         query(
           collection(db, "users", u.id, "roadmaps"),
@@ -208,6 +228,42 @@ const AdminDashboard = () => {
       setUserRoadmaps(
         roadmapsSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
       );
+
+      // Fetch Market Forecasts
+      const marketSnap = await getDocs(
+        query(
+          collection(db, "users", u.id, "market_forecasts"),
+          orderBy("createdAt", "desc"),
+        ),
+      );
+      setUserMarket(marketSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+      // Fetch Job Matches
+      const jobsSnap = await getDocs(
+        query(
+          collection(db, "users", u.id, "job_matches"),
+          orderBy("createdAt", "desc"),
+        ),
+      );
+      setUserJobs(jobsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+      // Fetch Resume Audits
+      const resumeSnap = await getDocs(
+        query(
+          collection(db, "users", u.id, "resume_audits"),
+          orderBy("createdAt", "desc"),
+        ),
+      );
+      setUserResume(resumeSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+      // Fetch Email Drafts
+      const emailSnap = await getDocs(
+        query(
+          collection(db, "users", u.id, "email_drafts"),
+          orderBy("createdAt", "desc"),
+        ),
+      );
+      setUserEmail(emailSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (e) {
       console.error("Error fetching user data:", e);
     }
@@ -242,6 +298,13 @@ const AdminDashboard = () => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handlePlanChangeRequest = (newPlan) => {
+    if (!selectedUser) return;
+    setPendingPlan(newPlan);
+    setMasterPasswordInput("");
+    setShowPasswordModal(true);
   };
 
   const handleApproveTransaction = async (tx) => {
@@ -420,11 +483,20 @@ const AdminDashboard = () => {
   const calculateUserMetrics = () => {
     if (!selectedUser) return null;
 
-    // Estimate Time on Platform based on chats
     let firstActivity = new Date();
     let lastActivity = new Date(0);
 
-    [...userChats, ...userRoadmaps].forEach((item) => {
+    // Evaluate all histories to get true active duration
+    const allActivities = [
+      ...userChats,
+      ...userRoadmaps,
+      ...userMarket,
+      ...userJobs,
+      ...userResume,
+      ...userEmail,
+    ];
+
+    allActivities.forEach((item) => {
       const d = item.createdAt?.toDate ? item.createdAt.toDate() : new Date();
       if (d < firstActivity) firstActivity = d;
       if (d > lastActivity) lastActivity = d;
@@ -434,7 +506,7 @@ const AdminDashboard = () => {
       1,
       Math.ceil((lastActivity - firstActivity) / (1000 * 60 * 60 * 24)),
     );
-    const totalInteractions = userChats.length + userRoadmaps.length;
+    const totalInteractions = allActivities.length;
     const engagementVelocity = (totalInteractions / daysActive).toFixed(1);
 
     return { daysActive, engagementVelocity, totalInteractions };
@@ -442,7 +514,15 @@ const AdminDashboard = () => {
 
   const userMetrics = useMemo(
     () => calculateUserMetrics(),
-    [userChats, userRoadmaps, selectedUser],
+    [
+      userChats,
+      userRoadmaps,
+      userMarket,
+      userJobs,
+      userResume,
+      userEmail,
+      selectedUser,
+    ],
   );
 
   return (
@@ -453,6 +533,9 @@ const AdminDashboard = () => {
         .font-sans { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #E8E6DF; border-radius: 10px; }
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
@@ -660,7 +743,6 @@ const AdminDashboard = () => {
                       Analysis of user chat queries to determine the depth of
                       research and interaction quality across the platform.
                     </p>
-
                     <div className="space-y-6">
                       <div>
                         <div className="flex justify-between text-sm mb-2">
@@ -679,7 +761,6 @@ const AdminDashboard = () => {
                           ></div>
                         </div>
                       </div>
-
                       <div>
                         <div className="flex justify-between text-sm mb-2">
                           <span className="font-medium text-[#4A4A4A] flex items-center gap-2">
@@ -697,7 +778,6 @@ const AdminDashboard = () => {
                           ></div>
                         </div>
                       </div>
-
                       <div>
                         <div className="flex justify-between text-sm mb-2">
                           <span className="font-medium text-[#7A756D] flex items-center gap-2">
@@ -858,17 +938,24 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Deep Dive Tabs */}
-                    <div className="flex border-b border-[#E8E6DF] bg-white px-8 pt-4 gap-6 shrink-0">
+                    <div className="flex border-b border-[#E8E6DF] bg-white px-8 pt-4 gap-6 shrink-0 overflow-x-auto whitespace-nowrap custom-scroll">
                       {[
-                        { id: "overview", label: "User Analytics" },
+                        { id: "overview", label: "Overview" },
+                        { id: "chats", label: `Chats (${userChats.length})` },
                         {
                           id: "roadmaps",
                           label: `Roadmaps (${userRoadmaps.length})`,
                         },
                         {
-                          id: "chats",
-                          label: `Chat History (${userChats.length})`,
+                          id: "market",
+                          label: `Market (${userMarket.length})`,
                         },
+                        { id: "jobs", label: `Jobs (${userJobs.length})` },
+                        {
+                          id: "resume",
+                          label: `Resumes (${userResume.length})`,
+                        },
+                        { id: "email", label: `Emails (${userEmail.length})` },
                       ].map((tab) => (
                         <button
                           key={tab.id}
@@ -881,7 +968,7 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Deep Dive Content */}
-                    <div className="flex-1 overflow-y-auto bg-white p-8">
+                    <div className="flex-1 overflow-y-auto bg-white p-8 custom-scroll">
                       {activeUserTab === "overview" && userMetrics && (
                         <div className="animate-fade-in space-y-6">
                           <div className="grid grid-cols-3 gap-4">
@@ -930,22 +1017,28 @@ const AdminDashboard = () => {
                             <h4 className="text-sm font-semibold text-[#2D2D2D] mb-6">
                               User Specific Activity Analysis
                             </h4>
-                            <p className="text-[#7A756D] text-sm leading-relaxed">
+                            <p className="text-[#7A756D] text-sm leading-relaxed mb-4">
                               Based on the aggregated metrics, this user
                               averages{" "}
                               <strong>{userMetrics.engagementVelocity}</strong>{" "}
                               interactions per active day. They have generated{" "}
                               <strong>{userRoadmaps.length}</strong> masterclass
-                              architectures and initiated{" "}
+                              architectures, initiated{" "}
                               <strong>{userChats.length}</strong> AI chat
-                              sessions since their first recorded activity.
-                              Review specific interactions in the Chat and
-                              Roadmap tabs to audit query quality.
+                              sessions, and used advanced tools{" "}
+                              <strong>
+                                {userMarket.length +
+                                  userJobs.length +
+                                  userResume.length +
+                                  userEmail.length}
+                              </strong>{" "}
+                              times since their first recorded activity.
                             </p>
                           </div>
                         </div>
                       )}
 
+                      {/* --- TABS: ROADMAPS --- */}
                       {activeUserTab === "roadmaps" && (
                         <div className="space-y-4 animate-fade-in">
                           {userRoadmaps.length === 0 ? (
@@ -983,6 +1076,154 @@ const AdminDashboard = () => {
                         </div>
                       )}
 
+                      {/* --- TABS: MARKET FORECASTS --- */}
+                      {activeUserTab === "market" && (
+                        <div className="space-y-4 animate-fade-in">
+                          {userMarket.length === 0 ? (
+                            <div className="text-center text-[#A8A39D] py-10 text-sm">
+                              No market forecasts run by this user.
+                            </div>
+                          ) : (
+                            userMarket.map((m) => (
+                              <div
+                                key={m.id}
+                                className="bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl p-5 hover:border-[#D1CEC7] transition-colors"
+                              >
+                                <div className="flex justify-between items-start mb-3">
+                                  <h3 className="font-serif text-xl text-[#2D2D2D] capitalize">
+                                    {m.role}
+                                  </h3>
+                                  <span className="text-xs text-[#A8A39D]">
+                                    {safeDate(m.createdAt)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-4 text-xs text-[#7A756D]">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5" /> Base:{" "}
+                                    {m.baseLocation}
+                                  </span>
+                                  {m.targetLocation && (
+                                    <span className="flex items-center gap-1">
+                                      <TrendingUp className="w-3.5 h-3.5" />{" "}
+                                      Target: {m.targetLocation}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      {/* --- TABS: JOB MATCHES --- */}
+                      {activeUserTab === "jobs" && (
+                        <div className="space-y-4 animate-fade-in">
+                          {userJobs.length === 0 ? (
+                            <div className="text-center text-[#A8A39D] py-10 text-sm">
+                              No job matches run by this user.
+                            </div>
+                          ) : (
+                            userJobs.map((j) => (
+                              <div
+                                key={j.id}
+                                className="bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl p-5 hover:border-[#D1CEC7] transition-colors"
+                              >
+                                <div className="flex justify-between items-start mb-3">
+                                  <h3 className="font-serif text-xl text-[#2D2D2D] capitalize">
+                                    {j.jobRole}
+                                  </h3>
+                                  <span className="text-xs text-[#A8A39D]">
+                                    {safeDate(j.createdAt)}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-[#7A756D] flex flex-col gap-2">
+                                  <span className="flex items-center gap-1">
+                                    <Briefcase className="w-3.5 h-3.5" />{" "}
+                                    Location: {j.location || "Any"}
+                                  </span>
+                                  <p className="bg-white p-2 rounded-lg border border-[#E8E6DF] truncate">
+                                    Profile: {j.userProfile}
+                                  </p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      {/* --- TABS: RESUME AUDITS --- */}
+                      {activeUserTab === "resume" && (
+                        <div className="space-y-4 animate-fade-in">
+                          {userResume.length === 0 ? (
+                            <div className="text-center text-[#A8A39D] py-10 text-sm">
+                              No resume audits run by this user.
+                            </div>
+                          ) : (
+                            userResume.map((r) => (
+                              <div
+                                key={r.id}
+                                className="bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl p-5 hover:border-[#D1CEC7] transition-colors"
+                              >
+                                <div className="flex justify-between items-start mb-3">
+                                  <h3 className="font-serif text-xl text-[#2D2D2D] truncate">
+                                    {r.fileName || "Uploaded Document"}
+                                  </h3>
+                                  <span className="text-xs text-[#A8A39D]">
+                                    {safeDate(r.createdAt)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-4 text-xs font-medium text-[#7A756D]">
+                                  <span className="flex items-center gap-1">
+                                    <FileText className="w-3.5 h-3.5" /> AI
+                                    Score:{" "}
+                                    <span className="text-[#D97D54]">
+                                      {r.score}%
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      {/* --- TABS: EMAIL DRAFTS --- */}
+                      {activeUserTab === "email" && (
+                        <div className="space-y-4 animate-fade-in">
+                          {userEmail.length === 0 ? (
+                            <div className="text-center text-[#A8A39D] py-10 text-sm">
+                              No email drafts generated by this user.
+                            </div>
+                          ) : (
+                            userEmail.map((e) => (
+                              <div
+                                key={e.id}
+                                className="bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl p-5 hover:border-[#D1CEC7] transition-colors"
+                              >
+                                <div className="flex justify-between items-start mb-3">
+                                  <h3 className="font-serif text-xl text-[#2D2D2D] truncate">
+                                    {e.title}
+                                  </h3>
+                                  <span className="text-xs text-[#A8A39D]">
+                                    {safeDate(e.createdAt)}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-[#7A756D] flex flex-col gap-2">
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3.5 h-3.5" /> Generated
+                                    Output:
+                                  </span>
+                                  <p className="bg-white p-3 rounded-lg border border-[#E8E6DF] line-clamp-3">
+                                    {e.emailResult}
+                                  </p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      {/* --- TABS: CHAT SESSIONS --- */}
                       {activeUserTab === "chats" && (
                         <div className="flex h-full gap-6 animate-fade-in">
                           {/* Chat Session List */}

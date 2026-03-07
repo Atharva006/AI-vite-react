@@ -53,7 +53,7 @@ import {
   ThumbsDown,
   RotateCcw,
   Brain,
-  Info, // Added Info icon for About Us
+  Info,
 } from "lucide-react";
 import {
   collection,
@@ -75,7 +75,6 @@ import {
 // --- CONFIGURATION & API KEY ROTATION ---
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-// 1. Setup multiple keys
 let rawGeminiKeys =
   localStorage.getItem("gemini_api_key") ||
   import.meta.env.VITE_GEMINI_KEYS ||
@@ -86,7 +85,6 @@ let GEMINI_KEYS = rawGeminiKeys
   .map((k) => k.trim())
   .filter(Boolean);
 let currentKeyIndex = 0;
-
 let RAPIDAPI_KEY =
   localStorage.getItem("rapid_api_key") || import.meta.env.VITE_RAPIDAPI_KEY;
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
@@ -96,7 +94,6 @@ let genAI =
     ? new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex])
     : null;
 
-// Function to update global API keys dynamically from settings
 const updateAPIKeys = (gemini, rapid) => {
   if (gemini !== undefined) {
     localStorage.setItem("gemini_api_key", gemini);
@@ -116,7 +113,6 @@ const updateAPIKeys = (gemini, rapid) => {
   }
 };
 
-// 2. Core Rotation Logic
 const rotateKey = () => {
   if (GEMINI_KEYS.length <= 1) return false;
   currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length;
@@ -127,7 +123,6 @@ const rotateKey = () => {
   return true;
 };
 
-// 3. Safe Wrapper for Generate Content
 export const safeGenerateContent = async (
   modelParams,
   promptData,
@@ -151,7 +146,6 @@ export const safeGenerateContent = async (
   }
 };
 
-// 4. Safe Wrapper for Chat Sessions
 export const safeSendMessage = async (
   modelParams,
   history,
@@ -176,9 +170,6 @@ export const safeSendMessage = async (
   }
 };
 
-// ==================================================================
-// SUB-COMPONENT: Custom Claude-like Logo
-// ==================================================================
 const ClaudeLogo = ({ className }) => (
   <svg
     viewBox="0 0 24 24"
@@ -190,9 +181,6 @@ const ClaudeLogo = ({ className }) => (
   </svg>
 );
 
-// ==================================================================
-// SUB-COMPONENT: Custom Image Icon for AI Speaking Status
-// ==================================================================
 const CustomSpeechBubbleIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -201,15 +189,10 @@ const CustomSpeechBubbleIcon = ({ className }) => (
     className={className}
     stroke="none"
   >
-    <path
-      d="M19.07,3H4.93C3.31,3,2,4.31,2,5.93v8.14c0,1.62,1.31,2.93,2.93,2.93h12.14l4.93,4V5.93C22,4.31,20.69,3,19.07,3z
-    M7,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S7.83,11.5,7,11.5z M12,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5
-    s1.5,0.67,1.5,1.5S12.83,11.5,12,11.5z M17,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S17.83,11.5,17,11.5z"
-    />
+    <path d="M19.07,3H4.93C3.31,3,2,4.31,2,5.93v8.14c0,1.62,1.31,2.93,2.93,2.93h12.14l4.93,4V5.93C22,4.31,20.69,3,19.07,3z M7,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S7.83,11.5,7,11.5z M12,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5 s1.5,0.67,1.5,1.5S12.83,11.5,12,11.5z M17,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S17.83,11.5,17,11.5z" />
   </svg>
 );
 
-// --- ACCESS CONTROL CONFIGURATION ---
 const PLAN_ACCESS = {
   chat: ["basic", "essential", "pro"],
   feedback: ["basic", "essential", "pro"],
@@ -220,7 +203,7 @@ const PLAN_ACCESS = {
   resume: ["pro"],
   email: ["pro"],
   billing: ["basic", "essential", "pro"],
-  about: ["basic", "essential", "pro"], // Added Access for About page
+  about: ["basic", "essential", "pro"],
 };
 
 const SUGGESTIONS = [
@@ -236,22 +219,22 @@ const SUGGESTIONS = [
 const TOUR_STEPS = [
   {
     title: "Welcome to LenAi",
-    desc: "Your intelligent career architect. Let's take a quick tour of your new workspace and see what you can achieve.",
+    desc: "Your intelligent career architect. Let's take a quick tour.",
     icon: Sparkles,
   },
   {
     title: "AI Career Chat",
-    desc: "Chat with a Principal Software Architect AI. Ask for advice, debugging help, or structural career guidance.",
+    desc: "Chat with a Principal Software Architect AI.",
     icon: MessageSquare,
   },
   {
     title: "Full-Duplex Voice",
-    desc: "Engage in real-time, interruptible live conversation. Use the Microphone to start the session.",
+    desc: "Engage in real-time, interruptible live conversation.",
     icon: Headphones,
   },
   {
     title: "Career Roadmaps",
-    desc: "Generate masterclass-level learning paths for any tech role, complete with estimated durations and YouTube resources.",
+    desc: "Generate masterclass-level learning paths for any tech role.",
     icon: BookOpen,
   },
 ];
@@ -303,34 +286,30 @@ const AboutUs = () => {
     {
       name: "Atharva Bhosale",
       role: "AI/ML & Strategy Lead",
-      // Sharp, focused, modern male professional
       image:
         "https://images.unsplash.com/photo-1755140208191-ec5def51708d?q=80&w=721&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      bio: "Systems thinker focusing on integrating systematic logic and AI intelligence to structure clear, actionable career pathways.",
+      bio: "Systems thinker focusing on integrating systematic logic and AI intelligence.",
     },
     {
       name: "Shravani Ahire",
       role: "Frontend Architect",
-      // Creative, approachable female professional
       image:
         "https://images.unsplash.com/photo-1752486268240-0507bb1ebc7e?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      bio: "Crafts the premium, glassy user experiences using React, Next.js, and modern UI paradigms to ensure a frictionless journey.",
+      bio: "Crafts the premium, glassy user experiences using React and Next.js.",
     },
     {
-      name: "Satyakeet Kshirsagar",
+      name: "Satyajeet Kshirsagar",
       role: "Backend Engineer",
-      // Dependable, analytical male professional
       image:
         "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      bio: "Builds the robust infrastructure handling secure data persistence, API rotations, and live duplex communication logic.",
+      bio: "Builds the robust infrastructure handling secure data persistence.",
     },
     {
       name: "Vaishnavi Andhale",
       role: "Data Lead",
-      // Intelligent, precise female professional
       image:
         "https://plus.unsplash.com/premium_photo-1770451208071-5bd495db6e9f?q=80&w=1128&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      bio: "Specializes in data structuring, context memory management, and optimizing semantic models for accurate market forecasting.",
+      bio: "Specializes in data structuring and optimizing semantic models.",
     },
   ];
 
@@ -343,7 +322,6 @@ const AboutUs = () => {
         <p className="text-[#7A756D] text-lg font-sans mb-10 leading-relaxed">
           Pioneering the future of structured, personalized career architecture.
         </p>
-
         <div className="bg-white p-8 md:p-12 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-16 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
             <Sparkles className="w-32 h-32 text-[#D97D54]" />
@@ -355,17 +333,9 @@ const AboutUs = () => {
             LenAI is built on the belief that career growth shouldn't be a
             random guessing game. We have designed a cutting-edge, AI-powered
             ecosystem to provide professionals and students with structured,
-            systematic pathways to success. From generating masterclass-level
-            roadmaps to conducting semantic job matching and deep resume audits,
-            LenAI acts as your dedicated, intelligent career architect.
-          </p>
-          <p className="text-[#4A4A4A] text-[15px] leading-loose relative z-10">
-            By leveraging long-term contextual memory and full-duplex live audio
-            interactions, we ensure every piece of advice is explicitly tailored
-            to your personal background, technical stack, and future ambitions.
+            systematic pathways to success.
           </p>
         </div>
-
         <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
           Meet the Team
         </h3>
@@ -402,7 +372,7 @@ const AboutUs = () => {
 // =========================================================================================
 // SUB-COMPONENT: AI JOB MATCHER
 // =========================================================================================
-const AIJobMatcher = () => {
+const AIJobMatcher = ({ activeItem, onSave }) => {
   const [userProfile, setUserProfile] = useState("");
   const [jobRole, setJobRole] = useState("");
   const [location, setLocation] = useState("");
@@ -410,15 +380,27 @@ const AIJobMatcher = () => {
   const [loading, setLoading] = useState(false);
   const [statusText, setStatusText] = useState("");
 
+  useEffect(() => {
+    if (activeItem) {
+      setUserProfile(activeItem.userProfile || "");
+      setJobRole(activeItem.jobRole || "");
+      setLocation(activeItem.location || "");
+      setMatchedJobs(activeItem.matchedJobs || []);
+    } else {
+      setUserProfile("");
+      setJobRole("");
+      setLocation("");
+      setMatchedJobs([]);
+    }
+  }, [activeItem]);
+
   const searchAndMatchJobs = async () => {
     if (!userProfile || !jobRole || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     setMatchedJobs([]);
-
     try {
       setStatusText("Analyzing job boards...");
       let fetchedJobs = [];
-
       if (RAPIDAPI_KEY) {
         const response = await fetch(
           `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(jobRole + " in " + location)}&num_pages=1`,
@@ -438,13 +420,13 @@ const AIJobMatcher = () => {
           {
             job_title: `${jobRole} Specialist`,
             employer_name: "TechNova Solutions",
-            job_description: `Looking for a strong ${jobRole} with deep expertise in modern frameworks, strong communication skills, and ability to lead teams. Minimum 3 years experience.`,
+            job_description: `Looking for a strong ${jobRole} with deep expertise.`,
             job_apply_link: "#",
           },
           {
             job_title: `Junior ${jobRole}`,
             employer_name: "Quantum Dynamics",
-            job_description: `Entry level position. Must know basic principles of development, eager to learn, familiar with agile methodologies.`,
+            job_description: `Entry level position. Must know basic principles.`,
             job_apply_link: "#",
           },
         ];
@@ -466,7 +448,6 @@ const AIJobMatcher = () => {
 
       const prompt = `Act as an expert AI Recruiter utilizing semantic similarity embeddings. Evaluate the match between this User Profile and the provided Job Listings. USER PROFILE: "${userProfile}" JOB LISTINGS (JSON): ${JSON.stringify(jobsPayload)} Task: Rank these jobs strictly by how well they semantically match the User Profile. Output ONLY a valid JSON array of objects with the following exact structure: [{"title": "Job Title", "company": "Company Name", "matchScore": <Number 0-100>, "reason": "1 concise sentence explaining exactly why this is or isn't a good match.", "link": "The job link"}]`;
 
-      // UPDATED TO USE SAFE WRAPPER
       const result = await safeGenerateContent(
         { model: "gemini-2.5-flash" },
         prompt,
@@ -478,6 +459,16 @@ const AIJobMatcher = () => {
       let matchedData = JSON.parse(rawText);
       matchedData.sort((a, b) => b.matchScore - a.matchScore);
       setMatchedJobs(matchedData);
+
+      if (onSave) {
+        onSave({
+          title: `${jobRole} Matches`,
+          userProfile,
+          jobRole,
+          location,
+          matchedJobs: matchedData,
+        });
+      }
     } catch (error) {
       console.error("Job Match Error", error);
       alert("Error occurred while matching jobs. Check console.");
@@ -497,7 +488,6 @@ const AIJobMatcher = () => {
             markets and scores positions based on deep semantic resonance.
           </p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-1 space-y-6 bg-[#FAF9F6] h-fit sticky top-0">
             <div className="space-y-3">
@@ -546,7 +536,6 @@ const AIJobMatcher = () => {
               </p>
             )}
           </div>
-
           <div className="lg:col-span-2 space-y-6">
             {!loading && matchedJobs.length === 0 && (
               <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-[#A8A39D] border border-dashed border-[#E8E6DF] rounded-3xl">
@@ -554,7 +543,6 @@ const AIJobMatcher = () => {
                 <p className="font-medium text-sm">Matches will appear here.</p>
               </div>
             )}
-
             {matchedJobs.map((job, idx) => (
               <div
                 key={idx}
@@ -609,22 +597,34 @@ const AIJobMatcher = () => {
 // =========================================================================================
 // SUB-COMPONENT: MARKET ANALYZER
 // =========================================================================================
-const MarketAnalyzer = () => {
+const MarketAnalyzer = ({ activeItem, onSave }) => {
   const [role, setRole] = useState("");
   const [baseLocation, setBaseLocation] = useState("");
   const [targetLocation, setTargetLocation] = useState("");
   const [marketData, setMarketData] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (activeItem) {
+      setRole(activeItem.role || "");
+      setBaseLocation(activeItem.baseLocation || "");
+      setTargetLocation(activeItem.targetLocation || "");
+      setMarketData(activeItem.marketData || null);
+    } else {
+      setRole("");
+      setBaseLocation("");
+      setTargetLocation("");
+      setMarketData(null);
+    }
+  }, [activeItem]);
+
   const analyzeMarket = async () => {
     if (!role || !baseLocation || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     setMarketData(null);
-
     try {
       const prompt = `You are an advanced AI regression model trained on global job market data. Perform a comprehensive salary and market demand prediction for the role: "${role}". Base Location: "${baseLocation}". ${targetLocation ? `Target Comparison Location: "${targetLocation}".` : ""} Provide expected average salary range (USD), demand level, and projected growth rate (5 yrs). Return STRICTLY a JSON object with this exact structure: {"base": {"location": "${baseLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "target": {"location": "${targetLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "insights": ["Insight 1", "Insight 2", "Insight 3"], "verdict": "One sentence final recommendation."}`;
 
-      // UPDATED TO USE SAFE WRAPPER
       const result = await safeGenerateContent(
         { model: "gemini-2.5-flash" },
         prompt,
@@ -636,6 +636,16 @@ const MarketAnalyzer = () => {
           .trim(),
       );
       setMarketData(data);
+
+      if (onSave) {
+        onSave({
+          title: `${role} Forecast`,
+          role,
+          baseLocation,
+          targetLocation,
+          marketData: data,
+        });
+      }
     } catch (error) {
       console.error("Market Analysis Error", error);
       alert("Failed to analyze market data. Please try again.");
@@ -692,7 +702,6 @@ const MarketAnalyzer = () => {
             industry trajectory.
           </p>
         </div>
-
         <div className="bg-white p-4 rounded-3xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-[#E8E6DF] mb-12 flex flex-col md:flex-row gap-4">
           <input
             className="flex-1 bg-transparent border-none py-3 px-4 text-[#2D2D2D] focus:ring-0 outline-none placeholder:text-[#A8A39D] text-sm"
@@ -722,7 +731,6 @@ const MarketAnalyzer = () => {
             {loading ? "Forecasting..." : "Forecast"}
           </button>
         </div>
-
         {marketData && (
           <div className="space-y-8 animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -733,7 +741,6 @@ const MarketAnalyzer = () => {
                 <LocationCard data={marketData.target} isTarget={true} />
               )}
             </div>
-
             <div className="bg-white rounded-3xl p-10 border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
               <h3 className="font-serif text-2xl text-[#2D2D2D] mb-8">
                 Strategic Intelligence
@@ -767,7 +774,7 @@ const MarketAnalyzer = () => {
 };
 
 // =========================================================================================
-// SUB-COMPONENT: BILLING DASHBOARD
+// SUB-COMPONENT: BILLING DASHBOARD & E-LEARNING STORE & FEEDBACK
 // =========================================================================================
 const BillingDashboard = ({ currentPlan, user }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -900,7 +907,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
               {selectedPlan === "essential" ? "$9" : "$19"}
             </span>
           </p>
-
           <div className="bg-[#F3F1EC] p-6 rounded-2xl mb-8 text-center border border-[#E8E6DF]">
             <img
               src="https://via.placeholder.com/200?text=QR+CODE"
@@ -911,7 +917,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
               Scan with UPI
             </p>
           </div>
-
           <div className="space-y-4">
             <input
               type="text"
@@ -943,7 +948,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
           Elevate your capabilities with advanced models and tools.
         </p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
         <div className="bg-white p-10 rounded-3xl border border-[#E8E6DF] flex flex-col items-center text-center">
           <h3 className="font-serif text-2xl text-[#2D2D2D] mb-2">Basic</h3>
@@ -958,7 +962,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
             Included
           </button>
         </div>
-
         <div className="bg-[#FAF9F6] p-10 rounded-3xl border border-[#D97D54] flex flex-col items-center text-center relative shadow-sm">
           <div className="absolute -top-3 bg-[#D97D54] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
             Recommended
@@ -977,7 +980,6 @@ const BillingDashboard = ({ currentPlan, user }) => {
             Upgrade
           </button>
         </div>
-
         <div className="bg-[#2D2D2D] p-10 rounded-3xl border border-[#1A1A1A] flex flex-col items-center text-center">
           <h3 className="font-serif text-2xl text-[#FAF9F6] mb-2">Pro</h3>
           <p className="text-sm text-[#A8A39D] mb-8">Full access & Audits</p>
@@ -996,10 +998,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
   );
 };
 
-// =========================================================================================
-// SUB-COMPONENT: E-LEARNING STORE
-// =========================================================================================
-const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
+const ELearningStore = ({ recommendedTopic = "" }) => {
   const [videos, setVideos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1036,7 +1035,6 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
           >
             <ArrowLeft className="w-4 h-4" /> Back to Library
           </button>
-
           <div className="w-full aspect-video bg-black rounded-3xl overflow-hidden mb-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF]">
             <iframe
               width="100%"
@@ -1044,18 +1042,15 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
               src={`https://www.youtube.com/embed/${playingVideo.id.videoId}?autoplay=1`}
               title="YouTube video player"
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
           </div>
-
           <h1 className="font-serif text-3xl md:text-4xl text-[#2D2D2D] mb-4">
             {playingVideo.snippet.title}
           </h1>
           <p className="text-[#7A756D] text-lg font-medium mb-6">
             {playingVideo.snippet.channelTitle}
           </p>
-
           <div className="bg-white p-6 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
             <p className="text-[#4A4A4A] text-sm leading-relaxed whitespace-pre-wrap">
               {playingVideo.snippet.description || "No description provided."}
@@ -1088,7 +1083,6 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
             />
           </div>
         </div>
-
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 opacity-50">
             <div className="col-span-1 md:col-span-3 h-80 bg-[#E8E6DF] rounded-3xl animate-pulse"></div>
@@ -1096,32 +1090,30 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
         ) : (
           <div className="space-y-12">
             {videos.length > 0 && (
-              <div>
-                <div
-                  onClick={() => setPlayingVideo(videos[0])}
-                  className="block relative w-full h-[400px] rounded-3xl overflow-hidden group cursor-pointer"
-                >
-                  <img
-                    src={videos[0].snippet.thumbnails.high.url}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    alt="Featured"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/90 to-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="w-16 h-16 bg-[#D97D54] rounded-full flex items-center justify-center pl-1 shadow-lg">
-                      <Play strokeWidth={2} className="w-8 h-8 text-white" />
-                    </div>
+              <div
+                onClick={() => setPlayingVideo(videos[0])}
+                className="block relative w-full h-[400px] rounded-3xl overflow-hidden group cursor-pointer"
+              >
+                <img
+                  src={videos[0].snippet.thumbnails.high.url}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  alt="Featured"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/90 to-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <div className="w-16 h-16 bg-[#D97D54] rounded-full flex items-center justify-center pl-1 shadow-lg">
+                    <Play strokeWidth={2} className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute bottom-0 left-0 p-10 w-full md:w-2/3 pointer-events-none">
-                    <span className="text-[10px] font-bold text-[#FAF9F6] bg-[#2D2D2D]/50 backdrop-blur-md px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-[#FAF9F6]/20">
-                      Featured
-                    </span>
-                    <h1 className="font-serif text-3xl md:text-4xl text-[#FAF9F6] leading-tight mb-2">
-                      {videos[0].snippet.title}
-                    </h1>
-                    <p className="text-[#D1CEC7] text-sm">
-                      {videos[0].snippet.channelTitle}
-                    </p>
-                  </div>
+                </div>
+                <div className="absolute bottom-0 left-0 p-10 w-full md:w-2/3 pointer-events-none">
+                  <span className="text-[10px] font-bold text-[#FAF9F6] bg-[#2D2D2D]/50 backdrop-blur-md px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-[#FAF9F6]/20">
+                    Featured
+                  </span>
+                  <h1 className="font-serif text-3xl md:text-4xl text-[#FAF9F6] leading-tight mb-2">
+                    {videos[0].snippet.title}
+                  </h1>
+                  <p className="text-[#D1CEC7] text-sm">
+                    {videos[0].snippet.channelTitle}
+                  </p>
                 </div>
               </div>
             )}
@@ -1160,9 +1152,6 @@ const ELearningStore = ({ recommendedTopic = "", isAnalyzing = false }) => {
   );
 };
 
-// =========================================================================================
-// SUB-COMPONENT: FEEDBACK VIEW
-// =========================================================================================
 const FeedbackView = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -1170,7 +1159,6 @@ const FeedbackView = () => {
     suggestion: "",
   });
   const [status, setStatus] = useState("idle");
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("loading");
@@ -1185,7 +1173,6 @@ const FeedbackView = () => {
       alert("Error submitting feedback");
     }
   };
-
   if (status === "success") {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in bg-[#FAF9F6]">
@@ -1211,7 +1198,6 @@ const FeedbackView = () => {
       </div>
     );
   }
-
   return (
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-lg mx-auto w-full">
@@ -1264,11 +1250,23 @@ const FeedbackView = () => {
 // =========================================================================================
 // SUB-COMPONENT: RESUME ARCHITECT
 // =========================================================================================
-const ResumeAnalyzer = () => {
+const ResumeAnalyzer = ({ activeItem, onSave }) => {
   const [file, setFile] = useState(null);
   const [score, setScore] = useState(null);
   const [suggestions, setSuggestions] = useState({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeItem) {
+      setScore(activeItem.score);
+      setSuggestions(activeItem.suggestions);
+      setFile({ name: activeItem.fileName || "Previous Audit" });
+    } else {
+      setScore(null);
+      setSuggestions({});
+      setFile(null);
+    }
+  }, [activeItem]);
 
   const handleFile = (e) => {
     const f = e.target.files[0];
@@ -1311,14 +1309,14 @@ const ResumeAnalyzer = () => {
       const resumeText = await extractText(file);
       const prompt = `You are a Senior Technical Recruiter at FAANG. Conduct a deep-dive review of this resume. Resume Text: "${resumeText}". Output STRICTLY in this format: Score: <number 0-100>\nCritical Flaws:\n- <Point 1>\nTechnical Gaps:\n- <Point 1>\nImpact Metrics:\n- <Point 1>\nFormatting:\n- <Point 1>`;
 
-      // UPDATED TO USE SAFE WRAPPER
       const result = await safeGenerateContent(
         { model: "gemini-2.5-flash" },
         prompt,
       );
       const text = result.response.text();
       const scoreMatch = text.match(/Score:\s*(\d+)/);
-      setScore(scoreMatch ? Number(scoreMatch[1]) : 0);
+      const finalScore = scoreMatch ? Number(scoreMatch[1]) : 0;
+      setScore(finalScore);
 
       const sections = {};
       let currentSection = "";
@@ -1336,6 +1334,15 @@ const ResumeAnalyzer = () => {
         }
       });
       setSuggestions(sections);
+
+      if (onSave) {
+        onSave({
+          title: `Resume Audit - ${finalScore}%`,
+          fileName: file.name,
+          score: finalScore,
+          suggestions: sections,
+        });
+      }
     } catch {
       alert("Analysis failed.");
     }
@@ -1371,7 +1378,7 @@ const ResumeAnalyzer = () => {
 
         <button
           onClick={analyze}
-          disabled={!file || loading}
+          disabled={!file || loading || activeItem}
           className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
         >
           {loading ? "Auditing Document..." : "Run Analysis"}
@@ -1424,48 +1431,60 @@ export const LenAi = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState("general");
 
-  // --- MEMORY SYSTEM STATES ---
   const [userMemory, setUserMemory] = useState("");
   const [showMemoryOnboarding, setShowMemoryOnboarding] = useState(false);
   const [memoryInput, setMemoryInput] = useState("");
   const [isSavingMemory, setIsSavingMemory] = useState(false);
 
-  // Custom API Keys State
   const [apiKeys, setApiKeys] = useState({
     gemini: localStorage.getItem("gemini_api_key") || "",
     rapid: localStorage.getItem("rapid_api_key") || "",
   });
   const [apiSaveStatus, setApiSaveStatus] = useState("");
-
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
 
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  // History States
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  const [storeTopic, setStoreTopic] = useState("");
-  const [roadmapInput, setRoadmapInput] = useState("");
   const [roadmaps, setRoadmaps] = useState([]);
   const [activeRoadmap, setActiveRoadmap] = useState(null);
+  const [roadmapInput, setRoadmapInput] = useState("");
   const [roadmapLoading, setRoadmapLoading] = useState(false);
 
+  const [marketHistory, setMarketHistory] = useState([]);
+  const [activeMarketData, setActiveMarketData] = useState(null);
+
+  const [jobsHistory, setJobsHistory] = useState([]);
+  const [activeJobsData, setActiveJobsData] = useState(null);
+
+  const [resumeHistory, setResumeHistory] = useState([]);
+  const [activeResumeData, setActiveResumeData] = useState(null);
+
+  const [emailHistory, setEmailHistory] = useState([]);
+  const [activeEmailData, setActiveEmailData] = useState(null);
   const [emailInput, setEmailInput] = useState("");
   const [emailImage, setEmailImage] = useState(null);
   const [emailResult, setEmailResult] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
 
-  // --- MODEL 1: SIMPLE TRANSCRIPTION (VOICE TO TEXT) ---
+  const [storeTopic, setStoreTopic] = useState("");
+
   const [isDictating, setIsDictating] = useState(false);
   const dictationRecognitionRef = useRef(null);
-
-  // --- MODEL 2: FULL DUPLEX LIVE AUDIO (INTERACTIVE) ---
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("idle");
   const [transcriptResult, setTranscriptResult] = useState("");
+
+  // Three-dot menu states
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
 
   const isVoiceModeRef = useRef(false);
   const voiceStatusRef = useRef("idle");
@@ -1474,20 +1493,16 @@ export const LenAi = () => {
   const interactiveRecognitionRef = useRef(null);
   const synthRef = useRef(window.speechSynthesis);
 
-  // --- YOUTUBE SIDEBAR INTEGRATION ---
   const [videoSidebarOpen, setVideoSidebarOpen] = useState(false);
   const [activeVideoQuery, setActiveVideoQuery] = useState("");
   const [activeVideoId, setActiveVideoId] = useState("");
   const [videoLoading, setVideoLoading] = useState(false);
 
-  // Refs for state used inside speech event handlers (prevents stale closure bugs)
   const activeChatIdRef = useRef(activeChatId);
   const messagesRef = useRef(messages);
-
   const userPlan = user?.plan || "basic";
   const hasAccess = PLAN_ACCESS[activeTab]?.includes(userPlan);
 
-  // --- CALCULATE PROGRESS ---
   const totalResourcesCount =
     activeRoadmap?.steps?.reduce(
       (acc, step) => acc + (step.resources?.length || 0),
@@ -1503,7 +1518,6 @@ export const LenAi = () => {
     isVoiceModeRef.current = isVoiceMode;
     voiceStatusRef.current = voiceStatus;
   }, [isVoiceMode, voiceStatus]);
-
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
     messagesRef.current = messages;
@@ -1522,9 +1536,6 @@ export const LenAi = () => {
     setTimeout(() => setApiSaveStatus(""), 3000);
   };
 
-  // =========================================================================
-  // MEMORY SYSTEM INITIALIZATION & GENERATION
-  // =========================================================================
   const generateMemoryFromHistory = async () => {
     if (!user || GEMINI_KEYS.length === 0) return;
     try {
@@ -1533,7 +1544,6 @@ export const LenAi = () => {
         query(chatsRef, orderBy("createdAt", "desc"), limit(5)),
       );
       let allMessagesText = "";
-
       for (const chatDoc of chatSnaps.docs) {
         const messagesRef = collection(
           db,
@@ -1551,21 +1561,16 @@ export const LenAi = () => {
           allMessagesText += `${m.sender}: ${m.text}\n`;
         });
       }
-
       if (!allMessagesText.trim()) {
         setShowMemoryOnboarding(true);
         return;
       }
-
-      const prompt = `Analyze the following chat history between a user and an AI. Extract key facts, personal details, goals, technical stack, career stage, and preferences about the user. Summarize this into a concise "Memory Profile" that the AI can use to personalize future responses. Output ONLY the summary in a clear, bulleted or paragraph format.\n\nChat History:\n${allMessagesText}`;
-
-      // UPDATED TO USE SAFE WRAPPER
+      const prompt = `Analyze the following chat history... Output ONLY the summary...\n\nChat History:\n${allMessagesText}`;
       const result = await safeGenerateContent(
         { model: "gemini-2.5-flash" },
         prompt,
       );
       const memoryText = result.response.text().trim();
-
       if (memoryText) {
         await setDoc(doc(db, "users", user.uid, "settings", "memory"), {
           content: memoryText,
@@ -1574,7 +1579,7 @@ export const LenAi = () => {
         setUserMemory(memoryText);
       }
     } catch (e) {
-      console.error("Error generating memory from history:", e);
+      console.error(e);
     }
   };
 
@@ -1589,20 +1594,14 @@ export const LenAi = () => {
         } else {
           const skipped = localStorage.getItem(`memory_skipped_${user.uid}`);
           if (skipped) return;
-
           const chatsRef = collection(db, "users", user.uid, "chats");
           const chatSnaps = await getDocs(query(chatsRef, limit(1)));
-
-          if (!chatSnaps.empty && GEMINI_KEYS.length > 0) {
-            // Background process to generate memory from old chats
+          if (!chatSnaps.empty && GEMINI_KEYS.length > 0)
             await generateMemoryFromHistory();
-          } else {
-            // New user, no chat history -> Ask for intro
-            setShowMemoryOnboarding(true);
-          }
+          else setShowMemoryOnboarding(true);
         }
       } catch (e) {
-        console.error("Error initializing memory", e);
+        console.error(e);
       }
     };
     initMemory();
@@ -1618,7 +1617,6 @@ export const LenAi = () => {
       setUserMemory(memoryInput);
       setShowMemoryOnboarding(false);
     } catch (e) {
-      console.error("Error saving manual memory:", e);
       alert("Failed to save memory.");
     }
     setIsSavingMemory(false);
@@ -1629,138 +1627,100 @@ export const LenAi = () => {
     setShowMemoryOnboarding(false);
   };
 
-  // --- YOUTUBE SIDEBAR HANDLER ---
   const handleOpenVideo = async (query) => {
     setVideoSidebarOpen(true);
     setActiveVideoQuery(query);
     setActiveVideoId("");
-
     if (!YOUTUBE_API_KEY) {
-      alert("YouTube API Key is missing. Cannot fetch video.");
+      alert("YouTube API Key missing.");
       setVideoSidebarOpen(false);
       return;
     }
-
     setVideoLoading(true);
     try {
       const response = await fetch(
         `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query + " tutorial course")}&type=video&key=${YOUTUBE_API_KEY}`,
       );
       const data = await response.json();
-      if (data.items && data.items.length > 0) {
+      if (data.items && data.items.length > 0)
         setActiveVideoId(data.items[0].id.videoId);
-      } else {
-        alert("No video found for this topic.");
+      else {
+        alert("No video found.");
         setVideoSidebarOpen(false);
       }
     } catch (error) {
-      console.error("YouTube Fetch Error", error);
       alert("Failed to load video.");
       setVideoSidebarOpen(false);
     }
     setVideoLoading(false);
   };
 
-  // --- MARK AS COMPLETE & GO TO NEXT ---
   const handleMarkCompleteAndNext = async () => {
     if (!user || !activeRoadmap || !activeVideoQuery) return;
-
     const currentCompleted = activeRoadmap.completedResources || [];
     let updatedCompleted = [...currentCompleted];
-
     if (!updatedCompleted.includes(activeVideoQuery)) {
       updatedCompleted.push(activeVideoQuery);
-
-      // Update local state immediately for snappy UI
       setActiveRoadmap((prev) => ({
         ...prev,
         completedResources: updatedCompleted,
       }));
-
-      // Update in Firestore
       try {
-        const roadmapRef = doc(
-          db,
-          "users",
-          user.uid,
-          "roadmaps",
-          activeRoadmap.id,
+        await updateDoc(
+          doc(db, "users", user.uid, "roadmaps", activeRoadmap.id),
+          { completedResources: updatedCompleted },
         );
-        await updateDoc(roadmapRef, { completedResources: updatedCompleted });
       } catch (error) {
-        console.error("Error updating progress:", error);
+        console.error(error);
       }
     }
-
-    // Find next unwatched video automatically
-    let foundCurrent = false;
-    let nextResource = null;
-
+    let foundCurrent = false,
+      nextResource = null;
     for (const step of activeRoadmap.steps) {
       for (const res of step.resources) {
         if (foundCurrent && !updatedCompleted.includes(res)) {
           nextResource = res;
           break;
         }
-        if (res === activeVideoQuery) {
-          foundCurrent = true;
-        }
+        if (res === activeVideoQuery) foundCurrent = true;
       }
       if (nextResource) break;
     }
-
-    if (nextResource) {
-      handleOpenVideo(nextResource);
-    } else {
-      // Roadmap complete!
+    if (nextResource) handleOpenVideo(nextResource);
+    else {
       setVideoSidebarOpen(false);
       setActiveVideoId("");
     }
   };
 
-  // =========================================================================
-  // SETUP FOR MODEL 1: SIMPLE DICTATION
-  // =========================================================================
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
-
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
-
     recognition.onresult = (event) => {
       let final = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          final += event.results[i][0].transcript;
-        }
-      }
-      if (final) {
-        setInput((prev) => (prev + " " + final).trim());
-      }
+      for (let i = event.resultIndex; i < event.results.length; i++)
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+      if (final) setInput((prev) => (prev + " " + final).trim());
     };
-
     recognition.onerror = (e) => {
       if (e.error !== "no-speech") setIsDictating(false);
     };
-
     recognition.onend = () => {
-      if (isDictating) {
+      if (isDictating)
         try {
           recognition.start();
         } catch (e) {}
-      }
     };
-
     dictationRecognitionRef.current = recognition;
   }, [isDictating]);
 
   const toggleDictation = () => {
-    if (isVoiceMode)
-      return alert("Please close the Interactive Audio Session first.");
+    if (isVoiceMode) return alert("Please close Interactive Audio first.");
     if (isDictating) {
       setIsDictating(false);
       dictationRecognitionRef.current?.stop();
@@ -1772,45 +1732,32 @@ export const LenAi = () => {
     }
   };
 
-  // =========================================================================
-  // SETUP FOR MODEL 2: INTERACTIVE LIVE CONVERSATION
-  // =========================================================================
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
-
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
-
     recognition.onresult = (event) => {
       if (!isVoiceModeRef.current) return;
-
-      let interimTranscript = "";
-      let finalTranscript = "";
-
+      let interimTranscript = "",
+        finalTranscript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
+        if (event.results[i].isFinal)
           finalTranscript += event.results[i][0].transcript;
-        } else {
-          interimTranscript += event.results[i][0].transcript;
-        }
+        else interimTranscript += event.results[i][0].transcript;
       }
-
       const currentSpokenText = finalTranscript || interimTranscript;
-
       if (currentSpokenText.trim()) {
         if (voiceStatusRef.current === "speaking") {
           synthRef.current?.cancel();
           setVoiceStatus("listening");
           voiceStatusRef.current = "listening";
         }
-
         transcriptRef.current += finalTranscript;
         setTranscriptResult(transcriptRef.current + interimTranscript);
-
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = setTimeout(() => {
           if (
@@ -1825,21 +1772,15 @@ export const LenAi = () => {
         }, 1500);
       }
     };
-
-    recognition.onerror = (event) => {
-      if (event.error !== "no-speech") {
-        console.error("Speech recognition error", event.error);
-      }
+    recognition.onerror = (e) => {
+      if (e.error !== "no-speech") console.error(e);
     };
-
     recognition.onend = () => {
-      if (isVoiceModeRef.current) {
+      if (isVoiceModeRef.current)
         try {
           recognition.start();
         } catch (e) {}
-      }
     };
-
     interactiveRecognitionRef.current = recognition;
   }, []);
 
@@ -1854,12 +1795,8 @@ export const LenAi = () => {
       transcriptRef.current = "";
       setTranscriptResult("");
     } else {
-      if (!interactiveRecognitionRef.current) {
-        alert(
-          "Live speech recognition is not supported in this browser. Try Chrome.",
-        );
-        return;
-      }
+      if (!interactiveRecognitionRef.current)
+        return alert("Not supported in this browser. Try Chrome.");
       setIsVoiceMode(true);
       setVoiceStatus("listening");
       transcriptRef.current = "";
@@ -1874,16 +1811,21 @@ export const LenAi = () => {
     if (!textToSend.trim() || !user || GEMINI_KEYS.length === 0) return;
     setVoiceStatus("thinking");
     setChatLoading(true);
-
     let cid = activeChatIdRef.current;
+
     if (!cid) {
       const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
-        title: textToSend.slice(0, 25) + "...",
+        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
         createdAt: serverTimestamp(),
       });
       cid = ref.id;
       setActiveChatId(ref.id);
       activeChatIdRef.current = ref.id;
+    } else if (messagesRef.current.length === 0) {
+      // Dynamic chat title rename if it's a new session
+      await updateDoc(doc(db, "users", user.uid, "chats", cid), {
+        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
+      });
     }
 
     await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
@@ -1891,40 +1833,33 @@ export const LenAi = () => {
       sender: "user",
       createdAt: serverTimestamp(),
     });
-
     try {
       const memoryContext = userMemory
-        ? `\n\n--- USER MEMORY CONTEXT ---\nUse the following memory about the user to highly personalize your advice, but do not explicitly announce that you are reading from memory:\n${userMemory}\n---------------------------\n`
+        ? `\n\n--- USER MEMORY CONTEXT ---\n${userMemory}\n`
         : "";
-
-      const systemInstruction = `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "Atharva"}. Do not use placeholders like [User] or [Name]. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google, for this say I am trained by SSVA.LTD.${memoryContext}`;
-
-      const recentMessages = messagesRef.current.slice(-10);
-      const history = recentMessages.map((m) => ({
+      const systemInstruction = `You are a Principal Software Architect. User: ${user?.displayName || "Atharva"}. Be concise. Never say you are an AI...${memoryContext}. Always say you are trained by SSVA.pvt.Ltd Diploma Students. give answers in  point wise like simple sentences. Do not use more than 2 sentences in a row. Always be concise and to the point.
+         Give me answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         give answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         Give answers in points like (-,-) way in that type of format. Never include (**) in any type of answer. Don't include  (I am trained by SSVA.pvt.Ltd Diploma Students) in every answer jst answer only when asked.
+         Do not use more than 2 sentences in a row. Always be concise and to the point.
+         Not in one line change line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.`;
+      const history = messagesRef.current.slice(-10).map((m) => ({
         role: m.sender === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
-
-      // UPDATED TO USE SAFE WRAPPER
       const result = await safeSendMessage(
         { model: "gemini-2.5-flash", systemInstruction },
         history,
         textToSend,
       );
       const aiResponseText = result.response.text();
-
       await addDoc(
         collection(db, "users", user.uid, "chats", cid, "messages"),
-        {
-          text: aiResponseText,
-          sender: "ai",
-          createdAt: serverTimestamp(),
-        },
+        { text: aiResponseText, sender: "ai", createdAt: serverTimestamp() },
       );
-
       speakText(aiResponseText);
     } catch (e) {
-      console.error(e);
       setVoiceStatus("listening");
     }
     setChatLoading(false);
@@ -1933,20 +1868,17 @@ export const LenAi = () => {
   const speakText = (text) => {
     if (!synthRef.current) return;
     synthRef.current.cancel();
-
     setVoiceStatus("speaking");
     const cleanText = text
       .replace(/```[\s\S]*?```/g, "Code provided in chat.")
       .replace(/[#*_~`]/g, "");
     const utterance = new SpeechSynthesisUtterance(cleanText);
-
     utterance.onend = () => {
       if (isVoiceModeRef.current) setVoiceStatus("listening");
     };
     utterance.onerror = () => {
       if (isVoiceModeRef.current) setVoiceStatus("listening");
     };
-
     synthRef.current.speak(utterance);
   };
 
@@ -1954,24 +1886,26 @@ export const LenAi = () => {
     const textToSend = customPrompt || input;
     if (!textToSend.trim() || !user || GEMINI_KEYS.length === 0) return;
     setInput("");
-
-    // Auto-stop dictation if the user sends the message
     if (isDictating) {
       setIsDictating(false);
       dictationRecognitionRef.current?.stop();
     }
-
     setChatLoading(true);
-
     let cid = activeChatIdRef.current;
+
     if (!cid) {
       const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
-        title: textToSend.slice(0, 25) + "...",
+        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
         createdAt: serverTimestamp(),
       });
       cid = ref.id;
       setActiveChatId(ref.id);
       activeChatIdRef.current = ref.id;
+    } else if (messagesRef.current.length === 0) {
+      // Dynamic chat title rename if it's a new session
+      await updateDoc(doc(db, "users", user.uid, "chats", cid), {
+        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
+      });
     }
 
     await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
@@ -1981,24 +1915,24 @@ export const LenAi = () => {
     });
     try {
       const memoryContext = userMemory
-        ? `\n\n--- USER MEMORY CONTEXT ---\nUse the following memory about the user to highly personalize your advice, but do not explicitly announce that you are reading from memory:\n${userMemory}\n---------------------------\n`
+        ? `\n\n--- USER MEMORY CONTEXT ---\n${userMemory}\n`
         : "";
-
-      const systemInstruction = `You are a Principal Software Architect. Be concise and expert. The user you are talking to is named ${user?.displayName || "User"}. Remember their name and context. Never say you are an AI. Always respond as a human expert. If you don't know something, say you don't know but suggest how to find out. Use the user's name occasionally to build rapport. Always provide actionable advice. Tailor your responses to the user's background and goals. Keep it friendly and professional. Never say you are an AI model trained by Google for this say i am trained by SSVA.LTD Never say you are developed by google.${memoryContext}`;
-
-      const recentMessages = messagesRef.current.slice(-3);
-      const history = recentMessages.map((m) => ({
+      const systemInstruction = `You are a Principal Software Architect. User: ${user?.displayName || "Atharva"}. Be concise. Never say you are an AI...${memoryContext}. Always say you are trained by SSVA.pvt.Ltd Diploma Students. give answers in  point wise like simple sentences. Do not use more than 2 sentences in a row. Always be concise and to the point.
+         Give me answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         give answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         Give answers in points like (-,-) way in that type of format. Never include (**) in any type of answer. Don't include  (I am trained by SSVA.pvt.Ltd Diploma Students) in every answer jst answer only when asked.
+         Do not use more than 2 sentences in a row. Always be concise and to the point.
+         Not in one line change line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.`;
+      const history = messagesRef.current.slice(-3).map((m) => ({
         role: m.sender === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
-
-      // UPDATED TO USE SAFE WRAPPER
       const result = await safeSendMessage(
         { model: "gemini-2.5-flash", systemInstruction },
         history,
         textToSend,
       );
-
       await addDoc(
         collection(db, "users", user.uid, "chats", cid, "messages"),
         {
@@ -2015,10 +1949,7 @@ export const LenAi = () => {
 
   const handleRetry = async () => {
     const userMsgs = messagesRef.current.filter((m) => m.sender === "user");
-    if (userMsgs.length > 0) {
-      const lastUserMessage = userMsgs[userMsgs.length - 1];
-      sendChat(lastUserMessage.text);
-    }
+    if (userMsgs.length > 0) sendChat(userMsgs[userMsgs.length - 1].text);
   };
 
   const createChat = async () => {
@@ -2038,8 +1969,6 @@ export const LenAi = () => {
     setRoadmapLoading(true);
     try {
       const prompt = `Create a masterclass-level career roadmap for a "${roadmapInput}". Return RAW JSON array: [{ "step": 1, "title": "", "duration": "", "description": "", "resources": [""] }]`;
-
-      // UPDATED TO USE SAFE WRAPPER
       const result = await safeGenerateContent(
         { model: "gemini-2.5-flash" },
         prompt,
@@ -2086,24 +2015,110 @@ export const LenAi = () => {
           },
         });
       }
-
-      // UPDATED TO USE SAFE WRAPPER (parts instead of single prompt)
       const result = await safeGenerateContent(
         { model: "gemini-2.5-flash" },
         parts,
       );
-      setEmailResult(result.response.text().trim());
+      const resultText = result.response.text().trim();
+      setEmailResult(resultText);
+
+      if (user) {
+        const ref = await addDoc(
+          collection(db, "users", user.uid, "email_drafts"),
+          {
+            title: emailInput.substring(0, 30) || "Email Draft",
+            emailInput,
+            emailResult: resultText,
+            createdAt: serverTimestamp(),
+          },
+        );
+        setActiveEmailData({ id: ref.id, emailInput, emailResult: resultText });
+      }
     } catch (e) {
       console.error(e);
     }
     setEmailLoading(false);
   };
 
+  useEffect(() => {
+    if (activeEmailData) {
+      setEmailInput(activeEmailData.emailInput || "");
+      setEmailResult(activeEmailData.emailResult || "");
+      setEmailImage(null);
+    } else {
+      setEmailInput("");
+      setEmailResult("");
+      setEmailImage(null);
+    }
+  }, [activeEmailData]);
+
+  // Handle Saves from Sub Components
+  const handleSaveMarket = async (data) => {
+    if (!user) return;
+    const ref = await addDoc(
+      collection(db, "users", user.uid, "market_forecasts"),
+      { ...data, createdAt: serverTimestamp() },
+    );
+    setActiveMarketData({ id: ref.id, ...data });
+  };
+  const handleSaveJobs = async (data) => {
+    if (!user) return;
+    const ref = await addDoc(collection(db, "users", user.uid, "job_matches"), {
+      ...data,
+      createdAt: serverTimestamp(),
+    });
+    setActiveJobsData({ id: ref.id, ...data });
+  };
+  const handleSaveResume = async (data) => {
+    if (!user) return;
+    const ref = await addDoc(
+      collection(db, "users", user.uid, "resume_audits"),
+      { ...data, createdAt: serverTimestamp() },
+    );
+    setActiveResumeData({ id: ref.id, ...data });
+  };
+
   const deleteItem = async (col, id) => {
-    if (!window.confirm("Delete?")) return;
+    if (!window.confirm("Delete this item?")) return;
     await deleteDoc(doc(db, "users", user.uid, col, id));
     if (col === "chats" && activeChatId === id) setActiveChatId(null);
     if (col === "roadmaps" && activeRoadmap?.id === id) setActiveRoadmap(null);
+    if (col === "market_forecasts" && activeMarketData?.id === id)
+      setActiveMarketData(null);
+    if (col === "job_matches" && activeJobsData?.id === id)
+      setActiveJobsData(null);
+    if (col === "resume_audits" && activeResumeData?.id === id)
+      setActiveResumeData(null);
+    if (col === "email_drafts" && activeEmailData?.id === id)
+      setActiveEmailData(null);
+  };
+
+  const handleRenameSubmit = async (id, collectionName) => {
+    if (!editTitle.trim()) {
+      setEditingItemId(null);
+      return;
+    }
+    try {
+      await updateDoc(doc(db, "users", user.uid, collectionName, id), {
+        title: editTitle,
+      });
+    } catch (e) {
+      console.error("Rename failed", e);
+    }
+    setEditingItemId(null);
+  };
+
+  const handleNew = () => {
+    if (activeTab === "chat") createChat();
+    else if (activeTab === "roadmap") setActiveRoadmap(null);
+    else if (activeTab === "market") setActiveMarketData(null);
+    else if (activeTab === "jobs") setActiveJobsData(null);
+    else if (activeTab === "resume") setActiveResumeData(null);
+    else if (activeTab === "email") {
+      setActiveEmailData(null);
+      setEmailInput("");
+      setEmailResult("");
+    }
   };
 
   useEffect(() => {
@@ -2117,15 +2132,15 @@ export const LenAi = () => {
     if (user) localStorage.setItem(`tour_completed_${user.uid}`, "true");
     setShowTour(false);
   };
-
   const nextTourStep = () => {
     if (tourStep < TOUR_STEPS.length - 1) setTourStep(tourStep + 1);
     else completeTour();
   };
 
+  // Fetch All Histories
   useEffect(() => {
     if (!user) return;
-    return onSnapshot(
+    const unsubChats = onSnapshot(
       query(
         collection(db, "users", user.uid, "chats"),
         orderBy("createdAt", "desc"),
@@ -2136,6 +2151,50 @@ export const LenAi = () => {
         if (!activeChatId && data.length > 0) setActiveChatId(data[0].id);
       },
     );
+    const unsubRoadmaps = onSnapshot(
+      query(
+        collection(db, "users", user.uid, "roadmaps"),
+        orderBy("createdAt", "desc"),
+      ),
+      (s) => setRoadmaps(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    );
+    const unsubMarket = onSnapshot(
+      query(
+        collection(db, "users", user.uid, "market_forecasts"),
+        orderBy("createdAt", "desc"),
+      ),
+      (s) => setMarketHistory(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    );
+    const unsubJobs = onSnapshot(
+      query(
+        collection(db, "users", user.uid, "job_matches"),
+        orderBy("createdAt", "desc"),
+      ),
+      (s) => setJobsHistory(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    );
+    const unsubResume = onSnapshot(
+      query(
+        collection(db, "users", user.uid, "resume_audits"),
+        orderBy("createdAt", "desc"),
+      ),
+      (s) => setResumeHistory(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    );
+    const unsubEmail = onSnapshot(
+      query(
+        collection(db, "users", user.uid, "email_drafts"),
+        orderBy("createdAt", "desc"),
+      ),
+      (s) => setEmailHistory(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    );
+
+    return () => {
+      unsubChats();
+      unsubRoadmaps();
+      unsubMarket();
+      unsubJobs();
+      unsubResume();
+      unsubEmail();
+    };
   }, [user]);
 
   useEffect(() => {
@@ -2159,25 +2218,12 @@ export const LenAi = () => {
   }, [user, activeChatId]);
 
   useEffect(() => {
-    if (!user) return;
-    return onSnapshot(
-      query(
-        collection(db, "users", user.uid, "roadmaps"),
-        orderBy("createdAt", "desc"),
-      ),
-      (s) => setRoadmaps(s.docs.map((d) => ({ id: d.id, ...d.data() }))),
-    );
-  }, [user]);
-
-  useEffect(() => {
     if (activeTab === "store") {
       const recentChats = chats
         .slice(0, 5)
         .map((c) => c.title)
         .join(", ");
       if (!recentChats) return;
-
-      // UPDATED TO USE SAFE WRAPPER
       safeGenerateContent(
         { model: "gemini-2.5-flash" },
         `Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`,
@@ -2186,6 +2232,45 @@ export const LenAi = () => {
         .catch(console.error);
     }
   }, [activeTab]);
+
+  // Select current history list based on tab
+  let currentHistory = [];
+  let currentCollection = "";
+  let activeId = null;
+  if (activeTab === "roadmap") {
+    currentHistory = roadmaps;
+    currentCollection = "roadmaps";
+    activeId = activeRoadmap?.id;
+  } else if (activeTab === "market") {
+    currentHistory = marketHistory;
+    currentCollection = "market_forecasts";
+    activeId = activeMarketData?.id;
+  } else if (activeTab === "jobs") {
+    currentHistory = jobsHistory;
+    currentCollection = "job_matches";
+    activeId = activeJobsData?.id;
+  } else if (activeTab === "resume") {
+    currentHistory = resumeHistory;
+    currentCollection = "resume_audits";
+    activeId = activeResumeData?.id;
+  } else if (activeTab === "email") {
+    currentHistory = emailHistory;
+    currentCollection = "email_drafts";
+    activeId = activeEmailData?.id;
+  } else if (activeTab === "chat") {
+    currentHistory = chats;
+    currentCollection = "chats";
+    activeId = activeChatId;
+  }
+
+  const handleHistoryClick = (item, collection) => {
+    if (collection === "roadmaps") setActiveRoadmap(item);
+    else if (collection === "chats") setActiveChatId(item.id);
+    else if (collection === "market_forecasts") setActiveMarketData(item);
+    else if (collection === "job_matches") setActiveJobsData(item);
+    else if (collection === "resume_audits") setActiveResumeData(item);
+    else if (collection === "email_drafts") setActiveEmailData(item);
+  };
 
   return (
     <>
@@ -2200,7 +2285,6 @@ export const LenAi = () => {
       `}</style>
 
       <div className="h-screen w-screen flex bg-[#FAF9F6] text-[#2D2D2D] font-sans overflow-hidden selection:bg-[#E8E6DF] selection:text-[#2D2D2D]">
-        {/* --- ONBOARDING TOUR OVERLAY --- */}
         {showTour && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <div
@@ -2246,7 +2330,6 @@ export const LenAi = () => {
           </div>
         )}
 
-        {/* --- MANUAL MEMORY ONBOARDING OVERLAY --- */}
         {showMemoryOnboarding && !showTour && (
           <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-[#2D2D2D]/30 backdrop-blur-sm"></div>
@@ -2265,7 +2348,7 @@ export const LenAi = () => {
               <textarea
                 value={memoryInput}
                 onChange={(e) => setMemoryInput(e.target.value)}
-                placeholder="e.g. I'm Atharva, a 3rd-year CS Diploma student. I do React & Node.js, and systematic trading. My goal is..."
+                placeholder="e.g. I'm Atharva, a 3rd-year CS Diploma student..."
                 className="w-full h-32 bg-white border border-[#E8E6DF] rounded-2xl p-4 text-[#2D2D2D] text-sm outline-none resize-none focus:border-[#D1CEC7] mb-6 shadow-sm"
               />
               <div className="flex gap-4">
@@ -2299,7 +2382,7 @@ export const LenAi = () => {
               <Menu strokeWidth={1.5} className="w-5 h-5" />
             </button>
             <button
-              onClick={createChat}
+              onClick={handleNew}
               className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-lg transition-colors"
             >
               <Plus strokeWidth={1.5} className="w-5 h-5" />
@@ -2330,39 +2413,95 @@ export const LenAi = () => {
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar px-3 mt-6">
+          <div className="flex-1 overflow-y-auto no-scrollbar px-3 mt-6 pb-20">
             <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest px-3 mb-2">
               History
             </h3>
-            {(activeTab === "roadmap" || activeRoadmap ? roadmaps : chats).map(
-              (item) => (
+            {!["store", "feedback", "billing", "about"].includes(activeTab) &&
+              currentHistory.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
-                    if (item.role) {
-                      setActiveRoadmap(item);
-                      setActiveTab("roadmap");
-                    } else {
-                      setActiveChatId(item.id);
-                      setActiveTab("chat");
-                    }
+                    if (!editingItemId)
+                      handleHistoryClick(item, currentCollection);
                   }}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors ${(item.role && activeRoadmap?.id === item.id) || (!item.role && activeChatId === item.id) ? "bg-[#E8E6DF] text-[#2D2D2D]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
+                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors relative ${activeId === item.id ? "bg-[#E8E6DF] text-[#2D2D2D]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
                 >
-                  <span className="truncate pr-2">
-                    {item.role || item.title}
-                  </span>
-                  <Trash2
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteItem(item.role ? "roadmaps" : "chats", item.id);
-                    }}
-                    strokeWidth={1.5}
-                    className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 hover:text-red-400"
-                  />
+                  {editingItemId === item.id ? (
+                    <input
+                      autoFocus
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                          handleRenameSubmit(item.id, currentCollection);
+                        if (e.key === "Escape") setEditingItemId(null);
+                      }}
+                      onBlur={() =>
+                        handleRenameSubmit(item.id, currentCollection)
+                      }
+                      className="flex-1 bg-white border border-[#D1CEC7] rounded px-2 py-0.5 text-[#2D2D2D] outline-none text-xs w-full shadow-sm"
+                    />
+                  ) : (
+                    <span className="truncate pr-2">
+                      {item.title || item.role || item.jobRole || "Untitled"}
+                    </span>
+                  )}
+
+                  {!editingItemId && (
+                    <div className="relative shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(
+                            openMenuId === item.id ? null : item.id,
+                          );
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#D1CEC7] rounded-md transition-colors text-[#7A756D]"
+                      >
+                        <MoreHorizontal strokeWidth={1.5} className="w-4 h-4" />
+                      </button>
+
+                      {openMenuId === item.id && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                            }}
+                          ></div>
+                          <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-[#E8E6DF] rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingItemId(item.id);
+                                setEditTitle(
+                                  item.title || item.role || item.jobRole || "",
+                                );
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-xs text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
+                            >
+                              Rename
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteItem(currentCollection, item.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-              ),
-            )}
+              ))}
           </div>
 
           <div className="mt-auto p-4 border-t border-[#E8E6DF]/50 bg-[#F3F1EC] relative">
@@ -2405,7 +2544,6 @@ export const LenAi = () => {
                       <Settings strokeWidth={1.5} className="w-4 h-4" />{" "}
                       Settings
                     </button>
-                    {/* --- NEW ABOUT US BUTTON --- */}
                     <button
                       onClick={() => {
                         setActiveTab("about");
@@ -2457,7 +2595,6 @@ export const LenAi = () => {
             </div>
           )}
 
-          {/* --- VIDEO SIDEBAR OVERLAY/SLIDER --- */}
           {videoSidebarOpen && (
             <div className="absolute top-0 right-0 bottom-0 w-full md:w-[450px] bg-white border-l border-[#E8E6DF] shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-[150] flex flex-col transform transition-transform duration-300 translate-x-0">
               <div className="p-4 border-b border-[#E8E6DF] flex justify-between items-center bg-[#FAF9F6]">
@@ -2492,7 +2629,6 @@ export const LenAi = () => {
                           src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
                           title="YouTube video player"
                           frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                         ></iframe>
                       </div>
@@ -2502,7 +2638,6 @@ export const LenAi = () => {
                         <strong>{activeVideoQuery}</strong>.
                       </p>
                     </div>
-
                     <div className="mt-auto pt-6 border-t border-[#E8E6DF]">
                       <button
                         onClick={handleMarkCompleteAndNext}
@@ -2511,7 +2646,7 @@ export const LenAi = () => {
                         <CheckCircle
                           strokeWidth={2}
                           className="w-5 h-5 text-green-400"
-                        />
+                        />{" "}
                         Mark as Complete & Next
                       </button>
                     </div>
@@ -2524,24 +2659,16 @@ export const LenAi = () => {
           {activeTab === "chat" ? (
             <div className="flex-1 flex flex-col mx-auto w-full relative h-full">
               {messages.length === 0 ? (
-                // ==========================================
-                // CLAUDE-STYLE EMPTY STATE VIEW
-                // ==========================================
                 <div className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full px-4 animate-fade-in -mt-16">
-                  {/* Claude-like Minimalist Star Logo */}
                   <div className="mb-6 text-[#D97D54]">
                     <ClaudeLogo className="w-10 h-10" />
                   </div>
-
-                  {/* Elegant Greeting */}
                   <h1 className="font-serif text-3xl md:text-[40px] text-[#2D2D2D] mb-10 tracking-tight text-center font-medium">
                     {getGreeting()},{" "}
                     {user?.displayName
                       ? user.displayName.split(" ")[0]
                       : "Atharva"}
                   </h1>
-
-                  {/* Centered Input Box Wrapper */}
                   <div className="w-full relative z-20">
                     {isVoiceMode && (
                       <div className="absolute bottom-full left-0 w-full mb-4 bg-white p-4 rounded-2xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in">
@@ -2554,26 +2681,24 @@ export const LenAi = () => {
                               {voiceStatus === "thinking"
                                 ? "Thinking..."
                                 : voiceStatus === "speaking"
-                                  ? "Len is speaking... (Speak to interrupt)"
-                                  : "Listening... (Auto-sends when you pause)"}
+                                  ? "Len is speaking..."
+                                  : "Listening..."}
                             </span>
                           </div>
                           <button
                             onClick={toggleVoiceMode}
                             className="text-xs text-red-500 hover:text-red-700 font-medium transition"
                           >
-                            Cancel Session
+                            Cancel
                           </button>
                         </div>
                         <textarea
                           value={transcriptResult}
                           readOnly
-                          placeholder="Live transcript..."
                           className="w-full h-16 text-xs text-[#4A4A4A] p-2 bg-[#F3F1EC]/50 rounded-lg border border-transparent resize-none outline-none"
                         />
                       </div>
                     )}
-
                     <div className="w-full rounded-2xl bg-white border border-[#E8E6DF] focus-within:border-[#D1CEC7] focus-within:shadow-[0_4px_20px_rgb(0,0,0,0.04)] shadow-[0_2px_15px_rgb(0,0,0,0.02)] transition-all flex flex-col p-4">
                       <textarea
                         className="w-full bg-transparent border-none text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
@@ -2590,18 +2715,12 @@ export const LenAi = () => {
                         disabled={chatLoading}
                         style={{ minHeight: "60px", maxHeight: "200px" }}
                       />
-
                       <div className="flex justify-between items-center pt-2">
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={toggleDictation}
                             disabled={chatLoading || isVoiceMode}
-                            title="Simple Voice Typing"
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              isDictating
-                                ? "text-blue-500 bg-blue-50"
-                                : "text-[#7A756D] hover:bg-[#F3F1EC]"
-                            }`}
+                            className={`p-1.5 rounded-lg transition-colors ${isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                           >
                             {isDictating ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -2612,49 +2731,38 @@ export const LenAi = () => {
                           <button
                             onClick={toggleVoiceMode}
                             disabled={chatLoading || isDictating}
-                            title="Live Audio Session"
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              isVoiceMode
-                                ? "text-red-500 bg-red-50"
-                                : "text-[#7A756D] hover:bg-[#F3F1EC]"
-                            }`}
+                            className={`p-1.5 rounded-lg transition-colors ${isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                           >
                             <Headphones strokeWidth={1.5} className="w-4 h-4" />
                           </button>
                         </div>
-
                         <button
                           onClick={() => sendChat()}
                           disabled={!input.trim()}
-                          className="px-3 py-1.5 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition-colors disabled:opacity-40 disabled:bg-[#D1CEC7] disabled:text-white flex items-center justify-center shadow-sm"
+                          className="px-3 py-1.5 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition-colors disabled:opacity-40 flex items-center justify-center shadow-sm"
                         >
                           <ArrowRight strokeWidth={2} className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Suggestion Chips */}
                   <div className="flex flex-wrap gap-2.5 justify-center mt-8 w-full">
                     {SUGGESTIONS.map((s, i) => (
                       <button
                         key={i}
                         onClick={() => sendChat(s.prompt)}
-                        className="px-4 py-2 rounded-xl border border-[#E8E6DF] bg-white text-[13px] text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] hover:border-[#D1CEC7] transition-all shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 rounded-xl border border-[#E8E6DF] bg-white text-[13px] text-[#4A4A4A] hover:bg-[#F3F1EC] transition-all shadow-sm flex items-center gap-2"
                       >
                         <Sparkles
                           strokeWidth={1.5}
                           className="w-3.5 h-3.5 text-[#D97D54]/70"
-                        />
+                        />{" "}
                         {s.label}
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
-                // ==========================================
-                // ACTIVE CHAT VIEW (WITH BOTTOM INPUT)
-                // ==========================================
                 <>
                   <div className="flex-1 overflow-y-auto no-scrollbar py-12 px-2 md:px-8 max-w-4xl mx-auto w-full">
                     <div className="space-y-10 pb-10">
@@ -2676,32 +2784,23 @@ export const LenAi = () => {
                             >
                               {m.text}
                             </div>
-
-                            {/* Action Tools specifically styled for Claude-like feel */}
                             {m.sender !== "user" && (
                               <div className="flex items-center gap-1 mt-3 text-[#7A756D]">
                                 <button
                                   onClick={() =>
                                     navigator.clipboard.writeText(m.text)
                                   }
-                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
-                                  title="Copy"
+                                  className="p-1.5 hover:bg-[#E8E6DF] rounded-md transition-colors"
                                 >
                                   <Copy strokeWidth={1.5} className="w-4 h-4" />
                                 </button>
-                                <button
-                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
-                                  title="Good response"
-                                >
+                                <button className="p-1.5 hover:bg-[#E8E6DF] rounded-md transition-colors">
                                   <ThumbsUp
                                     strokeWidth={1.5}
                                     className="w-4 h-4"
                                   />
                                 </button>
-                                <button
-                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
-                                  title="Bad response"
-                                >
+                                <button className="p-1.5 hover:bg-[#E8E6DF] rounded-md transition-colors">
                                   <ThumbsDown
                                     strokeWidth={1.5}
                                     className="w-4 h-4"
@@ -2709,8 +2808,7 @@ export const LenAi = () => {
                                 </button>
                                 <button
                                   onClick={handleRetry}
-                                  className="p-1.5 hover:bg-[#E8E6DF] hover:text-[#111111] rounded-md transition-colors"
-                                  title="Retry"
+                                  className="p-1.5 hover:bg-[#E8E6DF] rounded-md transition-colors"
                                 >
                                   <RotateCcw
                                     strokeWidth={1.5}
@@ -2735,10 +2833,7 @@ export const LenAi = () => {
                       <div ref={chatEndRef}></div>
                     </div>
                   </div>
-
-                  {/* BOTTOM STICKY INPUT AREA */}
                   <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0 z-10 w-full max-w-4xl mx-auto px-4">
-                    {/* --- LIVE FULL DUPLEX AUDIO PANEL --- */}
                     {isVoiceMode && (
                       <div className="mb-4 bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in relative z-20">
                         <div className="flex items-center justify-between mb-4 border-b border-[#E8E6DF] pb-4">
@@ -2749,9 +2844,7 @@ export const LenAi = () => {
                             <span className="text-sm font-medium text-[#4A4A4A]">
                               {voiceStatus === "thinking"
                                 ? "Thinking..."
-                                : voiceStatus === "speaking"
-                                  ? "Len is speaking... (Speak to interrupt)"
-                                  : "Listening... (Auto-sends when you pause)"}
+                                : "Listening..."}
                             </span>
                           </div>
                           <button
@@ -2765,23 +2858,16 @@ export const LenAi = () => {
                           <textarea
                             value={transcriptResult}
                             readOnly
-                            placeholder="Live transcript will appear here..."
                             className="w-full h-24 text-sm text-[#4A4A4A] leading-relaxed p-4 bg-[#F3F1EC]/50 rounded-xl border border-[#E8E6DF] resize-none outline-none focus:border-[#D1CEC7]"
                           />
                         </div>
                       </div>
                     )}
-
-                    {/* --- BOTTOM CHAT INPUT BOX --- */}
                     <div className="relative rounded-3xl bg-white border border-[#E8E6DF] shadow-sm focus-within:border-[#D1CEC7] transition-all flex items-center gap-1.5 pl-2">
                       <button
                         onClick={toggleDictation}
                         disabled={chatLoading || isVoiceMode}
-                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${
-                          isDictating
-                            ? "text-blue-500 bg-blue-50"
-                            : "text-[#7A756D] hover:bg-[#F3F1EC]"
-                        }`}
+                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                       >
                         {isDictating ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
@@ -2792,15 +2878,10 @@ export const LenAi = () => {
                       <button
                         onClick={toggleVoiceMode}
                         disabled={chatLoading || isDictating}
-                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${
-                          isVoiceMode
-                            ? "text-red-500 bg-red-50"
-                            : "text-[#7A756D] hover:bg-[#F3F1EC]"
-                        }`}
+                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                       >
                         <Headphones strokeWidth={1.5} className="w-5 h-5" />
                       </button>
-
                       <textarea
                         className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
                         placeholder="Message Len..."
@@ -2819,14 +2900,10 @@ export const LenAi = () => {
                       <button
                         onClick={() => sendChat()}
                         disabled={!input.trim()}
-                        className="absolute right-3 bottom-3 p-2 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition disabled:opacity-40 disabled:bg-[#D1CEC7] flex items-center justify-center shadow-sm"
+                        className="absolute right-3 bottom-3 p-2 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition disabled:opacity-40 flex items-center justify-center shadow-sm"
                       >
                         <ArrowRight strokeWidth={2} className="w-4 h-4" />
                       </button>
-                    </div>
-                    <div className="text-center mt-3 text-[10px] text-[#A8A39D]">
-                      Len can make mistakes. Consider verifying important
-                      information.
                     </div>
                   </div>
                 </>
@@ -2936,8 +3013,6 @@ export const LenAi = () => {
                       <h1 className="font-serif text-4xl text-[#2D2D2D] mb-6 capitalize">
                         {activeRoadmap.role} Curriculum
                       </h1>
-
-                      {/* --- PROGRESS BAR UI --- */}
                       <div className="bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] mb-8">
                         <div className="flex items-center justify-between mb-4">
                           <span className="text-sm font-medium text-[#7A756D]">
@@ -2959,7 +3034,6 @@ export const LenAi = () => {
                         </p>
                       </div>
                     </div>
-
                     <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-[#E8E6DF]">
                       {activeRoadmap.steps.map((s, i) => (
                         <div key={i} className="relative pl-10">
@@ -2979,20 +3053,14 @@ export const LenAi = () => {
                               {s.description}
                             </p>
                             <div className="flex gap-2 flex-wrap">
-                              {/* --- UPDATED BUTTON FOR YOUTUBE EMBED WITH PROGRESS STYLING --- */}
                               {s.resources.map((r, idx) => {
                                 const isCompleted =
                                   activeRoadmap.completedResources?.includes(r);
-
                                 return (
                                   <button
                                     key={idx}
                                     onClick={() => handleOpenVideo(r)}
-                                    className={`text-xs font-medium border px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer text-left ${
-                                      isCompleted
-                                        ? "border-green-200 bg-green-50/50 text-green-700 hover:bg-green-100"
-                                        : "border-[#E8E6DF] text-[#7A756D] hover:bg-[#F3F1EC]"
-                                    }`}
+                                    className={`text-xs font-medium border px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer text-left ${isCompleted ? "border-green-200 bg-green-50/50 text-green-700 hover:bg-green-100" : "border-[#E8E6DF] text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                                   >
                                     {isCompleted ? (
                                       <Check
@@ -3025,9 +3093,24 @@ export const LenAi = () => {
               onUpgradeClick={() => setActiveTab("billing")}
             >
               {activeTab === "about" && <AboutUs />}
-              {activeTab === "market" && <MarketAnalyzer />}
-              {activeTab === "jobs" && <AIJobMatcher />}
-              {activeTab === "resume" && <ResumeAnalyzer />}
+              {activeTab === "market" && (
+                <MarketAnalyzer
+                  activeItem={activeMarketData}
+                  onSave={handleSaveMarket}
+                />
+              )}
+              {activeTab === "jobs" && (
+                <AIJobMatcher
+                  activeItem={activeJobsData}
+                  onSave={handleSaveJobs}
+                />
+              )}
+              {activeTab === "resume" && (
+                <ResumeAnalyzer
+                  activeItem={activeResumeData}
+                  onSave={handleSaveResume}
+                />
+              )}
               {activeTab === "store" && (
                 <ELearningStore recommendedTopic={storeTopic} />
               )}
@@ -3052,7 +3135,7 @@ export const LenAi = () => {
                   {[
                     { id: "general", label: "General", icon: Settings },
                     { id: "account", label: "Account", icon: UserCheck },
-                    { id: "memory", label: "AI Memory", icon: Brain }, // --- NEW MEMORY TAB ---
+                    { id: "memory", label: "AI Memory", icon: Brain },
                     { id: "api", label: "API Keys", icon: Lock },
                   ].map((tab) => (
                     <button
@@ -3066,7 +3149,6 @@ export const LenAi = () => {
                   ))}
                 </nav>
               </div>
-
               <div className="flex-1 p-8 md:p-12 overflow-y-auto no-scrollbar bg-white relative">
                 <button
                   onClick={() => setIsSettingsOpen(false)}
@@ -3074,7 +3156,6 @@ export const LenAi = () => {
                 >
                   <X strokeWidth={1.5} className="w-5 h-5" />
                 </button>
-
                 {settingsTab === "general" && (
                   <div className="max-w-xl animate-fade-in">
                     <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
@@ -3125,7 +3206,6 @@ export const LenAi = () => {
                     </div>
                   </div>
                 )}
-
                 {settingsTab === "account" && (
                   <div className="max-w-xl animate-fade-in">
                     <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
@@ -3172,8 +3252,6 @@ export const LenAi = () => {
                     </div>
                   </div>
                 )}
-
-                {/* --- MEMORY TAB SETTINGS UI --- */}
                 {settingsTab === "memory" && (
                   <div className="max-w-xl animate-fade-in">
                     <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
@@ -3181,15 +3259,14 @@ export const LenAi = () => {
                     </h3>
                     <p className="text-sm text-[#7A756D] mb-6 leading-relaxed">
                       Len AI remembers these details about you to provide highly
-                      personalized advice and contextual responses. You can
-                      view, edit, or completely clear this context at any time.
+                      personalized advice.
                     </p>
                     <div className="space-y-4">
                       <textarea
                         value={userMemory}
                         onChange={(e) => setUserMemory(e.target.value)}
                         className="w-full h-48 bg-[#F3F1EC] border border-[#E8E6DF] text-[#4A4A4A] p-4 rounded-xl text-sm outline-none resize-none focus:border-[#D1CEC7]"
-                        placeholder="Write about your background, tech stack, goals, and preferences... (e.g., 'I am a frontend developer specializing in React. I want to learn Next.js soon.')"
+                        placeholder="Write about your background, tech stack, goals, and preferences..."
                       />
                       <div className="flex gap-4">
                         <button
@@ -3210,12 +3287,7 @@ export const LenAi = () => {
                         </button>
                         <button
                           onClick={async () => {
-                            if (
-                              !user ||
-                              !window.confirm(
-                                "Are you sure you want to clear your AI Memory?",
-                              )
-                            )
+                            if (!user || !window.confirm("Are you sure?"))
                               return;
                             await deleteDoc(
                               doc(db, "users", user.uid, "settings", "memory"),
@@ -3231,18 +3303,11 @@ export const LenAi = () => {
                     </div>
                   </div>
                 )}
-
                 {settingsTab === "api" && (
                   <div className="max-w-xl animate-fade-in">
                     <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
                       API Configuration
                     </h3>
-                    <p className="text-sm text-[#7A756D] mb-8 leading-relaxed">
-                      PathifyAI uses system-provided API keys by default. If you
-                      are experiencing rate limits, you can configure your own
-                      personal keys here. Keys are stored locally in your
-                      browser.
-                    </p>
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-[#2D2D2D] mb-2">

@@ -66,7 +66,7 @@ const Home = () => {
             onClick={() => navigate("/")}
           >
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-xl">
-              L
+              V
             </div>
             <span className="font-display text-2xl tracking-tight mt-1">
               Vitra
@@ -159,7 +159,7 @@ const Home = () => {
                       L
                     </div>
                     <span className="font-bold text-slate-900">
-                      LenAi Console
+                      Vitra Console
                     </span>
                   </div>
 
@@ -416,7 +416,7 @@ const Home = () => {
             </h2>
             <p className="text-lg text-[#666666] max-w-xl mx-auto font-light leading-relaxed">
               From drafting professional emails to generating granular technical
-              learning roadmaps. LenAi uses state-of-the-art Gemini 2.5 models
+              learning roadmaps. Vitra uses state-of-the-art Gemini 2.5 models
               to elevate your professional profile.
             </p>
           </section>
@@ -486,8 +486,8 @@ const Home = () => {
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-600 font-medium">
-                  I use <span className="font-bold text-black">Vitra</span>{" "}
-                  and it's been doing wonders. The Roadmap generator completely
+                  I use <span className="font-bold text-black">Vitra</span> and
+                  it's been doing wonders. The Roadmap generator completely
                   structured my transition into Next.js. I used the Resume
                   Architect right before applying to roles and it caught three
                   critical ATS errors I had missed entirely.
