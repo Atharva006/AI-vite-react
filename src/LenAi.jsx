@@ -409,7 +409,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
             method: "GET",
             headers: {
               "x-rapidapi-key": RAPIDAPI_KEY,
-              "x-rapidapi-host": "jsearch27.p.rapidapi.com",
+              "x-rapidapi-host": "jsearch.p.rapidapi.com",
             },
           },
         );
