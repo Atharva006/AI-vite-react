@@ -54,6 +54,7 @@ import {
   RotateCcw,
   Brain,
   Info,
+  Compass,
 } from "lucide-react";
 import {
   collection,
@@ -316,7 +317,7 @@ const AboutUs = () => {
   return (
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-5xl mx-auto w-full animate-fade-in">
-        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+        <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
           About LenAI
         </h2>
         <p className="text-[#7A756D] text-lg font-sans mb-10 leading-relaxed">
@@ -326,7 +327,7 @@ const AboutUs = () => {
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
             <Sparkles className="w-32 h-32 text-[#D97D54]" />
           </div>
-          <h3 className="font-serif text-2xl text-[#2D2D2D] mb-4 relative z-10">
+          <h3 className="font-serif text-2xl text-[#111111] mb-4 relative z-10">
             Our Mission
           </h3>
           <p className="text-[#4A4A4A] text-[15px] leading-loose mb-6 relative z-10">
@@ -336,7 +337,7 @@ const AboutUs = () => {
             systematic pathways to success.
           </p>
         </div>
-        <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+        <h3 className="font-serif text-3xl text-[#111111] mb-8">
           Meet the Team
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -352,7 +353,7 @@ const AboutUs = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h4 className="font-serif text-xl text-[#2D2D2D] mb-1">
+              <h4 className="font-serif text-xl text-[#111111] mb-1">
                 {member.name}
               </h4>
               <p className="text-[10px] font-bold text-[#D97D54] uppercase tracking-widest mb-4">
@@ -480,7 +481,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-6xl mx-auto w-full">
         <div className="mb-12">
-          <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+          <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
             Semantic Job Matcher
           </h2>
           <p className="text-[#7A756D] text-lg font-sans max-w-2xl leading-relaxed">
@@ -526,7 +527,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
             <button
               onClick={searchAndMatchJobs}
               disabled={loading || !userProfile || !jobRole}
-              className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors disabled:opacity-50"
+              className="w-full py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition-colors disabled:opacity-50"
             >
               {loading ? statusText : "Analyze & Match"}
             </button>
@@ -550,7 +551,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
               >
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="font-serif text-2xl text-[#2D2D2D] mb-1">
+                    <h3 className="font-serif text-2xl text-[#111111] mb-1">
                       {job.title}
                     </h3>
                     <p className="text-sm font-medium text-[#7A756D] flex items-center gap-2">
@@ -562,7 +563,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
                     <span className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest block mb-1">
                       Resonance
                     </span>
-                    <span className="font-serif text-3xl text-[#2D2D2D]">
+                    <span className="font-serif text-3xl text-[#111111]">
                       {job.matchScore}%
                     </span>
                   </div>
@@ -580,7 +581,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
                   href={job.link}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-sm font-medium text-[#2D2D2D] hover:text-[#D97D54] transition-colors flex items-center gap-2"
+                  className="text-sm font-medium text-[#111111] hover:text-[#D97D54] transition-colors flex items-center gap-2"
                 >
                   View Application{" "}
                   <ArrowRight strokeWidth={1.5} className="w-4 h-4" />
@@ -662,7 +663,7 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
           <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest mb-2">
             {isTarget ? "Target Market" : "Base Market"}
           </h3>
-          <h2 className="font-serif text-3xl text-[#2D2D2D] flex items-center gap-2">
+          <h2 className="font-serif text-3xl text-[#111111] flex items-center gap-2">
             <MapPin strokeWidth={1.5} className="w-5 h-5 text-[#A8A39D]" />{" "}
             {data.location}
           </h2>
@@ -676,7 +677,7 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
           <p className="text-xs font-medium text-[#7A756D] mb-1">
             Expected Salary (USD)
           </p>
-          <p className="font-serif text-4xl text-[#2D2D2D]">{data.salaryUSD}</p>
+          <p className="font-serif text-4xl text-[#111111]">{data.salaryUSD}</p>
         </div>
         <div>
           <p className="text-xs font-medium text-[#7A756D] mb-1">
@@ -694,7 +695,7 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-4xl mx-auto w-full">
         <div className="mb-12">
-          <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+          <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
             Market Forecaster
           </h2>
           <p className="text-[#7A756D] text-lg font-sans leading-relaxed">
@@ -726,7 +727,7 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
           <button
             onClick={analyzeMarket}
             disabled={loading || !role || !baseLocation}
-            className="px-8 py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
+            className="px-8 py-3 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition disabled:opacity-50"
           >
             {loading ? "Forecasting..." : "Forecast"}
           </button>
@@ -742,7 +743,7 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
               )}
             </div>
             <div className="bg-white rounded-3xl p-10 border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
-              <h3 className="font-serif text-2xl text-[#2D2D2D] mb-8">
+              <h3 className="font-serif text-2xl text-[#111111] mb-8">
                 Strategic Intelligence
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
@@ -761,7 +762,7 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
                 <h4 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest mb-2">
                   Final Verdict
                 </h4>
-                <p className="font-serif text-lg text-[#2D2D2D]">
+                <p className="font-serif text-lg text-[#111111]">
                   {marketData.verdict}
                 </p>
               </div>
@@ -810,10 +811,10 @@ const BillingDashboard = ({ currentPlan, user }) => {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 bg-[#FAF9F6] overflow-y-auto no-scrollbar">
         <div className="bg-white p-16 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF] max-w-2xl w-full text-center animate-fade-in">
-          <div className="w-16 h-16 bg-[#F3F1EC] text-[#2D2D2D] rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 bg-[#F3F1EC] text-[#111111] rounded-full flex items-center justify-center mx-auto mb-6">
             <Crown strokeWidth={1.5} className="w-8 h-8 text-[#D97D54]" />
           </div>
-          <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">
+          <h2 className="font-serif text-4xl text-[#111111] mb-4">
             You are a Pro User
           </h2>
           <p className="text-[#7A756D] text-lg leading-relaxed mb-12">
@@ -821,7 +822,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
             job matching, and priority processing.
           </p>
           <div className="bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl p-8 max-w-md mx-auto">
-            <h3 className="font-serif text-xl text-[#2D2D2D] mb-2">
+            <h3 className="font-serif text-xl text-[#111111] mb-2">
               Beta Testing Club
             </h3>
             <p className="text-sm text-[#7A756D] mb-6">
@@ -844,7 +845,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
                 />
                 <button
                   type="submit"
-                  className="px-6 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium"
+                  className="px-6 bg-[#111111] text-[#FAF9F6] rounded-xl text-sm font-medium"
                 >
                   Apply
                 </button>
@@ -864,12 +865,12 @@ const BillingDashboard = ({ currentPlan, user }) => {
             className="w-12 h-12 text-[#D97D54] mx-auto mb-6"
             strokeWidth={1.5}
           />
-          <h2 className="font-serif text-3xl text-[#2D2D2D] mb-4">
+          <h2 className="font-serif text-3xl text-[#111111] mb-4">
             Verification Pending
           </h2>
           <p className="text-[#7A756D] text-sm leading-relaxed mb-8">
             Your transaction ID{" "}
-            <span className="font-mono bg-[#F3F1EC] px-2 py-1 rounded text-[#2D2D2D]">
+            <span className="font-mono bg-[#F3F1EC] px-2 py-1 rounded text-[#111111]">
               {transactionId}
             </span>{" "}
             is under review. You'll be upgraded shortly.
@@ -894,16 +895,16 @@ const BillingDashboard = ({ currentPlan, user }) => {
         <div className="max-w-md w-full bg-white p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#E8E6DF]">
           <button
             onClick={() => setSelectedPlan(null)}
-            className="flex items-center gap-2 text-[#7A756D] hover:text-[#2D2D2D] text-sm mb-8 transition"
+            className="flex items-center gap-2 text-[#7A756D] hover:text-[#111111] text-sm mb-8 transition"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Plans
           </button>
-          <h2 className="font-serif text-3xl text-[#2D2D2D] mb-2">
+          <h2 className="font-serif text-3xl text-[#111111] mb-2">
             Complete Upgrade
           </h2>
           <p className="text-[#7A756D] text-sm mb-8">
             Total:{" "}
-            <span className="text-[#2D2D2D] font-medium">
+            <span className="text-[#111111] font-medium">
               {selectedPlan === "essential" ? "$9" : "$19"}
             </span>
           </p>
@@ -928,7 +929,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
             <button
               onClick={handleVerifyPayment}
               disabled={!transactionId.trim()}
-              className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] disabled:opacity-50 transition"
+              className="w-full py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] disabled:opacity-50 transition"
             >
               Verify Payment
             </button>
@@ -941,7 +942,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
   return (
     <div className="h-full flex flex-col items-center justify-center p-8 bg-[#FAF9F6] overflow-y-auto no-scrollbar">
       <div className="text-center mb-16 max-w-2xl">
-        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+        <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
           Select your workspace plan.
         </h2>
         <p className="text-[#7A756D] text-lg font-sans">
@@ -950,9 +951,9 @@ const BillingDashboard = ({ currentPlan, user }) => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
         <div className="bg-white p-10 rounded-3xl border border-[#E8E6DF] flex flex-col items-center text-center">
-          <h3 className="font-serif text-2xl text-[#2D2D2D] mb-2">Basic</h3>
+          <h3 className="font-serif text-2xl text-[#111111] mb-2">Basic</h3>
           <p className="text-sm text-[#7A756D] mb-8">Standard access</p>
-          <p className="font-sans text-4xl text-[#2D2D2D] mb-10 font-medium">
+          <p className="font-sans text-4xl text-[#111111] mb-10 font-medium">
             Free
           </p>
           <button
@@ -966,11 +967,11 @@ const BillingDashboard = ({ currentPlan, user }) => {
           <div className="absolute -top-3 bg-[#D97D54] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
             Recommended
           </div>
-          <h3 className="font-serif text-2xl text-[#2D2D2D] mb-2">Essential</h3>
+          <h3 className="font-serif text-2xl text-[#111111] mb-2">Essential</h3>
           <p className="text-sm text-[#7A756D] mb-8">
             AI Roadmaps & Forecaster
           </p>
-          <p className="font-sans text-4xl text-[#2D2D2D] mb-10 font-medium">
+          <p className="font-sans text-4xl text-[#111111] mb-10 font-medium">
             $9<span className="text-sm text-[#7A756D]">/mo</span>
           </p>
           <button
@@ -980,7 +981,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
             Upgrade
           </button>
         </div>
-        <div className="bg-[#2D2D2D] p-10 rounded-3xl border border-[#1A1A1A] flex flex-col items-center text-center">
+        <div className="bg-[#111111] p-10 rounded-3xl border border-[#1A1A1A] flex flex-col items-center text-center">
           <h3 className="font-serif text-2xl text-[#FAF9F6] mb-2">Pro</h3>
           <p className="text-sm text-[#A8A39D] mb-8">Full access & Audits</p>
           <p className="font-sans text-4xl text-[#FAF9F6] mb-10 font-medium">
@@ -988,7 +989,7 @@ const BillingDashboard = ({ currentPlan, user }) => {
           </p>
           <button
             onClick={() => setSelectedPlan("pro")}
-            className="w-full py-3 bg-[#FAF9F6] text-[#2D2D2D] rounded-full text-sm font-medium hover:bg-white transition"
+            className="w-full py-3 bg-[#FAF9F6] text-[#111111] rounded-full text-sm font-medium hover:bg-white transition"
           >
             Get Pro
           </button>
@@ -1031,7 +1032,7 @@ const ELearningStore = ({ recommendedTopic = "" }) => {
         <div className="max-w-6xl mx-auto w-full">
           <button
             onClick={() => setPlayingVideo(null)}
-            className="flex items-center gap-2 text-[#7A756D] hover:text-[#2D2D2D] text-sm mb-8 transition"
+            className="flex items-center gap-2 text-[#7A756D] hover:text-[#111111] text-sm mb-8 transition"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Library
           </button>
@@ -1045,7 +1046,7 @@ const ELearningStore = ({ recommendedTopic = "" }) => {
               allowFullScreen
             ></iframe>
           </div>
-          <h1 className="font-serif text-3xl md:text-4xl text-[#2D2D2D] mb-4">
+          <h1 className="font-serif text-3xl md:text-4xl text-[#111111] mb-4">
             {playingVideo.snippet.title}
           </h1>
           <p className="text-[#7A756D] text-lg font-medium mb-6">
@@ -1066,7 +1067,7 @@ const ELearningStore = ({ recommendedTopic = "" }) => {
       <div className="max-w-6xl mx-auto w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
           <div>
-            <h2 className="font-serif text-4xl text-[#2D2D2D] mb-2">Library</h2>
+            <h2 className="font-serif text-4xl text-[#111111] mb-2">Library</h2>
             <p className="text-[#7A756D] text-sm">
               Curated technical masterclasses.
             </p>
@@ -1136,7 +1137,7 @@ const ELearningStore = ({ recommendedTopic = "" }) => {
                       </div>
                     </div>
                   </div>
-                  <h3 className="font-sans text-sm font-medium text-[#2D2D2D] leading-snug line-clamp-2 mb-1">
+                  <h3 className="font-sans text-sm font-medium text-[#111111] leading-snug line-clamp-2 mb-1">
                     {video.snippet.title}
                   </h3>
                   <p className="text-xs text-[#7A756D]">
@@ -1180,7 +1181,7 @@ const FeedbackView = () => {
           className="w-12 h-12 text-[#D97D54] mb-6"
           strokeWidth={1.5}
         />
-        <h2 className="font-serif text-3xl text-[#2D2D2D] mb-2">
+        <h2 className="font-serif text-3xl text-[#111111] mb-2">
           Message Sent
         </h2>
         <p className="text-[#7A756D] mb-8">
@@ -1191,7 +1192,7 @@ const FeedbackView = () => {
             setStatus("idle");
             setFormData({ name: "", email: "", suggestion: "" });
           }}
-          className="text-sm font-medium text-[#4A4A4A] hover:text-[#2D2D2D] underline underline-offset-4 decoration-[#E8E6DF]"
+          className="text-sm font-medium text-[#4A4A4A] hover:text-[#111111] underline underline-offset-4 decoration-[#E8E6DF]"
         >
           Send another
         </button>
@@ -1201,7 +1202,7 @@ const FeedbackView = () => {
   return (
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-lg mx-auto w-full">
-        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+        <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
           Feedback
         </h2>
         <p className="text-[#7A756D] text-lg mb-10 font-sans">
@@ -1237,7 +1238,7 @@ const FeedbackView = () => {
           />
           <button
             disabled={status === "loading"}
-            className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
+            className="w-full py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition disabled:opacity-50"
           >
             {status === "loading" ? "Sending..." : "Submit"}
           </button>
@@ -1352,7 +1353,7 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
   return (
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-3xl mx-auto w-full">
-        <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4 tracking-tight">
+        <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
           Resume Architect
         </h2>
         <p className="text-[#7A756D] mb-12 text-lg font-sans">
@@ -1370,7 +1371,7 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
             strokeWidth={1}
             className="w-10 h-10 text-[#7A756D] mx-auto mb-4"
           />
-          <p className="text-lg font-medium text-[#2D2D2D] mb-2">
+          <p className="text-lg font-medium text-[#111111] mb-2">
             {file ? file.name : "Select document (PDF/DOCX)"}
           </p>
           <p className="text-sm text-[#A8A39D]">Powered by Gemini 2.5</p>
@@ -1379,7 +1380,7 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
         <button
           onClick={analyze}
           disabled={!file || loading || activeItem}
-          className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
+          className="w-full py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition disabled:opacity-50"
         >
           {loading ? "Auditing Document..." : "Run Analysis"}
         </button>
@@ -1387,10 +1388,10 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
         {score !== null && (
           <div className="mt-16 animate-fade-in">
             <div className="flex items-center justify-between mb-8 pb-8 border-b border-[#E8E6DF]">
-              <span className="font-serif text-2xl text-[#2D2D2D]">
+              <span className="font-serif text-2xl text-[#111111]">
                 Hiring Probability
               </span>
-              <span className="font-serif text-5xl text-[#2D2D2D]">
+              <span className="font-serif text-5xl text-[#111111]">
                 {score}%
               </span>
             </div>
@@ -1435,6 +1436,10 @@ export const LenAi = () => {
   const [showMemoryOnboarding, setShowMemoryOnboarding] = useState(false);
   const [memoryInput, setMemoryInput] = useState("");
   const [isSavingMemory, setIsSavingMemory] = useState(false);
+
+  // Modal State for Explore Modules
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
+  const exploreTabs = ["roadmap", "market", "jobs", "resume", "email", "store"];
 
   const [apiKeys, setApiKeys] = useState({
     gemini: localStorage.getItem("gemini_api_key") || "",
@@ -2275,7 +2280,7 @@ export const LenAi = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap');
         .font-serif { font-family: 'Newsreader', serif; }
         .font-sans { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -2284,21 +2289,21 @@ export const LenAi = () => {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      <div className="h-screen w-screen flex bg-[#FAF9F6] text-[#2D2D2D] font-sans overflow-hidden selection:bg-[#E8E6DF] selection:text-[#2D2D2D]">
+      <div className="h-screen w-screen flex bg-[#FAF9F6] text-[#111111] font-sans overflow-hidden selection:bg-[#E8E6DF] selection:text-[#111111]">
         {showTour && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0 bg-[#2D2D2D]/30 backdrop-blur-sm"
+              className="absolute inset-0 bg-[#111111]/30 backdrop-blur-sm"
               onClick={completeTour}
             ></div>
             <div className="relative w-full max-w-lg bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-[#E8E6DF] p-10 animate-fade-in text-center">
-              <div className="w-16 h-16 bg-[#F3F1EC] text-[#2D2D2D] rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-[#F3F1EC] text-[#111111] rounded-full flex items-center justify-center mx-auto mb-6">
                 {React.createElement(TOUR_STEPS[tourStep].icon, {
                   strokeWidth: 1.5,
                   className: "w-8 h-8 text-[#D97D54]",
                 })}
               </div>
-              <h2 className="font-serif text-3xl text-[#2D2D2D] mb-4">
+              <h2 className="font-serif text-3xl text-[#111111] mb-4">
                 {TOUR_STEPS[tourStep].title}
               </h2>
               <p className="text-[#7A756D] text-[15px] leading-relaxed mb-10 h-16 flex items-center justify-center">
@@ -2315,13 +2320,13 @@ export const LenAi = () => {
                   {TOUR_STEPS.map((_, i) => (
                     <div
                       key={i}
-                      className={`w-2 h-2 rounded-full transition-colors ${i === tourStep ? "bg-[#2D2D2D]" : "bg-[#E8E6DF]"}`}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === tourStep ? "bg-[#111111]" : "bg-[#E8E6DF]"}`}
                     ></div>
                   ))}
                 </div>
                 <button
                   onClick={nextTourStep}
-                  className="px-6 py-2.5 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition-colors"
+                  className="px-6 py-2.5 bg-[#111111] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#2D2D2D] transition-colors"
                 >
                   {tourStep === TOUR_STEPS.length - 1 ? "Get Started" : "Next"}
                 </button>
@@ -2332,12 +2337,12 @@ export const LenAi = () => {
 
         {showMemoryOnboarding && !showTour && (
           <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-[#2D2D2D]/30 backdrop-blur-sm"></div>
+            <div className="absolute inset-0 bg-[#111111]/30 backdrop-blur-sm"></div>
             <div className="relative w-full max-w-lg bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-[#E8E6DF] p-10 animate-fade-in">
-              <div className="w-16 h-16 bg-[#F3F1EC] text-[#2D2D2D] rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-[#F3F1EC] text-[#111111] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Brain strokeWidth={1.5} className="w-8 h-8 text-[#D97D54]" />
               </div>
-              <h2 className="font-serif text-3xl text-[#2D2D2D] mb-4 text-center">
+              <h2 className="font-serif text-3xl text-[#111111] mb-4 text-center">
                 Introduce Yourself
               </h2>
               <p className="text-[#7A756D] text-[15px] leading-relaxed mb-6 text-center">
@@ -2349,7 +2354,7 @@ export const LenAi = () => {
                 value={memoryInput}
                 onChange={(e) => setMemoryInput(e.target.value)}
                 placeholder="e.g. I'm Atharva, a 3rd-year CS Diploma student..."
-                className="w-full h-32 bg-white border border-[#E8E6DF] rounded-2xl p-4 text-[#2D2D2D] text-sm outline-none resize-none focus:border-[#D1CEC7] mb-6 shadow-sm"
+                className="w-full h-32 bg-white border border-[#E8E6DF] rounded-2xl p-4 text-[#111111] text-sm outline-none resize-none focus:border-[#D1CEC7] mb-6 shadow-sm"
               />
               <div className="flex gap-4">
                 <button
@@ -2361,10 +2366,100 @@ export const LenAi = () => {
                 <button
                   onClick={handleSaveManualMemory}
                   disabled={isSavingMemory || !memoryInput.trim()}
-                  className="flex-1 py-3 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 bg-[#111111] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#2D2D2D] transition-colors disabled:opacity-50"
                 >
                   {isSavingMemory ? "Saving..." : "Create Memory"}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EXPLORE MODAL OVERLAY */}
+        {isExploreOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-[#111111]/30 backdrop-blur-md transition-opacity"
+              onClick={() => setIsExploreOpen(false)}
+            ></div>
+            <div className="relative w-full max-w-5xl bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-[#E8E6DF] p-8 md:p-12 animate-fade-in">
+              <div className="flex justify-between items-center mb-10">
+                <div>
+                  <h2 className="font-serif text-4xl text-[#111111] font-medium tracking-tight">
+                    Explore
+                  </h2>
+                  <p className="text-[#7A756D] text-sm mt-2 font-sans">
+                    Discover advanced modules to elevate your career
+                    architecture.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsExploreOpen(false)}
+                  className="p-2 text-[#7A756D] hover:bg-[#E8E6DF] rounded-full transition-colors"
+                >
+                  <X strokeWidth={1.5} className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  {
+                    id: "roadmap",
+                    icon: BookOpen,
+                    label: "Roadmaps",
+                    desc: "Design a masterclass-level learning path.",
+                  },
+                  {
+                    id: "market",
+                    icon: TrendingUp,
+                    label: "Market Forecaster",
+                    desc: "AI-driven salary & trajectory regression.",
+                  },
+                  {
+                    id: "jobs",
+                    icon: Target,
+                    label: "Job Matcher",
+                    desc: "Semantic job evaluation & scoring.",
+                  },
+                  {
+                    id: "resume",
+                    icon: FileText,
+                    label: "Resume Architect",
+                    desc: "Deep structural document audit.",
+                  },
+                  {
+                    id: "email",
+                    icon: Mail,
+                    label: "Email Studio",
+                    desc: "Professional email drafting board.",
+                  },
+                  {
+                    id: "store",
+                    icon: LayoutGrid,
+                    label: "Library",
+                    desc: "Curated technical masterclasses.",
+                  },
+                ].map((tool) => (
+                  <button
+                    key={tool.id}
+                    onClick={() => {
+                      setActiveTab(tool.id);
+                      if (tool.id !== "roadmap") setActiveRoadmap(null);
+                      setIsExploreOpen(false);
+                    }}
+                    className="flex flex-col text-left p-8 bg-white border border-[#E8E6DF] rounded-3xl hover:border-[#D97D54] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all group duration-300"
+                  >
+                    <tool.icon
+                      strokeWidth={1.5}
+                      className="w-10 h-10 text-[#D97D54] mb-6 group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <h3 className="font-serif text-2xl text-[#111111] mb-3">
+                      {tool.label}
+                    </h3>
+                    <p className="text-[#7A756D] text-sm leading-relaxed">
+                      {tool.desc}
+                    </p>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -2392,25 +2487,30 @@ export const LenAi = () => {
           <div className="px-3 mt-4 space-y-1">
             {[
               { id: "chat", icon: MessageSquare, label: "Chat" },
-              { id: "roadmap", icon: BookOpen, label: "Roadmaps" },
-              { id: "market", icon: TrendingUp, label: "Market Forecaster" },
-              { id: "jobs", icon: Target, label: "Job Matcher" },
-              { id: "resume", icon: FileText, label: "Resume Architect" },
-              { id: "email", icon: Mail, label: "Email Studio" },
-              { id: "store", icon: LayoutGrid, label: "Library" },
+              { id: "explore", icon: Compass, label: "Explore" },
               { id: "feedback", icon: Heart, label: "Feedback" },
-            ].map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setActiveTab(t.id);
-                  if (t.id !== "roadmap") setActiveRoadmap(null);
-                }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${activeTab === t.id && !activeRoadmap ? "bg-[#FAF9F6] text-[#d41616] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#000000] hover:bg-[#E8E6DF]/50"}`}
-              >
-                <t.icon strokeWidth={1.5} className="w-4 h-4" /> {t.label}
-              </button>
-            ))}
+            ].map((t) => {
+              const isActive =
+                t.id === "explore"
+                  ? exploreTabs.includes(activeTab)
+                  : activeTab === t.id && !activeRoadmap;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    if (t.id === "explore") {
+                      setIsExploreOpen(true);
+                    } else {
+                      setActiveTab(t.id);
+                      if (t.id !== "roadmap") setActiveRoadmap(null);
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${isActive ? "bg-[#FAF9F6] text-[#111111] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#111111] hover:bg-[#E8E6DF]/50"}`}
+                >
+                  <t.icon strokeWidth={1.5} className="w-4 h-4" /> {t.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex-1 overflow-y-auto no-scrollbar px-3 mt-6 pb-20">
@@ -2418,100 +2518,90 @@ export const LenAi = () => {
               Recents
             </h3>
             {!["store", "feedback", "billing", "about"].includes(activeTab) &&
-              currentHistory.map(
-                (
-                  item, //Font change here
-                ) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      if (!editingItemId)
-                        handleHistoryClick(item, currentCollection);
-                    }}
-                    className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors relative ${activeId === item.id ? "bg-[#E8E6DF] text-[#313430]" : "text-[#000000] hover:bg-[#E8E6DF]/50"}`}
-                  >
-                    {editingItemId === item.id ? (
-                      <input
-                        autoFocus
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                            handleRenameSubmit(item.id, currentCollection);
-                          if (e.key === "Escape") setEditingItemId(null);
+              currentHistory.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    if (!editingItemId)
+                      handleHistoryClick(item, currentCollection);
+                  }}
+                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors relative ${activeId === item.id ? "bg-[#E8E6DF] text-[#111111] font-medium" : "text-[#111111] hover:bg-[#E8E6DF]/50"}`}
+                >
+                  {editingItemId === item.id ? (
+                    <input
+                      autoFocus
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                          handleRenameSubmit(item.id, currentCollection);
+                        if (e.key === "Escape") setEditingItemId(null);
+                      }}
+                      onBlur={() =>
+                        handleRenameSubmit(item.id, currentCollection)
+                      }
+                      className="flex-1 bg-white border border-[#D1CEC7] rounded px-2 py-0.5 text-[#111111] outline-none text-xs w-full shadow-sm"
+                    />
+                  ) : (
+                    <span className="truncate pr-2">
+                      {item.title || item.role || item.jobRole || "Untitled"}
+                    </span>
+                  )}
+
+                  {!editingItemId && (
+                    <div className="relative shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(
+                            openMenuId === item.id ? null : item.id,
+                          );
                         }}
-                        onBlur={() =>
-                          handleRenameSubmit(item.id, currentCollection)
-                        }
-                        className="flex-1 bg-white border border-[#D1CEC7] rounded px-2 py-0.5 text-[#2D2D2D] outline-none text-xs w-full shadow-sm"
-                      />
-                    ) : (
-                      <span className="truncate pr-2">
-                        {item.title || item.role || item.jobRole || "Untitled"}
-                      </span>
-                    )}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#D1CEC7] rounded-md transition-colors text-[#7A756D]"
+                      >
+                        <MoreHorizontal strokeWidth={1.5} className="w-4 h-4" />
+                      </button>
 
-                    {!editingItemId && (
-                      <div className="relative shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(
-                              openMenuId === item.id ? null : item.id,
-                            );
-                          }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#D1CEC7] rounded-md transition-colors text-[#7A756D]"
-                        >
-                          <MoreHorizontal
-                            strokeWidth={1.5}
-                            className="w-4 h-4"
-                          />
-                        </button>
-
-                        {openMenuId === item.id && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-40"
+                      {openMenuId === item.id && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                            }}
+                          ></div>
+                          <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-[#E8E6DF] rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                            <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setEditingItemId(item.id);
+                                setEditTitle(
+                                  item.title || item.role || item.jobRole || "",
+                                );
                                 setOpenMenuId(null);
                               }}
-                            ></div>
-                            <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-[#E8E6DF] rounded-xl shadow-lg z-50 overflow-hidden py-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingItemId(item.id);
-                                  setEditTitle(
-                                    item.title ||
-                                      item.role ||
-                                      item.jobRole ||
-                                      "",
-                                  );
-                                  setOpenMenuId(null);
-                                }}
-                                className="w-full text-left px-3 py-1.5 text-xs text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
-                              >
-                                Rename
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteItem(currentCollection, item.id);
-                                  setOpenMenuId(null);
-                                }}
-                                className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ),
-              )}
+                              className="w-full text-left px-3 py-1.5 text-xs text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#111111] transition-colors"
+                            >
+                              Rename
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteItem(currentCollection, item.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
           </div>
 
           <div className="mt-auto p-4 border-t border-[#E8E6DF]/50 bg-[#F3F1EC] relative">
@@ -2523,7 +2613,7 @@ export const LenAi = () => {
                 ></div>
                 <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#FAF9F6] border border-[#E8E6DF] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-1 z-50 animate-fade-in overflow-hidden">
                   <div className="px-4 py-3 border-b border-[#E8E6DF]/50 bg-[#FAF9F6]">
-                    <p className="text-sm font-medium text-[#2D2D2D] truncate">
+                    <p className="text-sm font-medium text-[#111111] truncate">
                       {user?.displayName || "User"}
                     </p>
                     <p className="text-xs text-[#7A756D] truncate">
@@ -2536,7 +2626,7 @@ export const LenAi = () => {
                         setActiveTab("billing");
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#111111] rounded-xl transition-colors"
                     >
                       <Crown
                         strokeWidth={1.5}
@@ -2549,7 +2639,7 @@ export const LenAi = () => {
                         setIsSettingsOpen(true);
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#111111] rounded-xl transition-colors"
                     >
                       <Settings strokeWidth={1.5} className="w-4 h-4" />{" "}
                       Settings
@@ -2559,7 +2649,7 @@ export const LenAi = () => {
                         setActiveTab("about");
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#111111] rounded-xl transition-colors"
                     >
                       <Info strokeWidth={1.5} className="w-4 h-4" /> About Us
                     </button>
@@ -2570,7 +2660,7 @@ export const LenAi = () => {
                         if (logout) logout();
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] rounded-xl transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#111111] rounded-xl transition-colors"
                     >
                       <LogOut strokeWidth={1.5} className="w-4 h-4" /> Log out
                     </button>
@@ -2582,7 +2672,7 @@ export const LenAi = () => {
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
               className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#E8E6DF]/50 rounded-xl transition-colors text-left"
             >
-              <div className="w-6 h-6 bg-[#D1CEC7] rounded-full flex items-center justify-center text-[10px] font-medium text-[#2D2D2D] shrink-0">
+              <div className="w-6 h-6 bg-[#D1CEC7] rounded-full flex items-center justify-center text-[10px] font-medium text-[#111111] shrink-0">
                 {user?.displayName?.[0]?.toUpperCase() || "U"}
               </div>
               <div className="text-xs font-medium text-[#4A4A4A] truncate flex-1">
@@ -2608,7 +2698,7 @@ export const LenAi = () => {
           {videoSidebarOpen && (
             <div className="absolute top-0 right-0 bottom-0 w-full md:w-[450px] bg-white border-l border-[#E8E6DF] shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-[150] flex flex-col transform transition-transform duration-300 translate-x-0">
               <div className="p-4 border-b border-[#E8E6DF] flex justify-between items-center bg-[#FAF9F6]">
-                <h3 className="font-serif text-xl text-[#2D2D2D] truncate pr-4">
+                <h3 className="font-serif text-xl text-[#111111] truncate pr-4">
                   {activeVideoQuery || "Learning Resource"}
                 </h3>
                 <button
@@ -2651,7 +2741,7 @@ export const LenAi = () => {
                     <div className="mt-auto pt-6 border-t border-[#E8E6DF]">
                       <button
                         onClick={handleMarkCompleteAndNext}
-                        className="w-full flex items-center justify-center gap-2 py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition-colors"
+                        className="w-full flex items-center justify-center gap-2 py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition-colors"
                       >
                         <CheckCircle
                           strokeWidth={2}
@@ -2673,7 +2763,7 @@ export const LenAi = () => {
                   <div className="mb-6 text-[#D97D54]">
                     <ClaudeLogo className="w-10 h-10" />
                   </div>
-                  <h1 className="font-serif text-3xl md:text-[40px] text-[#2D2D2D] mb-10 tracking-tight text-center font-medium">
+                  <h1 className="font-serif text-3xl md:text-[40px] text-[#111111] mb-10 tracking-tight text-center font-medium">
                     {getGreeting()},{" "}
                     {user?.displayName
                       ? user.displayName.split(" ")[0]
@@ -2711,7 +2801,7 @@ export const LenAi = () => {
                     )}
                     <div className="w-full rounded-2xl bg-white border border-[#E8E6DF] focus-within:border-[#D1CEC7] focus-within:shadow-[0_4px_20px_rgb(0,0,0,0.04)] shadow-[0_2px_15px_rgb(0,0,0,0.02)] transition-all flex flex-col p-4">
                       <textarea
-                        className="w-full bg-transparent border-none text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
+                        className="w-full bg-transparent border-none text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
                         placeholder="How can Len help you today?"
                         rows={1}
                         value={input}
@@ -2790,7 +2880,7 @@ export const LenAi = () => {
                             className={`flex flex-col ${m.sender === "user" ? "items-end max-w-[85%]" : "flex-1"}`}
                           >
                             <div
-                              className={`text-[15.5px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#000000] font-[500] tracking-tight whitespace-pre-wrap"}`}
+                              className={`text-[15.5px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#111111] font-[500] tracking-tight whitespace-pre-wrap"}`}
                             >
                               {m.text}
                             </div>
@@ -2835,7 +2925,7 @@ export const LenAi = () => {
                           <div className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center mt-1 bg-transparent">
                             <ClaudeLogo className="w-5 h-5 text-[#D97D54] opacity-50" />
                           </div>
-                          <div className="text-sm text-[#000000] font-[500] flex items-center gap-1 mt-1.5">
+                          <div className="text-sm text-[#111111] font-[500] flex items-center gap-1 mt-1.5">
                             Thinking<span className="animate-pulse">...</span>
                           </div>
                         </div>
@@ -2893,7 +2983,7 @@ export const LenAi = () => {
                         <Headphones strokeWidth={1.5} className="w-5 h-5" />
                       </button>
                       <textarea
-                        className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#4e4943]"
+                        className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#4e4943]"
                         placeholder="Ask Anything to Vitra..."
                         rows={1}
                         value={input}
@@ -2929,12 +3019,12 @@ export const LenAi = () => {
             >
               <div className="h-full flex bg-[#FAF9F6]">
                 <div className="w-1/2 p-12 border-r border-[#E8E6DF] overflow-y-auto no-scrollbar">
-                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                  <h2 className="font-serif text-3xl text-[#111111] mb-8">
                     Drafting Board
                   </h2>
                   <div className="space-y-6">
                     <textarea
-                      className="w-full h-48 bg-white border border-[#E8E6DF] rounded-2xl p-5 text-[#2D2D2D] text-sm outline-none resize-none shadow-[0_2px_10px_rgb(0,0,0,0.01)] placeholder:text-[#A8A39D]"
+                      className="w-full h-48 bg-white border border-[#E8E6DF] rounded-2xl p-5 text-[#111111] text-sm outline-none resize-none shadow-[0_2px_10px_rgb(0,0,0,0.01)] placeholder:text-[#A8A39D]"
                       placeholder="Core message or rough notes..."
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
@@ -2957,7 +3047,7 @@ export const LenAi = () => {
                     <button
                       onClick={generateEmail}
                       disabled={emailLoading}
-                      className="w-full py-4 bg-[#2D2D2D] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#1A1A1A] transition disabled:opacity-50"
+                      className="w-full py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition disabled:opacity-50"
                     >
                       {emailLoading
                         ? "Polishing Draft..."
@@ -2966,7 +3056,7 @@ export const LenAi = () => {
                   </div>
                 </div>
                 <div className="w-1/2 p-12 overflow-y-auto no-scrollbar bg-white">
-                  <h2 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                  <h2 className="font-serif text-3xl text-[#111111] mb-8">
                     Preview
                   </h2>
                   <div className="bg-[#FAF9F6] rounded-3xl p-8 border border-[#E8E6DF] min-h-[500px]">
@@ -2992,7 +3082,7 @@ export const LenAi = () => {
               <div className="h-full bg-[#FAF9F6] overflow-y-auto no-scrollbar p-12">
                 {!activeRoadmap ? (
                   <div className="max-w-2xl mx-auto mt-20 text-center animate-fade-in">
-                    <h2 className="font-serif text-4xl text-[#2D2D2D] mb-4">
+                    <h2 className="font-serif text-4xl text-[#111111] mb-4">
                       Career Architect
                     </h2>
                     <p className="text-[#7A756D] mb-12 text-lg">
@@ -3000,7 +3090,7 @@ export const LenAi = () => {
                     </p>
                     <div className="flex gap-3 bg-white p-2 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_15px_rgb(0,0,0,0.02)]">
                       <input
-                        className="flex-1 p-4 bg-transparent outline-none text-[#2D2D2D] text-sm placeholder:text-[#A8A39D]"
+                        className="flex-1 p-4 bg-transparent outline-none text-[#111111] text-sm placeholder:text-[#A8A39D]"
                         placeholder="e.g. Senior Backend Engineer"
                         value={roadmapInput}
                         onChange={(e) => setRoadmapInput(e.target.value)}
@@ -3011,7 +3101,7 @@ export const LenAi = () => {
                       <button
                         onClick={generateRoadmap}
                         disabled={roadmapLoading}
-                        className="px-8 bg-[#2D2D2D] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#1A1A1A] transition disabled:opacity-50"
+                        className="px-8 bg-[#111111] text-[#FAF9F6] rounded-xl text-sm font-medium hover:bg-[#2D2D2D] transition disabled:opacity-50"
                       >
                         {roadmapLoading ? "Planning..." : "Create"}
                       </button>
@@ -3020,7 +3110,7 @@ export const LenAi = () => {
                 ) : (
                   <div className="max-w-3xl mx-auto animate-fade-in pb-16">
                     <div className="mb-12">
-                      <h1 className="font-serif text-4xl text-[#2D2D2D] mb-6 capitalize">
+                      <h1 className="font-serif text-4xl text-[#111111] mb-6 capitalize">
                         {activeRoadmap.role} Curriculum
                       </h1>
                       <div className="bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] mb-8">
@@ -3028,7 +3118,7 @@ export const LenAi = () => {
                           <span className="text-sm font-medium text-[#7A756D]">
                             Your Progress
                           </span>
-                          <span className="text-lg font-serif text-[#2D2D2D]">
+                          <span className="text-lg font-serif text-[#111111]">
                             {progressPercent}%
                           </span>
                         </div>
@@ -3052,7 +3142,7 @@ export const LenAi = () => {
                           </div>
                           <div className="bg-white border border-[#E8E6DF] p-8 rounded-3xl shadow-[0_2px_10px_rgb(0,0,0,0.01)]">
                             <div className="flex justify-between items-start mb-4">
-                              <h3 className="font-serif text-2xl text-[#2D2D2D]">
+                              <h3 className="font-serif text-2xl text-[#111111]">
                                 {s.title}
                               </h3>
                               <span className="text-[10px] font-medium bg-[#F3F1EC] text-[#7A756D] px-3 py-1 rounded-full">
@@ -3133,12 +3223,12 @@ export const LenAi = () => {
         {isSettingsOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
             <div
-              className="absolute inset-0 bg-[#2D2D2D]/20 backdrop-blur-sm"
+              className="absolute inset-0 bg-[#111111]/20 backdrop-blur-sm"
               onClick={() => setIsSettingsOpen(false)}
             ></div>
             <div className="relative w-full max-w-4xl bg-[#FAF9F6] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-[#E8E6DF] flex flex-col md:flex-row overflow-hidden animate-fade-in max-h-[85vh]">
               <div className="w-full md:w-64 bg-[#F3F1EC] border-r border-[#E8E6DF] p-6 flex flex-col">
-                <h2 className="font-serif text-2xl text-[#2D2D2D] mb-8">
+                <h2 className="font-serif text-2xl text-[#111111] mb-8">
                   Settings
                 </h2>
                 <nav className="space-y-1">
@@ -3151,7 +3241,7 @@ export const LenAi = () => {
                     <button
                       key={tab.id}
                       onClick={() => setSettingsTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors ${settingsTab === tab.id ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors ${settingsTab === tab.id ? "bg-[#FAF9F6] text-[#111111] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
                     >
                       <tab.icon strokeWidth={1.5} className="w-4 h-4" />{" "}
                       {tab.label}
@@ -3168,12 +3258,12 @@ export const LenAi = () => {
                 </button>
                 {settingsTab === "general" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                    <h3 className="font-serif text-3xl text-[#111111] mb-8">
                       General
                     </h3>
                     <div className="space-y-8">
                       <div>
-                        <label className="block text-sm font-medium text-[#2D2D2D] mb-3">
+                        <label className="block text-sm font-medium text-[#111111] mb-3">
                           Interface Theme
                         </label>
                         <div className="flex flex-col gap-3">
@@ -3182,7 +3272,7 @@ export const LenAi = () => {
                               type="radio"
                               name="theme"
                               defaultChecked
-                              className="accent-[#2D2D2D] w-4 h-4"
+                              className="accent-[#111111] w-4 h-4"
                             />
                             <span>Alabaster (Light)</span>
                           </label>
@@ -3191,7 +3281,7 @@ export const LenAi = () => {
                               type="radio"
                               name="theme"
                               disabled
-                              className="accent-[#2D2D2D] w-4 h-4"
+                              className="accent-[#111111] w-4 h-4"
                             />
                             <span>
                               Obsidian (Dark) —{" "}
@@ -3202,7 +3292,7 @@ export const LenAi = () => {
                       </div>
                       <div className="h-px bg-[#E8E6DF] w-full"></div>
                       <div>
-                        <h4 className="text-sm font-medium text-[#2D2D2D] mb-1">
+                        <h4 className="text-sm font-medium text-[#111111] mb-1">
                           Clear Conversation History
                         </h4>
                         <p className="text-sm text-[#7A756D] mb-4">
@@ -3218,7 +3308,7 @@ export const LenAi = () => {
                 )}
                 {settingsTab === "account" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-8">
+                    <h3 className="font-serif text-3xl text-[#111111] mb-8">
                       Account
                     </h3>
                     <div className="space-y-6">
@@ -3250,7 +3340,7 @@ export const LenAi = () => {
                             setIsSettingsOpen(false);
                             setActiveTab("billing");
                           }}
-                          className="w-full px-5 py-3.5 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors flex items-center justify-center gap-2"
+                          className="w-full px-5 py-3.5 bg-[#111111] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#2D2D2D] transition-colors flex items-center justify-center gap-2"
                         >
                           <Crown
                             strokeWidth={1.5}
@@ -3264,7 +3354,7 @@ export const LenAi = () => {
                 )}
                 {settingsTab === "memory" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
+                    <h3 className="font-serif text-3xl text-[#111111] mb-6">
                       AI Memory
                     </h3>
                     <p className="text-sm text-[#7A756D] mb-6 leading-relaxed">
@@ -3291,7 +3381,7 @@ export const LenAi = () => {
                             );
                             alert("Memory profile updated successfully!");
                           }}
-                          className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors"
+                          className="px-6 py-3 bg-[#111111] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#2D2D2D] transition-colors"
                         >
                           Save Changes
                         </button>
@@ -3315,12 +3405,12 @@ export const LenAi = () => {
                 )}
                 {settingsTab === "api" && (
                   <div className="max-w-xl animate-fade-in">
-                    <h3 className="font-serif text-3xl text-[#2D2D2D] mb-6">
+                    <h3 className="font-serif text-3xl text-[#111111] mb-6">
                       API Configuration
                     </h3>
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">
+                        <label className="block text-sm font-medium text-[#111111] mb-2">
                           Google Gemini API Key
                         </label>
                         <input
@@ -3330,11 +3420,11 @@ export const LenAi = () => {
                             setApiKeys({ ...apiKeys, gemini: e.target.value })
                           }
                           placeholder="AIzaSy... (Separate multiple keys with commas)"
-                          className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+                          className="w-full bg-white border border-[#E8E6DF] text-[#111111] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[#2D2D2D] mb-2">
+                        <label className="block text-sm font-medium text-[#111111] mb-2">
                           JSearch RapidAPI Key (Job Matcher)
                         </label>
                         <input
@@ -3344,13 +3434,13 @@ export const LenAi = () => {
                             setApiKeys({ ...apiKeys, rapid: e.target.value })
                           }
                           placeholder="Enter your key..."
-                          className="w-full bg-white border border-[#E8E6DF] text-[#2D2D2D] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+                          className="w-full bg-white border border-[#E8E6DF] text-[#111111] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                         />
                       </div>
                       <div className="pt-4 flex items-center gap-4">
                         <button
                           onClick={handleSaveApiKeys}
-                          className="px-6 py-3 bg-[#2D2D2D] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#1A1A1A] transition-colors"
+                          className="px-6 py-3 bg-[#111111] text-[#FAF9F6] text-sm font-medium rounded-xl hover:bg-[#2D2D2D] transition-colors"
                         >
                           Save API Keys
                         </button>
