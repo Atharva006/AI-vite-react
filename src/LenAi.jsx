@@ -2406,7 +2406,7 @@ export const LenAi = () => {
                   setActiveTab(t.id);
                   if (t.id !== "roadmap") setActiveRoadmap(null);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${activeTab === t.id && !activeRoadmap ? "bg-[#FAF9F6] text-[#2D2D2D] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${activeTab === t.id && !activeRoadmap ? "bg-[#FAF9F6] text-[#d41616] font-medium shadow-[0_1px_3px_rgb(0,0,0,0.02)] border border-[#E8E6DF]" : "text-[#000000] hover:bg-[#E8E6DF]/50"}`}
               >
                 <t.icon strokeWidth={1.5} className="w-4 h-4" /> {t.label}
               </button>
@@ -2414,94 +2414,104 @@ export const LenAi = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto no-scrollbar px-3 mt-6 pb-20">
-            <h3 className="text-[10px] font-semibold text-[#A8A39D] uppercase tracking-widest px-3 mb-2">
-              History
+            <h3 className="text-[12px] font-semibold text-[#A8A39D] uppercase tracking-widest px-2 mb-2">
+              Recents
             </h3>
             {!["store", "feedback", "billing", "about"].includes(activeTab) &&
-              currentHistory.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (!editingItemId)
-                      handleHistoryClick(item, currentCollection);
-                  }}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors relative ${activeId === item.id ? "bg-[#E8E6DF] text-[#2D2D2D]" : "text-[#7A756D] hover:bg-[#E8E6DF]/50"}`}
-                >
-                  {editingItemId === item.id ? (
-                    <input
-                      autoFocus
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter")
-                          handleRenameSubmit(item.id, currentCollection);
-                        if (e.key === "Escape") setEditingItemId(null);
-                      }}
-                      onBlur={() =>
-                        handleRenameSubmit(item.id, currentCollection)
-                      }
-                      className="flex-1 bg-white border border-[#D1CEC7] rounded px-2 py-0.5 text-[#2D2D2D] outline-none text-xs w-full shadow-sm"
-                    />
-                  ) : (
-                    <span className="truncate pr-2">
-                      {item.title || item.role || item.jobRole || "Untitled"}
-                    </span>
-                  )}
-
-                  {!editingItemId && (
-                    <div className="relative shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuId(
-                            openMenuId === item.id ? null : item.id,
-                          );
+              currentHistory.map(
+                (
+                  item, //Font change here
+                ) => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      if (!editingItemId)
+                        handleHistoryClick(item, currentCollection);
+                    }}
+                    className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors relative ${activeId === item.id ? "bg-[#E8E6DF] text-[#313430]" : "text-[#000000] hover:bg-[#E8E6DF]/50"}`}
+                  >
+                    {editingItemId === item.id ? (
+                      <input
+                        autoFocus
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter")
+                            handleRenameSubmit(item.id, currentCollection);
+                          if (e.key === "Escape") setEditingItemId(null);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#D1CEC7] rounded-md transition-colors text-[#7A756D]"
-                      >
-                        <MoreHorizontal strokeWidth={1.5} className="w-4 h-4" />
-                      </button>
+                        onBlur={() =>
+                          handleRenameSubmit(item.id, currentCollection)
+                        }
+                        className="flex-1 bg-white border border-[#D1CEC7] rounded px-2 py-0.5 text-[#2D2D2D] outline-none text-xs w-full shadow-sm"
+                      />
+                    ) : (
+                      <span className="truncate pr-2">
+                        {item.title || item.role || item.jobRole || "Untitled"}
+                      </span>
+                    )}
 
-                      {openMenuId === item.id && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-40"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(null);
-                            }}
-                          ></div>
-                          <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-[#E8E6DF] rounded-xl shadow-lg z-50 overflow-hidden py-1">
-                            <button
+                    {!editingItemId && (
+                      <div className="relative shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(
+                              openMenuId === item.id ? null : item.id,
+                            );
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#D1CEC7] rounded-md transition-colors text-[#7A756D]"
+                        >
+                          <MoreHorizontal
+                            strokeWidth={1.5}
+                            className="w-4 h-4"
+                          />
+                        </button>
+
+                        {openMenuId === item.id && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-40"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingItemId(item.id);
-                                setEditTitle(
-                                  item.title || item.role || item.jobRole || "",
-                                );
                                 setOpenMenuId(null);
                               }}
-                              className="w-full text-left px-3 py-1.5 text-xs text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
-                            >
-                              Rename
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteItem(currentCollection, item.id);
-                                setOpenMenuId(null);
-                              }}
-                              className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                            ></div>
+                            <div className="absolute right-0 top-full mt-1 w-28 bg-white border border-[#E8E6DF] rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingItemId(item.id);
+                                  setEditTitle(
+                                    item.title ||
+                                      item.role ||
+                                      item.jobRole ||
+                                      "",
+                                  );
+                                  setOpenMenuId(null);
+                                }}
+                                className="w-full text-left px-3 py-1.5 text-xs text-[#4A4A4A] hover:bg-[#F3F1EC] hover:text-[#2D2D2D] transition-colors"
+                              >
+                                Rename
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteItem(currentCollection, item.id);
+                                  setOpenMenuId(null);
+                                }}
+                                className="w-full text-left px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
           </div>
 
           <div className="mt-auto p-4 border-t border-[#E8E6DF]/50 bg-[#F3F1EC] relative">
@@ -2883,8 +2893,8 @@ export const LenAi = () => {
                         <Headphones strokeWidth={1.5} className="w-5 h-5" />
                       </button>
                       <textarea
-                        className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#A8A39D]"
-                        placeholder="Message Len..."
+                        className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#2D2D2D] outline-none resize-none placeholder:text-[#4e4943]"
+                        placeholder="Ask Anything to Vitra..."
                         rows={1}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
