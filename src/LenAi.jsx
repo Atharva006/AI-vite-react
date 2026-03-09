@@ -1409,7 +1409,44 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
                         key={i}
                         className="text-[#4A4A4A] text-sm leading-relaxed flex items-start gap-3 bg-white p-4 rounded-xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)]"
                       >
-                        <span className="text-[#D97D54] mt-0.5">•</span> {item}
+                        <span className="text-[#D97D54] mt-0.5 shrink-0">
+                          •
+                        </span>
+                        <div className="flex-1 overflow-hidden">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({ node, ...props }) => <span {...props} />,
+                              strong: ({ node, ...props }) => (
+                                <strong
+                                  className="font-semibold text-[#111111]"
+                                  {...props}
+                                />
+                              ),
+                              code: ({
+                                node,
+                                inline,
+                                className,
+                                children,
+                                ...props
+                              }) =>
+                                inline ? (
+                                  <code
+                                    className="bg-[#F3F1EC] px-1 py-0.5 rounded text-[12px] font-mono text-[#D97D54]"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                ),
+                            }}
+                          >
+                            {item}
+                          </ReactMarkdown>
+                        </div>
                       </li>
                     ))}
                   </ul>
