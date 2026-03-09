@@ -1454,6 +1454,7 @@ export const LenAi = () => {
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [chatImage, setChatImage] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -1827,7 +1828,6 @@ export const LenAi = () => {
       setActiveChatId(ref.id);
       activeChatIdRef.current = ref.id;
     } else if (messagesRef.current.length === 0) {
-      // Dynamic chat title rename if it's a new session
       await updateDoc(doc(db, "users", user.uid, "chats", cid), {
         title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
       });
@@ -1842,7 +1842,8 @@ export const LenAi = () => {
       const memoryContext = userMemory
         ? `\n\n--- USER MEMORY CONTEXT ---\n${userMemory}\n`
         : "";
-      const systemInstruction = `You are a Principal Software Architect. User: ${user?.displayName || "Atharva"}. Be concise. Never say you are an AI...${memoryContext}. Always say you are trained by SSVA.pvt.Ltd Diploma Students. give answers in  point wise like simple sentences. Do not use more than 2 sentences in a row. Always be concise and to the point.
+      const systemInstruction = `You are a Principal Software Architect. User: ${user?.displayName || "Atharva"}. Be concise. Never say you are an AI...${memoryContext}. Always say you are trained by SSVA.pvt.Ltd Diploma Students. give answers in  point wise like simple sentences. Do not use more than 2 sentences in a row. Always be concise and to the point. Do no answer in ** format always use - format for points.
+      Do no answer in ** format always use - format for points.
          Give me answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
          give answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
          Give answers in points like (-,-) way in that type of format. Never include (**) in any type of answer. Don't include  (I am trained by SSVA.pvt.Ltd Diploma Students) in every answer jst answer only when asked.
@@ -1851,7 +1852,7 @@ export const LenAi = () => {
          give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.`;
       const history = messagesRef.current.slice(-10).map((m) => ({
         role: m.sender === "user" ? "user" : "model",
-        parts: [{ text: m.text }],
+        parts: [{ text: m.text || "[Image attached]" }],
       }));
       const result = await safeSendMessage(
         { model: "gemini-2.5-flash", systemInstruction },
@@ -1889,8 +1890,13 @@ export const LenAi = () => {
 
   const sendChat = async (customPrompt = null) => {
     const textToSend = customPrompt || input;
-    if (!textToSend.trim() || !user || GEMINI_KEYS.length === 0) return;
+    if ((!textToSend.trim() && !chatImage) || !user || GEMINI_KEYS.length === 0)
+      return;
+
     setInput("");
+    const currentImage = chatImage;
+    setChatImage(null);
+
     if (isDictating) {
       setIsDictating(false);
       dictationRecognitionRef.current?.stop();
@@ -1899,45 +1905,77 @@ export const LenAi = () => {
     let cid = activeChatIdRef.current;
 
     if (!cid) {
+      const titleText = textToSend.trim() ? textToSend : "Image Upload";
       const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
-        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
+        title: titleText.slice(0, 25) + (titleText.length > 25 ? "..." : ""),
         createdAt: serverTimestamp(),
       });
       cid = ref.id;
       setActiveChatId(ref.id);
       activeChatIdRef.current = ref.id;
     } else if (messagesRef.current.length === 0) {
-      // Dynamic chat title rename if it's a new session
+      const titleText = textToSend.trim() ? textToSend : "Image Upload";
       await updateDoc(doc(db, "users", user.uid, "chats", cid), {
-        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
+        title: titleText.slice(0, 25) + (titleText.length > 25 ? "..." : ""),
       });
+    }
+
+    let base64Image = null;
+    let generativePart = null;
+    if (currentImage) {
+      const reader = new FileReader();
+      reader.readAsDataURL(currentImage);
+      await new Promise((r) => (reader.onload = r));
+      base64Image = reader.result;
+      generativePart = {
+        inlineData: {
+          data: base64Image.split(",")[1],
+          mimeType: currentImage.type,
+        },
+      };
     }
 
     await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
       text: textToSend,
+      imageUrl: base64Image,
       sender: "user",
       createdAt: serverTimestamp(),
     });
+
     try {
       const memoryContext = userMemory
         ? `\n\n--- USER MEMORY CONTEXT ---\n${userMemory}\n`
         : "";
       const systemInstruction = `You are a Principal Software Architect. User: ${user?.displayName || "Atharva"}. Be concise. Never say you are an AI...${memoryContext}. Always say you are trained by SSVA.pvt.Ltd Diploma Students. give answers in  point wise like simple sentences. Do not use more than 2 sentences in a row. Always be concise and to the point.
+      Do no answer in ** format always use - format for points.
          Give me answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
          give answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
          Give answers in points like (-,-) way in that type of format. Never include (**) in any type of answer. Don't include  (I am trained by SSVA.pvt.Ltd Diploma Students) in every answer jst answer only when asked.
          Do not use more than 2 sentences in a row. Always be concise and to the point.
          Not in one line change line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         Never respond in * like structure always give me proper answer.
          give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.`;
+
       const history = messagesRef.current.slice(-3).map((m) => ({
         role: m.sender === "user" ? "user" : "model",
-        parts: [{ text: m.text }],
+        parts: [{ text: m.text || "[Image attached]" }],
       }));
+
+      const messageParts = [];
+      if (textToSend.trim()) messageParts.push(textToSend);
+      if (generativePart) messageParts.push(generativePart);
+
+      const payload =
+        messageParts.length === 1 && typeof messageParts[0] === "string"
+          ? messageParts[0]
+          : messageParts;
+
       const result = await safeSendMessage(
         { model: "gemini-2.5-flash", systemInstruction },
         history,
-        textToSend,
+        payload,
       );
+
       await addDoc(
         collection(db, "users", user.uid, "chats", cid, "messages"),
         {
@@ -2800,6 +2838,21 @@ export const LenAi = () => {
                       </div>
                     )}
                     <div className="w-full rounded-2xl bg-white border border-[#E8E6DF] focus-within:border-[#D1CEC7] focus-within:shadow-[0_4px_20px_rgb(0,0,0,0.04)] shadow-[0_2px_15px_rgb(0,0,0,0.02)] transition-all flex flex-col p-4">
+                      {chatImage && (
+                        <div className="relative inline-block mb-3 px-2 pt-2">
+                          <img
+                            src={URL.createObjectURL(chatImage)}
+                            alt="Preview"
+                            className="h-16 w-16 object-cover rounded-xl border border-[#E8E6DF]"
+                          />
+                          <button
+                            onClick={() => setChatImage(null)}
+                            className="absolute top-0 right-[-8px] bg-white text-red-500 rounded-full p-1 shadow-sm border border-[#E8E6DF]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                       <textarea
                         className="w-full bg-transparent border-none text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
                         placeholder="How can Len help you today?"
@@ -2812,11 +2865,38 @@ export const LenAi = () => {
                             sendChat();
                           }
                         }}
+                        onPaste={(e) => {
+                          if (
+                            e.clipboardData.files &&
+                            e.clipboardData.files.length > 0
+                          ) {
+                            const file = e.clipboardData.files[0];
+                            if (file.type.startsWith("image/")) {
+                              setChatImage(file);
+                              e.preventDefault();
+                            }
+                          }
+                        }}
                         disabled={chatLoading}
                         style={{ minHeight: "60px", maxHeight: "200px" }}
                       />
                       <div className="flex justify-between items-center pt-2">
                         <div className="flex items-center gap-1.5">
+                          <label
+                            className={`p-1.5 rounded-lg transition-colors text-[#7A756D] hover:bg-[#F3F1EC] cursor-pointer`}
+                          >
+                            <Paperclip strokeWidth={1.5} className="w-4 h-4" />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setChatImage(e.target.files[0]);
+                                }
+                              }}
+                            />
+                          </label>
                           <button
                             onClick={toggleDictation}
                             disabled={chatLoading || isVoiceMode}
@@ -2838,7 +2918,7 @@ export const LenAi = () => {
                         </div>
                         <button
                           onClick={() => sendChat()}
-                          disabled={!input.trim()}
+                          disabled={!input.trim() && !chatImage}
                           className="px-3 py-1.5 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition-colors disabled:opacity-40 flex items-center justify-center shadow-sm"
                         >
                           <ArrowRight strokeWidth={2} className="w-4 h-4" />
@@ -2882,6 +2962,13 @@ export const LenAi = () => {
                             <div
                               className={`text-[15.5px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#111111] font-[500] tracking-tight whitespace-pre-wrap"}`}
                             >
+                              {m.imageUrl && (
+                                <img
+                                  src={m.imageUrl}
+                                  alt="Attached"
+                                  className="max-w-xs rounded-xl mb-2 border border-[#E8E6DF]"
+                                />
+                              )}
                               {m.text}
                             </div>
                             {m.sender !== "user" && (
@@ -2963,47 +3050,91 @@ export const LenAi = () => {
                         </div>
                       </div>
                     )}
-                    <div className="relative rounded-3xl bg-white border border-[#E8E6DF] shadow-sm focus-within:border-[#D1CEC7] transition-all flex items-center gap-1.5 pl-2">
-                      <button
-                        onClick={toggleDictation}
-                        disabled={chatLoading || isVoiceMode}
-                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
-                      >
-                        {isDictating ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Mic strokeWidth={1.5} className="w-5 h-5" />
-                        )}
-                      </button>
-                      <button
-                        onClick={toggleVoiceMode}
-                        disabled={chatLoading || isDictating}
-                        className={`p-2 rounded-full flex items-center justify-center transition-colors ${isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
-                      >
-                        <Headphones strokeWidth={1.5} className="w-5 h-5" />
-                      </button>
-                      <textarea
-                        className="flex-1 bg-transparent border-none rounded-3xl p-5 pl-1 pr-14 text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#4e4943]"
-                        placeholder="Ask Anything to Vitra..."
-                        rows={1}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            sendChat();
-                          }
-                        }}
-                        disabled={chatLoading}
-                        style={{ minHeight: "60px", maxHeight: "200px" }}
-                      />
-                      <button
-                        onClick={() => sendChat()}
-                        disabled={!input.trim()}
-                        className="absolute right-3 bottom-3 p-2 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition disabled:opacity-40 flex items-center justify-center shadow-sm"
-                      >
-                        <ArrowRight strokeWidth={2} className="w-4 h-4" />
-                      </button>
+                    <div className="relative rounded-3xl bg-white border border-[#E8E6DF] shadow-sm focus-within:border-[#D1CEC7] transition-all flex flex-col pl-2 pt-2 pb-1">
+                      {chatImage && (
+                        <div className="relative inline-block mb-2 ml-2">
+                          <img
+                            src={URL.createObjectURL(chatImage)}
+                            alt="Preview"
+                            className="h-16 w-16 object-cover rounded-xl border border-[#E8E6DF]"
+                          />
+                          <button
+                            onClick={() => setChatImage(null)}
+                            className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full p-1 shadow-sm border border-[#E8E6DF]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5 w-full">
+                        <label
+                          className={`p-2 rounded-full flex items-center justify-center transition-colors text-[#7A756D] hover:bg-[#F3F1EC] cursor-pointer`}
+                        >
+                          <Paperclip strokeWidth={1.5} className="w-5 h-5" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setChatImage(e.target.files[0]);
+                              }
+                            }}
+                          />
+                        </label>
+                        <button
+                          onClick={toggleDictation}
+                          disabled={chatLoading || isVoiceMode}
+                          className={`p-2 rounded-full flex items-center justify-center transition-colors ${isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
+                        >
+                          {isDictating ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <Mic strokeWidth={1.5} className="w-5 h-5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={toggleVoiceMode}
+                          disabled={chatLoading || isDictating}
+                          className={`p-2 rounded-full flex items-center justify-center transition-colors ${isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
+                        >
+                          <Headphones strokeWidth={1.5} className="w-5 h-5" />
+                        </button>
+                        <textarea
+                          className="flex-1 bg-transparent border-none rounded-3xl p-3 pr-14 text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#4e4943]"
+                          placeholder="Ask Anything to Vitra..."
+                          rows={1}
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              sendChat();
+                            }
+                          }}
+                          onPaste={(e) => {
+                            if (
+                              e.clipboardData.files &&
+                              e.clipboardData.files.length > 0
+                            ) {
+                              const file = e.clipboardData.files[0];
+                              if (file.type.startsWith("image/")) {
+                                setChatImage(file);
+                                e.preventDefault();
+                              }
+                            }
+                          }}
+                          disabled={chatLoading}
+                          style={{ minHeight: "50px", maxHeight: "200px" }}
+                        />
+                        <button
+                          onClick={() => sendChat()}
+                          disabled={!input.trim() && !chatImage}
+                          className="absolute right-3 bottom-3 p-2 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition disabled:opacity-40 flex items-center justify-center shadow-sm"
+                        >
+                          <ArrowRight strokeWidth={2} className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </>
