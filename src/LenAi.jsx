@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useAuth } from "./context/AuthContext";
 import { db } from "./firebase";
 import * as pdfjsLib from "pdfjs-dist";
@@ -2960,7 +2962,7 @@ export const LenAi = () => {
                             className={`flex flex-col ${m.sender === "user" ? "items-end max-w-[85%]" : "flex-1"}`}
                           >
                             <div
-                              className={`text-[15.5px] leading-relaxed ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#111111] font-[500] tracking-tight whitespace-pre-wrap"}`}
+                              className={`text-[15.5px] leading-relaxed w-full ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#111111] font-[500] tracking-tight"}`}
                             >
                               {m.imageUrl && (
                                 <img
@@ -2969,7 +2971,71 @@ export const LenAi = () => {
                                   className="max-w-xs rounded-xl mb-2 border border-[#E8E6DF]"
                                 />
                               )}
-                              {m.text}
+                              {m.sender === "user" ? (
+                                <div className="whitespace-pre-wrap">
+                                  {m.text}
+                                </div>
+                              ) : (
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    p: ({ node, ...props }) => (
+                                      <p
+                                        className="mb-3 last:mb-0"
+                                        {...props}
+                                      />
+                                    ),
+                                    ul: ({ node, ...props }) => (
+                                      <ul
+                                        className="list-disc ml-5 mb-3 space-y-1"
+                                        {...props}
+                                      />
+                                    ),
+                                    ol: ({ node, ...props }) => (
+                                      <ol
+                                        className="list-decimal ml-5 mb-3 space-y-1"
+                                        {...props}
+                                      />
+                                    ),
+                                    li: ({ node, ...props }) => (
+                                      <li className="pl-1" {...props} />
+                                    ),
+                                    strong: ({ node, ...props }) => (
+                                      <strong
+                                        className="font-bold text-[#111111]"
+                                        {...props}
+                                      />
+                                    ),
+                                    code({
+                                      node,
+                                      inline,
+                                      className,
+                                      children,
+                                      ...props
+                                    }) {
+                                      return !inline ? (
+                                        <pre className="bg-[#111111] text-[#FAF9F6] p-4 rounded-xl overflow-x-auto my-3 text-[13px] font-mono shadow-sm">
+                                          <code
+                                            className={className}
+                                            {...props}
+                                          >
+                                            {children}
+                                          </code>
+                                        </pre>
+                                      ) : (
+                                        <code
+                                          className="bg-[#E8E6DF] px-1.5 py-0.5 rounded text-[13px] font-mono text-[#D97D54]"
+                                          {...props}
+                                        >
+                                          {children}
+                                        </code>
+                                      );
+                                    },
+                                  }}
+                                >
+                                  {m.text}
+                                </ReactMarkdown>
+                              )}
                             </div>
                             {m.sender !== "user" && (
                               <div className="flex items-center gap-1 mt-3 text-[#7A756D]">
