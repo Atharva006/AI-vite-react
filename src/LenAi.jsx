@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "./context/AuthContext";
@@ -42,9 +43,13 @@ import {
   Heart,
   Settings,
   LogOut,
+  Mic,
+  FileAudio,
   Loader2,
+  Headphones,
   User,
   Check,
+  Paperclip,
   Copy,
   ThumbsUp,
   ThumbsDown,
@@ -52,7 +57,6 @@ import {
   Brain,
   Info,
   Compass,
-  Mic,
 } from "lucide-react";
 import {
   collection,
@@ -74,12 +78,12 @@ import {
 // --- CONFIGURATION & API KEY ROTATION ---
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-let rawGroqKeys =
-  localStorage.getItem("groq_api_key") ||
-  import.meta.env.VITE_GROQ_KEYS ||
-  import.meta.env.VITE_GROQ_API_KEY ||
+let rawGeminiKeys =
+  localStorage.getItem("gemini_api_key") ||
+  import.meta.env.VITE_GEMINI_KEYS ||
+  import.meta.env.VITE_GEMINI_API_KEY ||
   "";
-let GROQ_KEYS = rawGroqKeys
+let GEMINI_KEYS = rawGeminiKeys
   .split(",")
   .map((k) => k.trim())
   .filter(Boolean);
@@ -88,14 +92,23 @@ let RAPIDAPI_KEY =
   localStorage.getItem("rapid_api_key") || import.meta.env.VITE_RAPIDAPI_KEY;
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-const updateAPIKeys = (groq, rapid) => {
-  if (groq !== undefined) {
-    localStorage.setItem("groq_api_key", groq);
-    GROQ_KEYS = groq
+let genAI =
+  GEMINI_KEYS.length > 0
+    ? new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex])
+    : null;
+
+const updateAPIKeys = (gemini, rapid) => {
+  if (gemini !== undefined) {
+    localStorage.setItem("gemini_api_key", gemini);
+    GEMINI_KEYS = gemini
       .split(",")
       .map((k) => k.trim())
       .filter(Boolean);
     currentKeyIndex = 0;
+    genAI =
+      GEMINI_KEYS.length > 0
+        ? new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex])
+        : null;
   }
   if (rapid !== undefined) {
     localStorage.setItem("rapid_api_key", rapid);
@@ -104,81 +117,33 @@ const updateAPIKeys = (groq, rapid) => {
 };
 
 const rotateKey = () => {
-  if (GROQ_KEYS.length <= 1) return false;
-  currentKeyIndex = (currentKeyIndex + 1) % GROQ_KEYS.length;
-  console.warn(`Rate limit hit. Rotated to Groq Key Index: ${currentKeyIndex}`);
+  if (GEMINI_KEYS.length <= 1) return false;
+  currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length;
+  genAI = new GoogleGenerativeAI(GEMINI_KEYS[currentKeyIndex]);
+  console.warn(
+    `Rate limit hit. Rotated to Gemini Key Index: ${currentKeyIndex}`,
+  );
   return true;
 };
 
-// Utility to extract JSON safely from Llama's text
-const extractJSON = (text) => {
-  try {
-    const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-    if (match) return JSON.parse(match[0]);
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Failed to parse JSON:", text);
-    return {};
-  }
-};
-
-// Groq Integration via standard OpenAI-compatible fetch
 export const safeGenerateContent = async (
   modelParams,
   promptData,
-  retries = GROQ_KEYS.length,
-  expectJson = false
+  retries = GEMINI_KEYS.length,
 ) => {
-  if (GROQ_KEYS.length === 0) throw new Error("No Groq API key configured.");
-
-  const apiKey = GROQ_KEYS[currentKeyIndex];
-
-  let textOnlyContent = typeof promptData === "string" 
-    ? promptData 
-    : (Array.isArray(promptData) ? promptData.find(m => typeof m === "string") || "" : JSON.stringify(promptData));
-
-  const bodyPayload = {
-    model: "llama-3.1-8b-instant",
-    messages: [{ role: "user", content: textOnlyContent }],
-  };
-
-  if (expectJson) {
-    bodyPayload.response_format = { type: "json_object" };
-  }
-
+  if (!genAI) throw new Error("No Gemini API key configured.");
   try {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyPayload),
-      },
-    );
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || `HTTP error ${response.status}`);
-    }
-
-    const data = await response.json();
-    return {
-      response: {
-        text: () => data.choices[0].message.content,
-      },
-    };
+    const model = genAI.getGenerativeModel(modelParams);
+    return await model.generateContent(promptData);
   } catch (error) {
     if (
-      (error.message?.includes("429") ||
-        error.message?.includes("exhausted") ||
-        error.message?.includes("rate limit")) &&
+      (error.status === 429 ||
+        error.message?.includes("429") ||
+        error.message?.includes("exhausted")) &&
       retries > 1 &&
       rotateKey()
     ) {
-      return await safeGenerateContent(modelParams, promptData, retries - 1, expectJson);
+      return await safeGenerateContent(modelParams, promptData, retries - 1);
     }
     throw error;
   }
@@ -188,63 +153,17 @@ export const safeSendMessage = async (
   modelParams,
   history,
   message,
-  retries = GROQ_KEYS.length,
+  retries = GEMINI_KEYS.length,
 ) => {
-  if (GROQ_KEYS.length === 0) throw new Error("No Groq API key configured.");
-
-  const apiKey = GROQ_KEYS[currentKeyIndex];
-  const messages = [];
-
-  if (modelParams.systemInstruction) {
-    messages.push({ role: "system", content: modelParams.systemInstruction });
-  }
-
-  // Map history format to standard OpenAI format
-  history.forEach((msg) => {
-    messages.push({
-      role: msg.role === "model" ? "assistant" : "user",
-      content: msg.parts[0].text,
-    });
-  });
-
-  const textOnlyContent = typeof message === "string" 
-    ? message 
-    : (Array.isArray(message) ? message.find(m => typeof m === "string") || "" : JSON.stringify(message));
-    
-  messages.push({ role: "user", content: textOnlyContent });
-
+  if (!genAI) throw new Error("No Gemini API key configured.");
   try {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: messages,
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || `HTTP error ${response.status}`);
-    }
-
-    const data = await response.json();
-    return {
-      response: {
-        text: () => data.choices[0].message.content,
-      },
-    };
+    const model = genAI.getGenerativeModel(modelParams);
+    return await model.startChat({ history }).sendMessage(message);
   } catch (error) {
     if (
-      (error.message?.includes("429") ||
-        error.message?.includes("exhausted") ||
-        error.message?.includes("rate limit")) &&
+      (error.status === 429 ||
+        error.message?.includes("429") ||
+        error.message?.includes("exhausted")) &&
       retries > 1 &&
       rotateKey()
     ) {
@@ -262,6 +181,18 @@ const ClaudeLogo = ({ className }) => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+  </svg>
+);
+
+const CustomSpeechBubbleIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    stroke="none"
+  >
+    <path d="M19.07,3H4.93C3.31,3,2,4.31,2,5.93v8.14c0,1.62,1.31,2.93,2.93,2.93h12.14l4.93,4V5.93C22,4.31,20.69,3,19.07,3z M7,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S7.83,11.5,7,11.5z M12,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5 s1.5,0.67,1.5,1.5S12.83,11.5,12,11.5z M17,11.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S17.83,11.5,17,11.5z" />
   </svg>
 );
 
@@ -298,6 +229,11 @@ const TOUR_STEPS = [
     title: "AI Career Chat",
     desc: "Chat with a Principal Software Architect AI.",
     icon: MessageSquare,
+  },
+  {
+    title: "Full-Duplex Voice",
+    desc: "Engage in real-time, interruptible live conversation.",
+    icon: Headphones,
   },
   {
     title: "Career Roadmaps",
@@ -462,7 +398,7 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
   }, [activeItem]);
 
   const searchAndMatchJobs = async () => {
-    if (!userProfile || !jobRole || GROQ_KEYS.length === 0) return;
+    if (!userProfile || !jobRole || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     setMatchedJobs([]);
     try {
@@ -513,21 +449,21 @@ const AIJobMatcher = ({ activeItem, onSave }) => {
         link: j.job_apply_link || "#",
       }));
 
-      const prompt = `Act as an expert AI Recruiter utilizing semantic similarity embeddings. Evaluate the match between this User Profile and the provided Job Listings. 
-USER PROFILE: "${userProfile}" 
-JOB LISTINGS (JSON): ${JSON.stringify(jobsPayload)} 
-Task: Rank these jobs strictly by how well they semantically match the User Profile. 
-Output ONLY a valid JSON object with the following exact structure: 
-{"matches": [{"title": "Job Title", "company": "Company Name", "matchScore": <Number 0-100>, "reason": "1 concise sentence explaining exactly why this is or isn't a good match.", "link": "The job link"}]}
-Return ONLY JSON. No markdown, no preamble.`;
+      const prompt = `Act as an expert AI Recruiter utilizing semantic similarity embeddings. Evaluate the match between this User Profile and the provided Job Listings. USER PROFILE: "${userProfile}" JOB LISTINGS (JSON): ${JSON.stringify(jobsPayload)} Task: Rank these jobs strictly by how well they semantically match the User Profile. Output ONLY a valid JSON array of objects with the following exact structure: [{"title": "Job Title", "company": "Company Name", "matchScore": <Number 0-100>, "reason": "1 concise sentence explaining exactly why this is or isn't a good match.", "link": "The job link"}]`;
 
-      const result = await safeGenerateContent({}, prompt, GROQ_KEYS.length, true);
-      const rawText = result.response.text();
-      let matchedData = extractJSON(rawText).matches || [];
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
+      const rawText = result.response
+        .text()
+        .replace(/```json|```/g, "")
+        .trim();
+      let matchedData = JSON.parse(rawText);
       matchedData.sort((a, b) => b.matchScore - a.matchScore);
       setMatchedJobs(matchedData);
 
-      if (onSave && matchedData.length > 0) {
+      if (onSave) {
         onSave({
           title: `${jobRole} Matches`,
           userProfile,
@@ -686,16 +622,22 @@ const MarketAnalyzer = ({ activeItem, onSave }) => {
   }, [activeItem]);
 
   const analyzeMarket = async () => {
-    if (!role || !baseLocation || GROQ_KEYS.length === 0) return;
+    if (!role || !baseLocation || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     setMarketData(null);
     try {
-      const prompt = `You are an advanced AI regression model trained on global job market data. Perform a comprehensive salary and market demand prediction for the role: "${role}". Base Location: "${baseLocation}". ${targetLocation ? `Target Comparison Location: "${targetLocation}".` : ""} Provide expected average salary range (USD), demand level, and projected growth rate (5 yrs). 
-Return ONLY a valid JSON object with this exact structure: {"base": {"location": "${baseLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "target": {"location": "${targetLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "insights": ["Insight 1", "Insight 2", "Insight 3"], "verdict": "One sentence final recommendation."}
-Return ONLY JSON. No preamble, no markdown formatting.`;
+      const prompt = `You are an advanced AI regression model trained on global job market data. Perform a comprehensive salary and market demand prediction for the role: "${role}". Base Location: "${baseLocation}". ${targetLocation ? `Target Comparison Location: "${targetLocation}".` : ""} Provide expected average salary range (USD), demand level, and projected growth rate (5 yrs). Return STRICTLY a JSON object with this exact structure: {"base": {"location": "${baseLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "target": {"location": "${targetLocation}", "salaryUSD": "$X - $Y", "demand": "High/Medium/Low", "growthRate": "X%"}, "insights": ["Insight 1", "Insight 2", "Insight 3"], "verdict": "One sentence final recommendation."}`;
 
-      const result = await safeGenerateContent({}, prompt, GROQ_KEYS.length, true);
-      const data = extractJSON(result.response.text());
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
+      const data = JSON.parse(
+        result.response
+          .text()
+          .replace(/```json|```/g, "")
+          .trim(),
+      );
       setMarketData(data);
 
       if (onSave) {
@@ -725,11 +667,11 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
           </h3>
           <h2 className="font-serif text-3xl text-[#111111] flex items-center gap-2">
             <MapPin strokeWidth={1.5} className="w-5 h-5 text-[#A8A39D]" />{" "}
-            {data?.location || "-"}
+            {data.location}
           </h2>
         </div>
         <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F3F1EC] text-[#4A4A4A] border border-[#E8E6DF]">
-          {data?.demand || "-"} Demand
+          {data.demand} Demand
         </span>
       </div>
       <div className="space-y-6">
@@ -737,14 +679,14 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
           <p className="text-xs font-medium text-[#7A756D] mb-1">
             Expected Salary (USD)
           </p>
-          <p className="font-serif text-4xl text-[#111111]">{data?.salaryUSD || "-"}</p>
+          <p className="font-serif text-4xl text-[#111111]">{data.salaryUSD}</p>
         </div>
         <div>
           <p className="text-xs font-medium text-[#7A756D] mb-1">
             Projected Growth (5 Yrs)
           </p>
           <p className="font-sans text-xl font-medium text-[#4A4A4A]">
-            {data?.growthRate || "-"}
+            {data.growthRate}
           </p>
         </div>
       </div>
@@ -807,7 +749,7 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                 Strategic Intelligence
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                {(marketData.insights || []).map((insight, idx) => (
+                {marketData.insights.map((insight, idx) => (
                   <div key={idx} className="flex gap-4">
                     <span className="text-[#A8A39D] font-serif text-xl italic">
                       0{idx + 1}
@@ -823,7 +765,7 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                   Final Verdict
                 </h4>
                 <p className="font-serif text-lg text-[#111111]">
-                  {marketData.verdict || "-"}
+                  {marketData.verdict}
                 </p>
               </div>
             </div>
@@ -1320,7 +1262,7 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
   useEffect(() => {
     if (activeItem) {
       setScore(activeItem.score);
-      setSuggestions(activeItem.suggestions || {});
+      setSuggestions(activeItem.suggestions);
       setFile({ name: activeItem.fileName || "Previous Audit" });
     } else {
       setScore(null);
@@ -1358,59 +1300,54 @@ const ResumeAnalyzer = ({ activeItem, onSave }) => {
         const result = await mammoth.extractRawText({ arrayBuffer: buffer });
         return result.value;
       }
-    } catch (e) {
-      console.error("Extraction error:", e);
-      return file.name;
+    } catch {
+      return null;
     }
   };
 
   const analyze = async () => {
-    if (!file || GROQ_KEYS.length === 0) return;
+    if (!file || GEMINI_KEYS.length === 0) return;
     setLoading(true);
     try {
       const resumeText = await extractText(file);
-      const prompt = `You are a Principal Executive Recruiter and ATS Optimization Expert at a top-tier tech company. Perform a rigorous, highly professional, and granular audit of the following resume. 
+      const prompt = `You are a Senior Technical Recruiter at FAANG. Conduct a deep-dive review of this resume. Resume Text: "${resumeText}". Output STRICTLY in this format: Score: <number 0-100>\nCritical Flaws:\n- <Point 1>\nTechnical Gaps:\n- <Point 1>\nImpact Metrics:\n- <Point 1>\nFormatting:\n- <Point 1>`;
 
-Evaluate based on:
-1. Impact & Metrics (STAR method)
-2. Technical depth and keyword relevance
-3. Narrative and clarity
-4. ATS scannability
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
+      const text = result.response.text();
+      const scoreMatch = text.match(/Score:\s*(\d+)/);
+      const finalScore = scoreMatch ? Number(scoreMatch[1]) : 0;
+      setScore(finalScore);
 
-Resume Text:
-"${resumeText}"
-
-Output STRICTLY a valid JSON object in this exact format. Provide detailed, highly actionable, and professional advice in each array (write 2-3 detailed sentences per point):
-{
-  "score": <number 0-100 representing overall ATS and hiring probability>,
-  "suggestions": {
-    "Executive Assessment": ["Provide a professional evaluation of the candidate's market positioning and overall resume strength."],
-    "Critical Action Items": ["Highly specific, actionable fix regarding missing elements or structural issues.", "Another critical priority fix."],
-    "Impact & Phrasing Refinements": ["Identify a weak bullet point from the resume and write exactly how they should rewrite it using the 'Achieved X by doing Y resulting in Z' format.", "Identify another weak point and provide a rewritten professional example."],
-    "Technical & Skill Alignment": ["Identify missing industry-standard keywords, frameworks, or suggest better ways to group their tech stack."],
-    "ATS Readability": ["Specific formatting, ordering, or phrasing advice to bypass automated tracking systems."]
-  }
-}
-Return ONLY valid JSON. No preamble, no markdown formatting outside of the JSON string values.`;
-
-      const result = await safeGenerateContent({}, prompt, GROQ_KEYS.length, true);
-      const rawText = result.response.text();
-      const parsedData = extractJSON(rawText);
-
-      setScore(parsedData.score || 0);
-      setSuggestions(parsedData.suggestions || {});
+      const sections = {};
+      let currentSection = "";
+      text.split("\n").forEach((line) => {
+        const trim = line.trim();
+        if (
+          trim.endsWith(":") &&
+          !trim.startsWith("-") &&
+          !trim.startsWith("Score")
+        ) {
+          currentSection = trim.replace(":", "");
+          sections[currentSection] = [];
+        } else if (trim.startsWith("-") && currentSection) {
+          sections[currentSection].push(trim.replace("-", "").trim());
+        }
+      });
+      setSuggestions(sections);
 
       if (onSave) {
         onSave({
-          title: `Resume Audit - ${parsedData.score || 0}%`,
+          title: `Resume Audit - ${finalScore}%`,
           fileName: file.name,
-          score: parsedData.score || 0,
-          suggestions: parsedData.suggestions || {},
+          score: finalScore,
+          suggestions: sections,
         });
       }
-    } catch (e) {
-      console.error(e);
-      alert("Analysis failed. Please try again.");
+    } catch {
+      alert("Analysis failed.");
     }
     setLoading(false);
   };
@@ -1439,7 +1376,7 @@ Return ONLY valid JSON. No preamble, no markdown formatting outside of the JSON 
           <p className="text-lg font-medium text-[#111111] mb-2">
             {file ? file.name : "Select document (PDF/DOCX)"}
           </p>
-          <p className="text-sm text-[#A8A39D]">Powered by Llama 3.1</p>
+          <p className="text-sm text-[#A8A39D]">Powered by Gemini 2.5</p>
         </div>
 
         <button
@@ -1467,52 +1404,51 @@ Return ONLY valid JSON. No preamble, no markdown formatting outside of the JSON 
                     {k}
                   </h3>
                   <ul className="space-y-4">
-                    {Array.isArray(v) &&
-                      v.map((item, i) => (
-                        <li
-                          key={i}
-                          className="text-[#4A4A4A] text-sm leading-relaxed flex items-start gap-3 bg-white p-4 rounded-xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)]"
-                        >
-                          <span className="text-[#D97D54] mt-0.5 shrink-0">
-                            •
-                          </span>
-                          <div className="flex-1 overflow-hidden">
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              components={{
-                                p: ({ node, ...props }) => <span {...props} />,
-                                strong: ({ node, ...props }) => (
-                                  <strong
-                                    className="font-semibold text-[#111111]"
+                    {v.map((item, i) => (
+                      <li
+                        key={i}
+                        className="text-[#4A4A4A] text-sm leading-relaxed flex items-start gap-3 bg-white p-4 rounded-xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)]"
+                      >
+                        <span className="text-[#D97D54] mt-0.5 shrink-0">
+                          •
+                        </span>
+                        <div className="flex-1 overflow-hidden">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({ node, ...props }) => <span {...props} />,
+                              strong: ({ node, ...props }) => (
+                                <strong
+                                  className="font-semibold text-[#111111]"
+                                  {...props}
+                                />
+                              ),
+                              code: ({
+                                node,
+                                inline,
+                                className,
+                                children,
+                                ...props
+                              }) =>
+                                inline ? (
+                                  <code
+                                    className="bg-[#F3F1EC] px-1 py-0.5 rounded text-[12px] font-mono text-[#D97D54]"
                                     {...props}
-                                  />
+                                  >
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
                                 ),
-                                code: ({
-                                  node,
-                                  inline,
-                                  className,
-                                  children,
-                                  ...props
-                                }) =>
-                                  inline ? (
-                                    <code
-                                      className="bg-[#F3F1EC] px-1 py-0.5 rounded text-[12px] font-mono text-[#D97D54]"
-                                      {...props}
-                                    >
-                                      {children}
-                                    </code>
-                                  ) : (
-                                    <code className={className} {...props}>
-                                      {children}
-                                    </code>
-                                  ),
-                              }}
-                            >
-                              {item}
-                            </ReactMarkdown>
-                          </div>
-                        </li>
-                      ))}
+                            }}
+                          >
+                            {item}
+                          </ReactMarkdown>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               ))}
@@ -1545,7 +1481,7 @@ export const LenAi = () => {
   const exploreTabs = ["roadmap", "market", "jobs", "resume", "email", "store"];
 
   const [apiKeys, setApiKeys] = useState({
-    groq: localStorage.getItem("groq_api_key") || "",
+    gemini: localStorage.getItem("gemini_api_key") || "",
     rapid: localStorage.getItem("rapid_api_key") || "",
   });
   const [apiSaveStatus, setApiSaveStatus] = useState("");
@@ -1557,6 +1493,7 @@ export const LenAi = () => {
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [chatImage, setChatImage] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -1577,21 +1514,29 @@ export const LenAi = () => {
   const [emailHistory, setEmailHistory] = useState([]);
   const [activeEmailData, setActiveEmailData] = useState(null);
   const [emailInput, setEmailInput] = useState("");
+  const [emailImage, setEmailImage] = useState(null);
   const [emailResult, setEmailResult] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
 
   const [storeTopic, setStoreTopic] = useState("");
 
-  // Dictation States & Refs
   const [isDictating, setIsDictating] = useState(false);
-  const [interimResult, setInterimResult] = useState("");
   const dictationRecognitionRef = useRef(null);
-  const isDictatingRef = useRef(false);
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState("idle");
+  const [transcriptResult, setTranscriptResult] = useState("");
 
   // Three-dot menu states
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingItemId, setEditingItemId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
+
+  const isVoiceModeRef = useRef(false);
+  const voiceStatusRef = useRef("idle");
+  const silenceTimerRef = useRef(null);
+  const transcriptRef = useRef("");
+  const interactiveRecognitionRef = useRef(null);
+  const synthRef = useRef(window.speechSynthesis);
 
   const [videoSidebarOpen, setVideoSidebarOpen] = useState(false);
   const [activeVideoQuery, setActiveVideoQuery] = useState("");
@@ -1615,6 +1560,10 @@ export const LenAi = () => {
       : Math.round((completedCount / totalResourcesCount) * 100);
 
   useEffect(() => {
+    isVoiceModeRef.current = isVoiceMode;
+    voiceStatusRef.current = voiceStatus;
+  }, [isVoiceMode, voiceStatus]);
+  useEffect(() => {
     activeChatIdRef.current = activeChatId;
     messagesRef.current = messages;
   }, [activeChatId, messages]);
@@ -1627,13 +1576,13 @@ export const LenAi = () => {
   };
 
   const handleSaveApiKeys = () => {
-    updateAPIKeys(apiKeys.groq, apiKeys.rapid);
+    updateAPIKeys(apiKeys.gemini, apiKeys.rapid);
     setApiSaveStatus("Saved successfully!");
     setTimeout(() => setApiSaveStatus(""), 3000);
   };
 
   const generateMemoryFromHistory = async () => {
-    if (!user || GROQ_KEYS.length === 0) return;
+    if (!user || GEMINI_KEYS.length === 0) return;
     try {
       const chatsRef = collection(db, "users", user.uid, "chats");
       const chatSnaps = await getDocs(
@@ -1662,7 +1611,10 @@ export const LenAi = () => {
         return;
       }
       const prompt = `Analyze the following chat history... Output ONLY the summary...\n\nChat History:\n${allMessagesText}`;
-      const result = await safeGenerateContent({}, prompt);
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
       const memoryText = result.response.text().trim();
       if (memoryText) {
         await setDoc(doc(db, "users", user.uid, "settings", "memory"), {
@@ -1689,7 +1641,7 @@ export const LenAi = () => {
           if (skipped) return;
           const chatsRef = collection(db, "users", user.uid, "chats");
           const chatSnaps = await getDocs(query(chatsRef, limit(1)));
-          if (!chatSnaps.empty && GROQ_KEYS.length > 0)
+          if (!chatSnaps.empty && GEMINI_KEYS.length > 0)
             await generateMemoryFromHistory();
           else setShowMemoryOnboarding(true);
         }
@@ -1786,129 +1738,213 @@ export const LenAi = () => {
     }
   };
 
-  // -------------------------------------------------------------
-  // SPEECH RECOGNITION / DICTATION MODEL
-  // -------------------------------------------------------------
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-      
-    if (!SpeechRecognition) {
-      console.warn("Speech Recognition API not supported in this browser.");
-      return;
-    }
-
+    if (!SpeechRecognition) return;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
-
-    recognition.onstart = () => {
-      setIsDictating(true);
-      isDictatingRef.current = true;
-    };
-
     recognition.onresult = (event) => {
       let final = "";
-      let interim = "";
-      
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          final += event.results[i][0].transcript;
-        } else {
-          interim += event.results[i][0].transcript;
-        }
-      }
-      
-      setInterimResult(interim);
-
-      if (final) {
-        setInput((prev) => {
-          const space = prev && !prev.endsWith(' ') ? ' ' : '';
-          return prev + space + final.trim();
-        });
-      }
+      for (let i = event.resultIndex; i < event.results.length; i++)
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+      if (final) setInput((prev) => (prev + " " + final).trim());
     };
-
     recognition.onerror = (e) => {
-      console.error("Speech Recognition Error:", e.error);
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-         alert("Microphone access denied. Please allow microphone permissions in your browser.");
-      }
-      setIsDictating(false);
-      isDictatingRef.current = false;
-      setInterimResult("");
+      if (e.error !== "no-speech") setIsDictating(false);
     };
-
     recognition.onend = () => {
-      setInterimResult("");
-      if (isDictatingRef.current) {
+      if (isDictating)
         try {
           recognition.start();
-        } catch (e) {
-          console.error("Failed to restart recognition", e);
-          setIsDictating(false);
-          isDictatingRef.current = false;
-        }
-      } else {
-        setIsDictating(false);
-      }
+        } catch (e) {}
     };
-
     dictationRecognitionRef.current = recognition;
-
-    return () => {
-      isDictatingRef.current = false;
-      setIsDictating(false);
-      setInterimResult("");
-      recognition.onend = null;
-      recognition.onerror = null;
-      recognition.onresult = null;
-      recognition.stop();
-    };
-  }, []);
+  }, [isDictating]);
 
   const toggleDictation = () => {
-    if (!dictationRecognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. Please try Google Chrome.");
-      return;
-    }
-    
-    if (isDictatingRef.current) {
-      isDictatingRef.current = false;
+    if (isVoiceMode) return alert("Please close Interactive Audio first.");
+    if (isDictating) {
       setIsDictating(false);
-      dictationRecognitionRef.current.stop();
+      dictationRecognitionRef.current?.stop();
     } else {
-      isDictatingRef.current = true;
       setIsDictating(true);
       try {
-        dictationRecognitionRef.current.start();
-      } catch (e) {
-        console.error("Dictation start error", e);
-      }
+        dictationRecognitionRef.current?.start();
+      } catch (e) {}
     }
   };
 
-  const sendChat = async (customPrompt = null) => {
-    // If sent from the button click, customPrompt is the event object. Make sure it's a string.
-    const textToSend = typeof customPrompt === "string" ? customPrompt : input;
-    
-    if (!textToSend.trim() || !user || GROQ_KEYS.length === 0) return;
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognition.onresult = (event) => {
+      if (!isVoiceModeRef.current) return;
+      let interimTranscript = "",
+        finalTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal)
+          finalTranscript += event.results[i][0].transcript;
+        else interimTranscript += event.results[i][0].transcript;
+      }
+      const currentSpokenText = finalTranscript || interimTranscript;
+      if (currentSpokenText.trim()) {
+        if (voiceStatusRef.current === "speaking") {
+          synthRef.current?.cancel();
+          setVoiceStatus("listening");
+          voiceStatusRef.current = "listening";
+        }
+        transcriptRef.current += finalTranscript;
+        setTranscriptResult(transcriptRef.current + interimTranscript);
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (
+            transcriptRef.current.trim() &&
+            voiceStatusRef.current !== "thinking"
+          ) {
+            const finalSpokenToSend = transcriptRef.current.trim();
+            transcriptRef.current = "";
+            setTranscriptResult("");
+            sendVoiceChat(finalSpokenToSend);
+          }
+        }, 1500);
+      }
+    };
+    recognition.onerror = (e) => {
+      if (e.error !== "no-speech") console.error(e);
+    };
+    recognition.onend = () => {
+      if (isVoiceModeRef.current)
+        try {
+          recognition.start();
+        } catch (e) {}
+    };
+    interactiveRecognitionRef.current = recognition;
+  }, []);
 
-    setInput("");
-    
-    // Auto-turn off microphone when sending a message
-    if (isDictatingRef.current) {
-      setIsDictating(false);
-      isDictatingRef.current = false;
-      dictationRecognitionRef.current?.stop();
+  const toggleVoiceMode = () => {
+    if (isDictating) return alert("Please stop dictation first.");
+    if (isVoiceMode) {
+      setIsVoiceMode(false);
+      setVoiceStatus("idle");
+      interactiveRecognitionRef.current?.stop();
+      synthRef.current?.cancel();
+      clearTimeout(silenceTimerRef.current);
+      transcriptRef.current = "";
+      setTranscriptResult("");
+    } else {
+      if (!interactiveRecognitionRef.current)
+        return alert("Not supported in this browser. Try Chrome.");
+      setIsVoiceMode(true);
+      setVoiceStatus("listening");
+      transcriptRef.current = "";
+      setTranscriptResult("");
+      try {
+        interactiveRecognitionRef.current.start();
+      } catch (e) {}
     }
-    
+  };
+
+  const sendVoiceChat = async (textToSend) => {
+    if (!textToSend.trim() || !user || GEMINI_KEYS.length === 0) return;
+    setVoiceStatus("thinking");
     setChatLoading(true);
     let cid = activeChatIdRef.current;
 
     if (!cid) {
-      const titleText = textToSend;
+      const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
+        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
+        createdAt: serverTimestamp(),
+      });
+      cid = ref.id;
+      setActiveChatId(ref.id);
+      activeChatIdRef.current = ref.id;
+    } else if (messagesRef.current.length === 0) {
+      await updateDoc(doc(db, "users", user.uid, "chats", cid), {
+        title: textToSend.slice(0, 25) + (textToSend.length > 25 ? "..." : ""),
+      });
+    }
+
+    await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
+      text: textToSend,
+      sender: "user",
+      createdAt: serverTimestamp(),
+    });
+    try {
+      const memoryContext = userMemory
+        ? `\n\n--- USER MEMORY CONTEXT ---\n${userMemory}\n`
+        : "";
+      const systemInstruction = `You are a Principal Software Architect. User: ${user?.displayName || "Atharva"}. Be concise. Never say you are an AI...${memoryContext}. Always say you are trained by SSVA.pvt.Ltd Diploma Students. give answers in  point wise like simple sentences. Do not use more than 2 sentences in a row. Always be concise and to the point. Do no answer in ** format always use - format for points.
+      Do no answer in ** format always use - format for points.
+         Give me answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         give answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         Give answers in points like (-,-) way in that type of format. Never include (**) in any type of answer. Don't include  (I am trained by SSVA.pvt.Ltd Diploma Students) in every answer jst answer only when asked.
+         Do not use more than 2 sentences in a row. Always be concise and to the point.
+         Not in one line change line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
+         give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.`;
+      const history = messagesRef.current.slice(-10).map((m) => ({
+        role: m.sender === "user" ? "user" : "model",
+        parts: [{ text: m.text || "[Image attached]" }],
+      }));
+      const result = await safeSendMessage(
+        { model: "gemini-2.5-flash", systemInstruction },
+        history,
+        textToSend,
+      );
+      const aiResponseText = result.response.text();
+      await addDoc(
+        collection(db, "users", user.uid, "chats", cid, "messages"),
+        { text: aiResponseText, sender: "ai", createdAt: serverTimestamp() },
+      );
+      speakText(aiResponseText);
+    } catch (e) {
+      setVoiceStatus("listening");
+    }
+    setChatLoading(false);
+  };
+
+  const speakText = (text) => {
+    if (!synthRef.current) return;
+    synthRef.current.cancel();
+    setVoiceStatus("speaking");
+    const cleanText = text
+      .replace(/```[\s\S]*?```/g, "Code provided in chat.")
+      .replace(/[#*_~`]/g, "");
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.onend = () => {
+      if (isVoiceModeRef.current) setVoiceStatus("listening");
+    };
+    utterance.onerror = () => {
+      if (isVoiceModeRef.current) setVoiceStatus("listening");
+    };
+    synthRef.current.speak(utterance);
+  };
+
+  const sendChat = async (customPrompt = null) => {
+    const textToSend = customPrompt || input;
+    if ((!textToSend.trim() && !chatImage) || !user || GEMINI_KEYS.length === 0)
+      return;
+
+    setInput("");
+    const currentImage = chatImage;
+    setChatImage(null);
+
+    if (isDictating) {
+      setIsDictating(false);
+      dictationRecognitionRef.current?.stop();
+    }
+    setChatLoading(true);
+    let cid = activeChatIdRef.current;
+
+    if (!cid) {
+      const titleText = textToSend.trim() ? textToSend : "Image Upload";
       const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
         title: titleText.slice(0, 25) + (titleText.length > 25 ? "..." : ""),
         createdAt: serverTimestamp(),
@@ -1917,14 +1953,30 @@ export const LenAi = () => {
       setActiveChatId(ref.id);
       activeChatIdRef.current = ref.id;
     } else if (messagesRef.current.length === 0) {
-      const titleText = textToSend;
+      const titleText = textToSend.trim() ? textToSend : "Image Upload";
       await updateDoc(doc(db, "users", user.uid, "chats", cid), {
         title: titleText.slice(0, 25) + (titleText.length > 25 ? "..." : ""),
       });
     }
 
+    let base64Image = null;
+    let generativePart = null;
+    if (currentImage) {
+      const reader = new FileReader();
+      reader.readAsDataURL(currentImage);
+      await new Promise((r) => (reader.onload = r));
+      base64Image = reader.result;
+      generativePart = {
+        inlineData: {
+          data: base64Image.split(",")[1],
+          mimeType: currentImage.type,
+        },
+      };
+    }
+
     await addDoc(collection(db, "users", user.uid, "chats", cid, "messages"), {
       text: textToSend,
+      imageUrl: base64Image,
       sender: "user",
       createdAt: serverTimestamp(),
     });
@@ -1939,19 +1991,28 @@ export const LenAi = () => {
          give answer in such a way that user can understand easily. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
          Give answers in points like (-,-) way in that type of format. Never include (**) in any type of answer. Don't include  (I am trained by SSVA.pvt.Ltd Diploma Students) in every answer jst answer only when asked.
          Do not use more than 2 sentences in a row. Always be concise and to the point.
-         Not in one line change line after every point. Always try to give answer in one or two sentences.
+         Not in one line change line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.
          Never respond in * like structure always give me proper answer.
-         give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences.`;
+         give answer in points not in one line change the line after every point. Always try to give answer in one or two sentences. If the question is very broad then give a concise answer and ask the user to specify what they want to know more about.`;
 
       const history = messagesRef.current.slice(-3).map((m) => ({
         role: m.sender === "user" ? "user" : "model",
-        parts: [{ text: m.text }],
+        parts: [{ text: m.text || "[Image attached]" }],
       }));
 
+      const messageParts = [];
+      if (textToSend.trim()) messageParts.push(textToSend);
+      if (generativePart) messageParts.push(generativePart);
+
+      const payload =
+        messageParts.length === 1 && typeof messageParts[0] === "string"
+          ? messageParts[0]
+          : messageParts;
+
       const result = await safeSendMessage(
-        { systemInstruction },
+        { model: "gemini-2.5-flash", systemInstruction },
         history,
-        textToSend,
+        payload,
       );
 
       await addDoc(
@@ -1964,7 +2025,6 @@ export const LenAi = () => {
       );
     } catch (e) {
       console.error(e);
-      alert("Failed to send message. Check console.");
     }
     setChatLoading(false);
   };
@@ -1987,18 +2047,20 @@ export const LenAi = () => {
   };
 
   const generateRoadmap = async () => {
-    if (!roadmapInput || GROQ_KEYS.length === 0) return;
+    if (!roadmapInput || GEMINI_KEYS.length === 0) return;
     setRoadmapLoading(true);
     try {
-      const prompt = `Create a masterclass-level career roadmap for a "${roadmapInput}". 
-Return ONLY a valid JSON object with this structure: 
-{ "steps": [{ "step": 1, "title": "", "duration": "", "description": "", "resources": [""] }] }
-Return ONLY JSON. No preamble, no markdown formatting.`;
-
-      const result = await safeGenerateContent({}, prompt, GROQ_KEYS.length, true);
-      const parsed = extractJSON(result.response.text());
-      const data = parsed.steps || [];
-
+      const prompt = `Create a masterclass-level career roadmap for a "${roadmapInput}". Return RAW JSON array: [{ "step": 1, "title": "", "duration": "", "description": "", "resources": [""] }]`;
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        prompt,
+      );
+      const data = JSON.parse(
+        result.response
+          .text()
+          .replace(/```json|```/g, "")
+          .trim(),
+      );
       const ref = await addDoc(collection(db, "users", user.uid, "roadmaps"), {
         role: roadmapInput,
         steps: data,
@@ -2014,18 +2076,31 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
       setRoadmapInput("");
     } catch (e) {
       console.error(e);
-      alert("Failed to create roadmap. Check console.");
     }
     setRoadmapLoading(false);
   };
 
   const generateEmail = async () => {
-    if (!emailInput || GROQ_KEYS.length === 0) return;
+    if ((!emailInput && !emailImage) || GEMINI_KEYS.length === 0) return;
     setEmailLoading(true);
     try {
       const prompt = `You are a professional email writer. Task: Write a polished email based on user notes. Return ONLY email text. Notes: "${emailInput}"`;
-      
-      const result = await safeGenerateContent({}, prompt);
+      const parts = [prompt];
+      if (emailImage) {
+        const reader = new FileReader();
+        reader.readAsDataURL(emailImage);
+        await new Promise((r) => (reader.onload = r));
+        parts.push({
+          inlineData: {
+            data: reader.result.split(",")[1],
+            mimeType: emailImage.type,
+          },
+        });
+      }
+      const result = await safeGenerateContent(
+        { model: "gemini-2.5-flash" },
+        parts,
+      );
       const resultText = result.response.text().trim();
       setEmailResult(resultText);
 
@@ -2051,9 +2126,11 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
     if (activeEmailData) {
       setEmailInput(activeEmailData.emailInput || "");
       setEmailResult(activeEmailData.emailResult || "");
+      setEmailImage(null);
     } else {
       setEmailInput("");
       setEmailResult("");
+      setEmailImage(null);
     }
   }, [activeEmailData]);
 
@@ -2230,7 +2307,7 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
         .join(", ");
       if (!recentChats) return;
       safeGenerateContent(
-        {},
+        { model: "gemini-2.5-flash" },
         `Recent Chats: ${recentChats}. Output SINGLE relevant tech skill to learn.`,
       )
         .then((r) => setStoreTopic(r.response.text().trim()))
@@ -2770,12 +2847,51 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                       : "Atharva"}
                   </h1>
                   <div className="w-full relative z-20">
-                    {isDictating && interimResult && (
-                      <div className="absolute bottom-[105%] left-0 bg-[#111111] text-[#FAF9F6] text-xs px-3 py-1.5 rounded-lg opacity-80 pointer-events-none animate-fade-in shadow-md max-w-full truncate">
-                         <span className="text-[#D97D54]">Listening:</span> {interimResult}
+                    {isVoiceMode && (
+                      <div className="absolute bottom-full left-0 w-full mb-4 bg-white p-4 rounded-2xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <CustomSpeechBubbleIcon
+                              className={`w-4 h-4 ${voiceStatus === "speaking" ? "text-blue-500 animate-pulse" : "text-[#7A756D]"}`}
+                            />
+                            <span className="text-xs font-medium text-[#4A4A4A]">
+                              {voiceStatus === "thinking"
+                                ? "Thinking..."
+                                : voiceStatus === "speaking"
+                                  ? "Len is speaking..."
+                                  : "Listening..."}
+                            </span>
+                          </div>
+                          <button
+                            onClick={toggleVoiceMode}
+                            className="text-xs text-red-500 hover:text-red-700 font-medium transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <textarea
+                          value={transcriptResult}
+                          readOnly
+                          className="w-full h-16 text-xs text-[#4A4A4A] p-2 bg-[#F3F1EC]/50 rounded-lg border border-transparent resize-none outline-none"
+                        />
                       </div>
                     )}
                     <div className="w-full rounded-2xl bg-white border border-[#E8E6DF] focus-within:border-[#D1CEC7] focus-within:shadow-[0_4px_20px_rgb(0,0,0,0.04)] shadow-[0_2px_15px_rgb(0,0,0,0.02)] transition-all flex flex-col p-4">
+                      {chatImage && (
+                        <div className="relative inline-block mb-3 px-2 pt-2">
+                          <img
+                            src={URL.createObjectURL(chatImage)}
+                            alt="Preview"
+                            className="h-16 w-16 object-cover rounded-xl border border-[#E8E6DF]"
+                          />
+                          <button
+                            onClick={() => setChatImage(null)}
+                            className="absolute top-0 right-[-8px] bg-white text-red-500 rounded-full p-1 shadow-sm border border-[#E8E6DF]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                       <textarea
                         className="w-full bg-transparent border-none text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
                         placeholder="How can Len help you today?"
@@ -2788,23 +2904,60 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                             sendChat();
                           }
                         }}
+                        onPaste={(e) => {
+                          if (
+                            e.clipboardData.files &&
+                            e.clipboardData.files.length > 0
+                          ) {
+                            const file = e.clipboardData.files[0];
+                            if (file.type.startsWith("image/")) {
+                              setChatImage(file);
+                              e.preventDefault();
+                            }
+                          }
+                        }}
                         disabled={chatLoading}
                         style={{ minHeight: "60px", maxHeight: "200px" }}
                       />
                       <div className="flex justify-between items-center pt-2">
                         <div className="flex items-center gap-1.5">
+                          <label
+                            className={`p-1.5 rounded-lg transition-colors text-[#7A756D] hover:bg-[#F3F1EC] cursor-pointer`}
+                          >
+                            <Paperclip strokeWidth={1.5} className="w-4 h-4" />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setChatImage(e.target.files[0]);
+                                }
+                              }}
+                            />
+                          </label>
                           <button
                             onClick={toggleDictation}
-                            disabled={chatLoading}
-                            title="Dictate message"
-                            className={`p-1.5 rounded-lg transition-colors ${isDictating ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
+                            disabled={chatLoading || isVoiceMode}
+                            className={`p-1.5 rounded-lg transition-colors ${isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                           >
-                            <Mic strokeWidth={1.5} className={`w-5 h-5 ${isDictating ? "animate-pulse" : ""}`} />
+                            {isDictating ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Mic strokeWidth={1.5} className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={toggleVoiceMode}
+                            disabled={chatLoading || isDictating}
+                            className={`p-1.5 rounded-lg transition-colors ${isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
+                          >
+                            <Headphones strokeWidth={1.5} className="w-4 h-4" />
                           </button>
                         </div>
                         <button
-                          onClick={sendChat}
-                          disabled={!input.trim()}
+                          onClick={() => sendChat()}
+                          disabled={!input.trim() && !chatImage}
                           className="px-3 py-1.5 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition-colors disabled:opacity-40 flex items-center justify-center shadow-sm"
                         >
                           <ArrowRight strokeWidth={2} className="w-4 h-4" />
@@ -2848,6 +3001,13 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                             <div
                               className={`text-[15.5px] leading-relaxed w-full ${m.sender === "user" ? "bg-[#F3F1EC] px-5 py-3 rounded-2xl text-[#111111]" : "text-[#111111] font-[500] tracking-tight"}`}
                             >
+                              {m.imageUrl && (
+                                <img
+                                  src={m.imageUrl}
+                                  alt="Attached"
+                                  className="max-w-xs rounded-xl mb-2 border border-[#E8E6DF]"
+                                />
+                              )}
                               {m.sender === "user" ? (
                                 <div className="whitespace-pre-wrap">
                                   {m.text}
@@ -2963,24 +3123,88 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                       <div ref={chatEndRef}></div>
                     </div>
                   </div>
-                  <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0 z-10 w-full max-w-4xl mx-auto px-4 relative">
-                    {isDictating && interimResult && (
-                      <div className="absolute bottom-[100%] left-6 bg-[#111111] text-[#FAF9F6] text-xs px-3 py-1.5 rounded-lg opacity-80 pointer-events-none animate-fade-in shadow-md max-w-sm truncate mb-2">
-                         <span className="text-[#D97D54]">Listening:</span> {interimResult}
+                  <div className="pb-8 pt-4 bg-gradient-to-t from-[#FAF9F6] via-[#FAF9F6] to-transparent sticky bottom-0 z-10 w-full max-w-4xl mx-auto px-4">
+                    {isVoiceMode && (
+                      <div className="mb-4 bg-white p-6 rounded-3xl border border-[#E8E6DF] shadow-[0_4px_20px_rgb(0,0,0,0.03)] animate-fade-in relative z-20">
+                        <div className="flex items-center justify-between mb-4 border-b border-[#E8E6DF] pb-4">
+                          <div className="flex items-center gap-3">
+                            <CustomSpeechBubbleIcon
+                              className={`w-5 h-5 ${voiceStatus === "speaking" ? "text-blue-500 animate-pulse" : "text-[#7A756D]"}`}
+                            />
+                            <span className="text-sm font-medium text-[#4A4A4A]">
+                              {voiceStatus === "thinking"
+                                ? "Thinking..."
+                                : "Listening..."}
+                            </span>
+                          </div>
+                          <button
+                            onClick={toggleVoiceMode}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F0FE] text-[#1A73E8] rounded-full text-sm font-medium hover:bg-[#D2E3FC] transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <textarea
+                            value={transcriptResult}
+                            readOnly
+                            className="w-full h-24 text-sm text-[#4A4A4A] leading-relaxed p-4 bg-[#F3F1EC]/50 rounded-xl border border-[#E8E6DF] resize-none outline-none focus:border-[#D1CEC7]"
+                          />
+                        </div>
                       </div>
                     )}
                     <div className="relative rounded-3xl bg-white border border-[#E8E6DF] shadow-sm focus-within:border-[#D1CEC7] transition-all flex flex-col pl-2 pt-2 pb-1">
+                      {chatImage && (
+                        <div className="relative inline-block mb-2 ml-2">
+                          <img
+                            src={URL.createObjectURL(chatImage)}
+                            alt="Preview"
+                            className="h-16 w-16 object-cover rounded-xl border border-[#E8E6DF]"
+                          />
+                          <button
+                            onClick={() => setChatImage(null)}
+                            className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full p-1 shadow-sm border border-[#E8E6DF]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1.5 w-full">
+                        <label
+                          className={`p-2 rounded-full flex items-center justify-center transition-colors text-[#7A756D] hover:bg-[#F3F1EC] cursor-pointer`}
+                        >
+                          <Paperclip strokeWidth={1.5} className="w-5 h-5" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setChatImage(e.target.files[0]);
+                              }
+                            }}
+                          />
+                        </label>
                         <button
                           onClick={toggleDictation}
-                          disabled={chatLoading}
-                          title="Dictate message"
-                          className={`p-2 rounded-full flex items-center justify-center transition-colors ${isDictating ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
+                          disabled={chatLoading || isVoiceMode}
+                          className={`p-2 rounded-full flex items-center justify-center transition-colors ${isDictating ? "text-blue-500 bg-blue-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
                         >
-                          <Mic strokeWidth={1.5} className={`w-5 h-5 ${isDictating ? "animate-pulse" : ""}`} />
+                          {isDictating ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <Mic strokeWidth={1.5} className="w-5 h-5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={toggleVoiceMode}
+                          disabled={chatLoading || isDictating}
+                          className={`p-2 rounded-full flex items-center justify-center transition-colors ${isVoiceMode ? "text-red-500 bg-red-50" : "text-[#7A756D] hover:bg-[#F3F1EC]"}`}
+                        >
+                          <Headphones strokeWidth={1.5} className="w-5 h-5" />
                         </button>
                         <textarea
-                          className="flex-1 bg-transparent border-none rounded-3xl p-3 pr-14 text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#4e4943] ml-1"
+                          className="flex-1 bg-transparent border-none rounded-3xl p-3 pr-14 text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#4e4943]"
                           placeholder="Ask Anything to Vitra..."
                           rows={1}
                           value={input}
@@ -2991,12 +3215,24 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                               sendChat();
                             }
                           }}
+                          onPaste={(e) => {
+                            if (
+                              e.clipboardData.files &&
+                              e.clipboardData.files.length > 0
+                            ) {
+                              const file = e.clipboardData.files[0];
+                              if (file.type.startsWith("image/")) {
+                                setChatImage(file);
+                                e.preventDefault();
+                              }
+                            }
+                          }}
                           disabled={chatLoading}
                           style={{ minHeight: "50px", maxHeight: "200px" }}
                         />
                         <button
-                          onClick={sendChat}
-                          disabled={!input.trim()}
+                          onClick={() => sendChat()}
+                          disabled={!input.trim() && !chatImage}
                           className="absolute right-3 bottom-3 p-2 bg-[#D97D54] text-white rounded-lg hover:bg-[#C26B45] transition disabled:opacity-40 flex items-center justify-center shadow-sm"
                         >
                           <ArrowRight strokeWidth={2} className="w-4 h-4" />
@@ -3027,9 +3263,24 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                     />
+                    <div className="bg-white p-5 rounded-2xl border border-[#E8E6DF] shadow-[0_2px_10px_rgb(0,0,0,0.01)] flex items-center justify-between">
+                      <span className="text-sm font-medium text-[#7A756D]">
+                        Attach Context (Image)
+                      </span>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          onChange={(e) => setEmailImage(e.target.files[0])}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        <button className="px-4 py-2 bg-[#F3F1EC] text-[#4A4A4A] text-xs font-medium rounded-lg hover:bg-[#E8E6DF] transition">
+                          {emailImage ? "Attached" : "Upload"}
+                        </button>
+                      </div>
+                    </div>
                     <button
                       onClick={generateEmail}
-                      disabled={emailLoading || !emailInput}
+                      disabled={emailLoading}
                       className="w-full py-4 bg-[#111111] text-[#FAF9F6] rounded-2xl font-medium text-sm hover:bg-[#2D2D2D] transition disabled:opacity-50"
                     >
                       {emailLoading
@@ -3394,15 +3645,15 @@ Return ONLY JSON. No preamble, no markdown formatting.`;
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-[#111111] mb-2">
-                          Groq API Key (Llama 3.1)
+                          Google Gemini API Key
                         </label>
                         <input
                           type="password"
-                          value={apiKeys.groq}
+                          value={apiKeys.gemini}
                           onChange={(e) =>
-                            setApiKeys({ ...apiKeys, groq: e.target.value })
+                            setApiKeys({ ...apiKeys, gemini: e.target.value })
                           }
-                          placeholder="gsk_... (Separate multiple keys with commas)"
+                          placeholder="AIzaSy... (Separate multiple keys with commas)"
                           className="w-full bg-white border border-[#E8E6DF] text-[#111111] px-4 py-3 rounded-xl text-sm focus:border-[#D1CEC7] outline-none shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                         />
                       </div>
