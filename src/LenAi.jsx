@@ -320,7 +320,7 @@ const AboutUs = () => {
     <div className="h-full flex flex-col p-8 md:p-16 overflow-y-auto no-scrollbar bg-[#FAF9F6]">
       <div className="max-w-5xl mx-auto w-full animate-fade-in">
         <h2 className="font-serif text-4xl text-[#111111] mb-4 tracking-tight">
-          About LenAI
+          About Vitra-Intelligence
         </h2>
         <p className="text-[#7A756D] text-lg font-sans mb-10 leading-relaxed">
           Pioneering the future of structured, personalized career architecture.
@@ -333,7 +333,7 @@ const AboutUs = () => {
             Our Mission
           </h3>
           <p className="text-[#4A4A4A] text-[15px] leading-loose mb-6 relative z-10">
-            LenAI is built on the belief that career growth shouldn't be a
+            Vitra is built on the belief that career growth shouldn't be a
             random guessing game. We have designed a cutting-edge, AI-powered
             ecosystem to provide professionals and students with structured,
             systematic pathways to success.
@@ -3592,7 +3592,7 @@ export const LenAi = () => {
                       AI Memory
                     </h3>
                     <p className="text-sm text-[#7A756D] mb-6 leading-relaxed">
-                      Len AI remembers these details about you to provide highly
+                      Vitra remembers these details about you to provide highly
                       personalized advice.
                     </p>
                     <div className="space-y-4">
