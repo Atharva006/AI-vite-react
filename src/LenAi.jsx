@@ -2894,7 +2894,7 @@ export const LenAi = () => {
                       )}
                       <textarea
                         className="w-full bg-transparent border-none text-[15px] text-[#111111] outline-none resize-none placeholder:text-[#A8A39D] leading-relaxed mb-3"
-                        placeholder="How can Len help you today?"
+                        placeholder="How can Vitra help you today?"
                         rows={1}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
