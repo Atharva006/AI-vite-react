@@ -514,7 +514,7 @@ const Home = () => {
             <div className="flex flex-col md:flex-row justify-between items-center pt-8">
               <div className="flex items-center gap-2 mb-4 md:mb-0">
                 <div className="w-6 h-6 bg-slate-900 rounded flex items-center justify-center text-white font-black text-sm">
-                  L
+                  V
                 </div>
                 <span className="font-display text-xl font-bold tracking-tight text-slate-900">
                   Vitra
