@@ -156,7 +156,7 @@ const Home = () => {
                 <div className="w-64 border-r border-gray-100 hidden md:flex flex-col p-4 bg-slate-50/50">
                   <div className="mb-6 flex items-center gap-2 px-2">
                     <div className="w-6 h-6 bg-slate-900 rounded flex items-center justify-center text-white text-xs font-bold">
-                      L
+                      V
                     </div>
                     <span className="font-bold text-slate-900">
                       Vitra Console
