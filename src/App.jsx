@@ -4,6 +4,7 @@ import { useAuth } from "./context/AuthContext";
 import Home from "./Home";
 import { LenAi } from "./LenAi";
 import AdminDashboard from "./pages/AdminDashboard";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import "./App.css";
 
@@ -23,31 +24,34 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
 
-      {/* User-Only Workspace */}
-      <Route
-        path="/LenAi"
-        element={
-          <ProtectedRoute>
-            <LenAi />
-          </ProtectedRoute>
-        }
-      />
+        {/* User-Only Workspace */}
+        <Route
+          path="/LenAi"
+          element={
+            <ProtectedRoute>
+              <LenAi />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Admin-Only Routes */}
-      <Route
-        path="/admin"
-        element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        }
-      />
+        {/* Admin-Only Routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <SpeedInsights />
+    </>
   );
 }
 
